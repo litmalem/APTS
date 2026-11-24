@@ -1,0 +1,14 @@
+INSTALL_STAGE4_3.txt
+PATCH_NOTES_STAGE4_3.md
+README_STAGE4_3.md
+REGRESSION_EVIDENCE_STAGE4_3.txt
+START_STAGE4_3_PENTEST.ps1
+STAGE4_3_ACCEPTANCE.ps1
+pentest_migrations/001_stage4_3_pentest_mission_task_contract.sql
+pentest_subsystem/__init__.py
+pentest_subsystem/api_service.py
+pentest_subsystem/task_contract.py
+pentest_subsystem/task_repository.py
+pentest_subsystem/task_service.py
+run/pentest_subsystem.py
+tests/test_stage4_3_pentest_mission_task_contract.py

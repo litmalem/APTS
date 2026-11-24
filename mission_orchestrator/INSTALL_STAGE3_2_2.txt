@@ -1,0 +1,98 @@
+Stage 3.2.2 - Lifecycle Transition Guard Matrix
+Installation / Regression Steps
+===============================================
+
+Target repository:
+  D:\mission_orchestrator
+
+Baseline required:
+  Stage 3.2.1 accepted/closed
+  Full regression baseline: 125 passed
+  Repository migration level: 8
+
+1. Stop Mission Orchestrator.
+
+2. Back up the existing repository/database.
+
+3. Extract the Stage-3.2.2 patch over:
+     D:\mission_orchestrator
+   preserving directory paths.
+
+4. Database migration
+
+   NONE for Stage 3.2.2.
+
+   Required existing migration level:
+     8
+
+   Latest migration remains:
+     migrations\008_stage3_1_9_mission_event_lineage_foundation.sql
+
+   Do NOT create/apply migration 009 for Stage 3.2.2.
+
+5. Compile
+
+   cd D:\mission_orchestrator
+   python -m compileall -q mission_orchestrator tests
+
+6. Full regression
+
+   python -m pytest -q
+
+   Expected Stage-3.2.2 baseline:
+     140 passed
+
+7. Start/restart Mission Orchestrator
+
+   cd D:\mission_orchestrator
+   python .\run\run_mission_orchestrator.py
+
+8. Verify health
+
+   Invoke-RestMethod http://127.0.0.1:8780/health
+
+   Required indicators include:
+     control_version = stage3.2.2-lifecycle-transition-guard-matrix
+     mission_repository_migration_level = 8
+     mission_lifecycle_command_stage3_2_2_guard_matrix_enabled = True
+     mission_lifecycle_guard_matrix_schema_version = apts-mission-lifecycle-guard-matrix-v1
+     mission_lifecycle_guard_matrix_mode = DETERMINISTIC_LOCAL_PRECONDITION_FAIL_CLOSED
+     mission_lifecycle_guard_matrix_applies_to = LIFECYCLE_COMMAND
+     mission_lifecycle_guard_matrix_local_only = True
+     mission_lifecycle_guard_matrix_external_authority_queries = False
+     mission_lifecycle_legacy_state_transition_api_preserved = True
+     mission_lifecycle_stage3_2_5_dependency_resolution_enabled = False
+     mission_lifecycle_stage3_2_8_completion_gate_enabled = False
+     governance_authorization_authority = EXTERNAL_APTS_GSS
+     target_action_dispatch_enabled = False
+     target_actuation = False
+
+9. Run Stage-3.2.2 acceptance
+
+   cd D:\mission_orchestrator
+
+   Set-ExecutionPolicy `
+       -Scope Process `
+       -ExecutionPolicy Bypass `
+       -Force
+
+   .\STAGE3_2_2_ACCEPTANCE.ps1
+
+   Optional endpoint override:
+
+   .\STAGE3_2_2_ACCEPTANCE.ps1 `
+       -MissionBaseUrl "http://127.0.0.1:8780"
+
+10. Expected final result
+
+    ============================================================================== 
+    STAGE 3.2.2 ACCEPTANCE: PASS
+    ============================================================================== 
+
+Notes
+-----
+- Stage 3.2.2 requires no source change in D:\aptsGS or D:\vulndesk.
+- Acceptance creates local test missions/commands/events in the Mission Orchestrator DB.
+- Guard evaluation performs no external Governance or CTI query.
+- Acceptance performs no target-action dispatch or actuation.
+- Evidence/approval dependency resolution and verified completion remain later stages.

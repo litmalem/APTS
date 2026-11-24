@@ -1,0 +1,18 @@
+Stage 3.7.2 regression-maintenance hotfix
+========================================
+
+Purpose:
+Restore the missing Stage-3.7.1 control in the Stage-3.4.10 historical current-head
+supported_controls expectation. Runtime/service/database files are not changed.
+
+From PowerShell:
+  cd D:\mission_orchestrator
+  Expand-Archive -Path "$HOME\Downloads\STAGE3_7_2_REGRESSION_HOTFIX_V3.zip" -DestinationPath D:\mission_orchestrator -Force
+  python -m pytest -q tests/test_stage3_4_10_routing_delegation_acceptance_regression_gate.py::test_stage3410_health_declares_stage34_closure_without_new_authority_or_migration
+  .\STAGE3_7_2_ACCEPTANCE.ps1
+
+Expected focused probe:
+  1 passed
+
+Authoritative acceptance still requires the full acceptance script to finish with:
+  STAGE 3.7.2 ACCEPTANCE: PASS

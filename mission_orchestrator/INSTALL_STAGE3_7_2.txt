@@ -1,0 +1,95 @@
+STAGE 3.7.2 INSTALL / UPGRADE NOTES
+===================================
+Stage: Adaptation Trigger Detection & Classification
+Target control_version: stage3.7.2-adaptation-trigger-detection-classification
+Target server_version : APTSMissionOrchestrator/3.7.2
+Target migration level: 46
+Expected source baseline: accepted Stage 3.7.1
+
+1. BACK UP
+----------
+Back up the current Mission Orchestrator source tree and Mission repository database.
+Do not overwrite the only copy of the accepted Stage-3.7.1 runtime/database.
+
+2. DEPLOY SOURCE
+----------------
+Deploy the Stage-3.7.2 patch over the accepted Stage-3.7.1 repository root.
+Preserve environment/configuration values that are intentionally external to the package.
+
+3. APPLY DATABASE MIGRATION
+---------------------------
+Apply:
+
+  migrations/046_stage3_7_2_adaptation_trigger_detection_classification.sql
+
+The migration creates:
+
+  mission_adaptation_trigger_classifications
+
+Do not record migration level 46 unless the migration succeeds.
+Stage-3.7.1 migration metadata remains 45 and its durable store remains unchanged.
+
+4. RESTART MISSION ORCHESTRATOR
+-------------------------------
+Restart the service using the same host/runtime procedure used for previous stages.
+
+5. VERIFY HEALTH
+----------------
+Invoke:
+
+  Invoke-RestMethod http://127.0.0.1:8780/health | Select-Object `
+      status, `
+      control_version, `
+      mission_repository_migration_level, `
+      adaptation_replan_database_migration_level, `
+      adaptation_trigger_classification_stage_schema_version, `
+      adaptation_trigger_classification_contract_schema_version, `
+      adaptation_trigger_classification_identity_prefix, `
+      adaptation_trigger_classification_status, `
+      adaptation_trigger_classification_event_type, `
+      adaptation_trigger_classification_persistence_store
+
+Expected core values:
+
+  status                                                = ok
+  control_version                                       = stage3.7.2-adaptation-trigger-detection-classification
+  mission_repository_migration_level                    = 46
+  adaptation_replan_database_migration_level            = 45
+  adaptation_trigger_classification_stage_schema_version= apts-adaptation-trigger-detection-classification-v1
+  adaptation_trigger_classification_contract_schema_version = apts-adaptation-trigger-classification-contract-v1
+  adaptation_trigger_classification_identity_prefix     = rcls-
+  adaptation_trigger_classification_status              = CLASSIFIED
+  adaptation_trigger_classification_event_type          = MISSION_ADAPTATION_TRIGGER_CLASSIFIED
+  adaptation_trigger_classification_persistence_store   = mission_adaptation_trigger_classifications
+
+6. RUN AUTHORITATIVE ACCEPTANCE
+-------------------------------
+From D:\mission_orchestrator (or the deployed repository root):
+
+  Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+  .\STAGE3_7_2_ACCEPTANCE.ps1
+
+The script requires:
+
+  Python compile                                    PASS
+  canonical pytest inventory                        exactly 1197 tests
+  full Stage 3.1-3.7.2 regression                   PASS
+  focused Stage 3.7.2                               exactly 22 passed
+  Stage-3.5.10/3.4.10 current-head tail probes      exactly 2 passed
+  repository migration                              46
+  Stage-3.7.1 migration metadata                    remains 45
+  migration 046                                     present
+  durable store                                     mission_adaptation_trigger_classifications
+  evidence/concurrency health assertions             PASS
+  no-eligibility/no-REPLAN/no-planner authority     PASS
+  no-supersession/no-dispatch/no-actuation authority PASS
+
+7. ACCEPTANCE RULE
+------------------
+Do not record Stage 3.7.2 as accepted until the script terminates with:
+
+  STAGE 3.7.2 ACCEPTANCE: PASS
+
+A PASS means trigger classification is accepted. It does not imply replanning eligibility,
+lifecycle REPLAN authority, planner execution, successor-Plan creation/commit,
+supersession, dispatch, execution, or target actuation is enabled by Stage 3.7.2.

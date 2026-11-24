@@ -1,0 +1,29 @@
+STAGE 3.7.9 INSTALL / ACCEPTANCE
+================================
+
+1. Stop the currently running Mission Orchestrator instance.
+2. Back up D:\mission_orchestrator and its database.
+3. Overlay the Stage-3.7.9 patch contents onto D:\mission_orchestrator.
+4. Apply database migration 053 using the same migration mechanism used for prior stages.
+5. Start Mission Orchestrator normally.
+6. Verify:
+
+   Invoke-RestMethod http://127.0.0.1:8780/health |
+       Select-Object status,control_version,mission_repository_migration_level,replan_event_lineage_schema_version,replan_event_replay_schema_version,replan_recovery_checkpoint_schema_version,replan_recovery_checkpoint_identity_prefix,replan_recovery_persistence_store,replan_lineage_status
+
+Expected essentials:
+  control_version                            stage3.7.9-adapt-replan-lineage-replay-recovery
+  mission_repository_migration_level         53
+  replan_event_lineage_schema_version        apts-replan-event-lineage-v1
+  replan_event_replay_schema_version         apts-replan-event-replay-v1
+  replan_recovery_checkpoint_schema_version  apts-replan-recovery-checkpoint-v1
+  replan_recovery_checkpoint_identity_prefix rplin-
+  replan_recovery_persistence_store          mission_replan_recovery_checkpoints
+  replan_lineage_status                      ACTIVE
+
+7. Run acceptance from D:\mission_orchestrator:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_7_9_ACCEPTANCE.ps1
+
+The acceptance script requires exactly 1344 collected tests, 22 focused Stage-3.7.9 tests, and 18 focused Stage-3.7.8 predecessor tests. It also runs the complete Stage 3.1-3.7.9 regression suite.

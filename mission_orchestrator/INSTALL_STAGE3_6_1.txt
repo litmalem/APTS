@@ -1,0 +1,69 @@
+STAGE 3.6.1 INSTALL / REPLACEMENT NOTES
+Canonical Task Outcome Contract & Identity
+==========================================
+
+Package baseline:
+  Apply over an accepted Stage-3.5.10 Mission Orchestrator tree.
+
+Runtime identity after installation:
+  control_version            = stage3.6.1-canonical-task-outcome-contract-identity
+  server_version             = APTSMissionOrchestrator/3.6.1
+  repository_migration_level = 36
+  persistence_store          = mission_task_outcomes
+
+Recommended Windows installation:
+
+  1. Stop the Mission Orchestrator process using port 8780.
+
+  2. Back up:
+       D:\mission_orchestrator
+     and especially:
+       D:\mission_orchestrator\data\mission_orchestrator.db
+     plus any operator-managed local configuration/secrets.
+
+  3. Replace/update the application tree with the Stage-3.6.1 package.
+     Do NOT overwrite the existing production database with a database from a package.
+
+  4. Database migration:
+       - SQLite development/runtime repository:
+           MissionRepository.ensure_schema() creates/advances the local schema automatically.
+       - MySQL/MariaDB deployment:
+           apply migrations\036_stage3_6_1_canonical_task_outcome_contract_identity.sql
+           using the existing controlled migration procedure.
+
+  5. Start Mission Orchestrator on port 8780.
+
+  6. Verify runtime activation:
+
+       Invoke-RestMethod http://127.0.0.1:8780/health |
+           Select-Object status,control_version,mission_repository_migration_level,task_outcome_contract_schema_version,task_outcome_identity_prefix,task_outcome_persistence_store
+
+     Expected core values:
+       status                                = ok
+       control_version                       = stage3.6.1-canonical-task-outcome-contract-identity
+       mission_repository_migration_level    = 36
+       task_outcome_contract_schema_version  = apts-canonical-task-outcome-contract-v1
+       task_outcome_identity_prefix          = toutcome-
+       task_outcome_persistence_store        = mission_task_outcomes
+
+  7. Run canonical acceptance:
+
+       cd D:\mission_orchestrator
+       Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+       .\STAGE3_6_1_ACCEPTANCE.ps1
+
+     Acceptance requires:
+       - Python compile PASS;
+       - exact pytest inventory = 982;
+       - full 982-test regression PASS;
+       - focused Stage-3.6.1 = 19 PASS;
+       - health/runtime identity and migration checks PASS;
+       - strict no-acceptance/no-completion/no-release/no-runtime/no-Governance boundary checks PASS.
+
+Operational boundary:
+  Stage 3.6.1 only materializes immutable task-outcome identity/evidence.
+  It must not be treated as task acceptance, task completion, dependency release,
+  Plan progression, or Mission completion. Those semantics begin at later Stage-3.6 controls.
+
+Next implementation boundary:
+  Stage 3.6.2 — Task Outcome Acceptance & Completion Eligibility Gate

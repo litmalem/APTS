@@ -1,0 +1,42 @@
+Stage 3.1.6 - Mission Versioning & Concurrency Mode Patch Manifest
+=================================================================
+
+New files
+---------
+README_STAGE3_1_6.md
+PATCH_NOTES_STAGE3_1_6.md
+INSTALL_STAGE3_1_6.txt
+PATCH_MANIFEST_STAGE3_1_6.txt
+STAGE3_1_6_ACCEPTANCE.ps1
+migrations/006_stage3_1_6_mission_versioning_concurrency.sql
+mission_orchestrator/mission_versioning.py
+tests/test_stage3_1_6_mission_versioning_concurrency.py
+
+Modified files
+--------------
+mission_orchestrator/api_service.py
+mission_orchestrator/errors.py
+mission_orchestrator/repository.py
+mission_orchestrator/service.py
+mission_orchestrator/__init__.py
+tests/test_stage3_1_5_governed_task_routing.py
+
+Unchanged subsystem source
+--------------------------
+aptsGSS: no Stage-3.1.6 source change required
+VulnDesk: no Stage-3.1.6 source change required
+
+Validation
+----------
+python -m compileall -q mission_orchestrator tests : PASS
+python -m pytest -q                              : 70 passed
+
+Database
+--------
+SQLite: mission_command_journal auto-created at repository startup.
+MariaDB/MySQL: apply migrations/006_stage3_1_6_mission_versioning_concurrency.sql.
+
+Data safety
+-----------
+Distributable ZIPs exclude data/mission_orchestrator.db, .pytest_cache,
+and __pycache__ so an existing runtime database is not overwritten.

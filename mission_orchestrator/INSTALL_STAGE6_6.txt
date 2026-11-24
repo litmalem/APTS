@@ -1,0 +1,38 @@
+STAGE 6.6 - ARTIFACT & EVIDENCE CAPTURE
+
+Baseline: Mission(20261003-122229).zip, Stage 6.5 migration 5.
+
+1. Hentikan proses Execution yang menggunakan port 8791.
+2. Backup database Execution setelah proses berhenti:
+   D:\mission_orchestrator\data\execution_subsystem.db
+   Gunakan lokasi APTS_EXECUTION_DB / --execution-db jika dikonfigurasi.
+3. Ekstrak isi Mission_Stage6_6_Artifact_Evidence_Capture_PATCH.zip langsung
+   ke D:\mission_orchestrator, menimpa source yang sama.
+   Paket tidak membawa database pengguna atau credential leases.
+4. Mission 8780, Pentest 8790, dan GSS tetap memakai layanan yang sudah aktif.
+   Mission migration 53 / Pentest 16 dipertahankan. Tidak perlu impor SQL dump.
+   Protocol execution revalidation GSS yang digunakan Stage 6.5 tetap berlaku.
+5. PowerShell pertama:
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\START_STAGE6_6_EXECUTION.ps1
+6. PowerShell kedua:
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE6_6_ACCEPTANCE.ps1
+
+Startup mengupgrade Execution DB secara atomik ke migration 6.
+Owner runtime eksklusif dipertahankan. Runner lama menolak DB migration 6.
+Jangan menurunkan metadata migration; rollback menggunakan backup setelah
+menghentikan runtime baru. History yang sudah terminal tetap tanpa capture
+retroaktif. Orphan Stage 6.6 disegel dengan evidence parsial, tanpa redispatch.
+
+Audit opsional atas attempt terminal yang sudah ada:
+   .\STAGE6_6_ACCEPTANCE.ps1 -LiveAttemptId 'xattempt-...'
+
+Default API tetap loopback port 8791. Parameter GovernanceUrl, ExecutionDb,
+MissionDb, PentestDb, dan CredentialLeasesFile tersedia di startup script.
+Tidak ada target execution yang dijalankan otomatis oleh instalasi/acceptance.
+Tes menggunakan target loopback dan database terisolasi.
+
+Next: Stage 6.7 - VEP Construction & Integrity.

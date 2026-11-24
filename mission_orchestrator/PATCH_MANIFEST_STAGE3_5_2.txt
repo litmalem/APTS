@@ -1,0 +1,93 @@
+Stage 3.5.2 — Dispatch Eligibility & Execution Preconditions
+============================================================
+
+New files
+---------
+mission_orchestrator/dispatch_eligibility.py
+migrations/028_stage3_5_2_dispatch_eligibility_execution_preconditions.sql
+tests/test_stage3_5_2_dispatch_eligibility_execution_preconditions.py
+README_STAGE3_5_2.md
+PATCH_NOTES_STAGE3_5_2.md
+INSTALL_STAGE3_5_2.txt
+REGRESSION_EVIDENCE_STAGE3_5_2.txt
+STAGE3_5_2_ACCEPTANCE.ps1
+
+Modified runtime files
+----------------------
+mission_orchestrator/api_service.py
+mission_orchestrator/errors.py
+mission_orchestrator/mission_events.py
+mission_orchestrator/repository.py
+mission_orchestrator/repository_model.py
+mission_orchestrator/service.py
+
+Rebased / compatibility regression assertions
+---------------------------------------------
+tests/test_stage3_1_10_acceptance_regression_gate.py
+tests/test_stage3_1_6_mission_versioning_concurrency.py
+tests/test_stage3_1_7_mission_persistence_repository_model.py
+tests/test_stage3_1_8_canonical_mission_api_validation_layer.py
+tests/test_stage3_1_9_mission_event_lineage_foundation.py
+tests/test_stage3_2_10_lifecycle_acceptance_regression_gate.py
+tests/test_stage3_2_1_mission_lifecycle_command_contract.py
+tests/test_stage3_2_2_lifecycle_transition_guard_matrix.py
+tests/test_stage3_2_3_mission_pip_activation.py
+tests/test_stage3_2_4_planning_run_activation.py
+tests/test_stage3_2_5_waiting_dependency_control.py
+tests/test_stage3_2_6_pause_resume_replanning_control.py
+tests/test_stage3_2_7_abort_failure_expiration_semantics.py
+tests/test_stage3_2_8_cleanup_verified_completion_gate.py
+tests/test_stage3_2_9_event_driven_lifecycle_automation_reliability.py
+tests/test_stage3_3_10_planning_acceptance_regression_gate.py
+tests/test_stage3_3_1_canonical_plan_contract_identity.py
+tests/test_stage3_3_2_planner_input_snapshot_context_binding.py
+tests/test_stage3_3_3_canonical_task_decomposition_contract.py
+tests/test_stage3_3_4_task_dependency_graph_structural_validation.py
+tests/test_stage3_3_5_planner_invocation_plan_generation.py
+tests/test_stage3_3_6_plan_validation_feasibility_gate.py
+tests/test_stage3_3_7_plan_versioning_replanning_supersession.py
+tests/test_stage3_3_8_task_readiness_scheduling_projection.py
+tests/test_stage3_3_9_planning_event_lineage_replay_recovery.py
+tests/test_stage3_4_10_routing_delegation_acceptance_regression_gate.py
+tests/test_stage3_4_1_canonical_subsystem_registry_capability_contract.py
+tests/test_stage3_4_2_task_routing_intent_candidate_resolution.py
+tests/test_stage3_4_3_routing_eligibility_compatibility_gate.py
+tests/test_stage3_4_4_deterministic_route_selection_decision_record.py
+tests/test_stage3_4_5_governance_bound_delegation_authorization.py
+tests/test_stage3_4_6_canonical_delegation_contract_handoff_envelope.py
+tests/test_stage3_4_7_delegation_delivery_acknowledgement_ownership.py
+tests/test_stage3_4_8_retry_fallback_reassignment_conflict_control.py
+tests/test_stage3_4_9_routing_delegation_event_lineage_replay_recovery.py
+tests/test_stage3_5_1_canonical_execution_dispatch_contract_identity.py
+
+Database migration
+------------------
+028_stage3_5_2_dispatch_eligibility_execution_preconditions.sql
+repository migration level -> 28
+new durable store -> mission_execution_dispatch_eligibility_gates
+
+Mission event
+-------------
+MISSION_DISPATCH_ELIGIBILITY_PRECONDITIONS_SATISFIED
+
+Runtime identity
+----------------
+control_version -> stage3.5.2-dispatch-eligibility-execution-preconditions
+server_version  -> APTSMissionOrchestrator/3.5.2
+predecessor     -> stage3.5.1-canonical-execution-dispatch-contract-identity
+
+Acceptance expectations
+-----------------------
+Python compile: PASS
+Collected test cardinality: 817
+Focused Stage 3.5.2: 19 passed
+Canonical execution preconditions: 25 / 25 SATISFIED on positive path
+Persisted gate result: PASSED
+Eligibility result: ELIGIBLE_FOR_PRE_DISPATCH_GOVERNANCE_REVALIDATION
+Actual execution authorization: NOT IMPLEMENTED / NOT PERFORMED
+Governance revalidation query: NOT PERFORMED by Stage 3.5.2
+Runtime endpoint resolution: NOT PERFORMED
+Runtime health probe: NOT PERFORMED
+Resource assignment: NOT PERFORMED
+Network dispatch: NOT PERFORMED
+Target actuation: NOT PERFORMED

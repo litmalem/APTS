@@ -1,0 +1,27 @@
+{
+  "schema_version": "apts-gss-component-dependencies-v1",
+  "component": "GOV-PLANE",
+  "python": ">=3.11",
+  "runtime": {
+    "requirements": "requirements.txt",
+    "imports": {
+      "fastapi": "fastapi",
+      "uvicorn": "uvicorn",
+      "pydantic": "pydantic",
+      "dotenv": "python-dotenv",
+      "pymysql": "PyMySQL",
+      "requests": "requests"
+    }
+  },
+  "acceptance": {
+    "requirements": "requirements-dev.txt",
+    "imports": {"pytest": "pytest", "httpx": "httpx"}
+  },
+  "gui": {
+    "requirements": "requirements-gui.txt",
+    "imports": {"PySide6": "PySide6"},
+    "required_for_api": false
+  },
+  "mission_execution_overlay_may_replace_gss_requirements": false,
+  "source_hashes": "GSS_SOURCE_MANIFEST.json"
+}

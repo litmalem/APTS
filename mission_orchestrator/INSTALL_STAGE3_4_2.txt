@@ -1,0 +1,60 @@
+Stage 3.4.2 - Task Routing Intent & Candidate Resolution
+Installation / Regression Steps
+======================================================
+
+Target repository:
+  D:\mission_orchestrator
+
+1. Stop Mission Orchestrator before replacing files.
+2. Back up the repository and production database.
+3. Extract the Stage-3.4.2 full package or patch over D:\mission_orchestrator preserving paths.
+4. Database migration:
+   - Existing required level: 18.
+   - Apply:
+       migrations\019_stage3_4_2_task_routing_intent_candidate_resolution.sql
+     to the production MySQL/MariaDB database.
+   - Expected repository migration level after migration: 19.
+   - SQLite test/dev repositories create the equivalent store automatically.
+5. Compile:
+     cd D:\mission_orchestrator
+     python -m compileall -q mission_orchestrator tests
+6. Full regression:
+     python -m pytest -q
+   If the complete suite exceeds the shell/session time limit, run the Stage groups/test modules separately.
+7. Focused Stage-3.4 verification:
+     python -m pytest -q tests\test_stage3_4_1_canonical_subsystem_registry_capability_contract.py tests\test_stage3_4_2_task_routing_intent_candidate_resolution.py
+   Expected:
+     44 passed
+8. Start/restart Mission Orchestrator:
+     python .\run\run_mission_orchestrator.py
+9. Verify health:
+     Invoke-RestMethod http://127.0.0.1:8780/health
+   Expected key values:
+     control_version = stage3.4.2-task-routing-intent-candidate-resolution
+     mission_repository_migration_level = 19
+     task_routing_intent_database_migration_level = 19
+     task_routing_candidate_resolution_performed = true
+     task_routing_candidate_is_eligibility_decision = false
+     task_routing_eligibility_gate_performed = false
+     task_routing_route_selection_performed = false
+     task_routing_governance_query_performed = false
+     task_routing_delegation_performed = false
+     task_routing_dispatch_performed = false
+     governance_authorization_authority = EXTERNAL_APTS_GSS
+10. Run live/control acceptance:
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE3_4_2_ACCEPTANCE.ps1
+11. Expected final result:
+     STAGE 3.4.2 ACCEPTANCE: PASS
+
+Authority invariants:
+  CANDIDATE != ELIGIBLE
+  CANDIDATE != SELECTED ROUTE
+  ROUTING INTENT != AUTHORIZATION
+  ROUTING INTENT != DELEGATION
+  ROUTING INTENT != EXECUTION
+
+Important:
+  Stage 3.4.2 does not resolve runtime endpoints, probe subsystem health,
+  assign resources, query Governance, select a final route, delegate work,
+  dispatch target actions, or actuate a target.

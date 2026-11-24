@@ -1,0 +1,29 @@
+STAGE 3.7.6 INSTALLATION
+========================
+Stage: Replan Candidate Validation & Delta Feasibility Gate
+Expected predecessor: Stage 3.7.5 — Deterministic Replan Candidate Generation
+Expected predecessor repository migration: 49
+Target repository migration: 50
+
+1. Stop the current Mission Orchestrator.
+2. Back up mission_orchestrator/, migrations/, tests/, and the Mission Orchestrator database.
+3. Extract PATCH_STAGE3_7_6.zip into the Mission Orchestrator root, preserving relative paths.
+4. Verify SHA256_STAGE3_7_6.txt and PATCH_STAGE3_7_6.zip.sha256.
+5. Start Mission Orchestrator. Repository initialization should advance to migration 50 and create mission_replan_decisions.
+6. Verify /health reports:
+   control_version = stage3.7.6-replan-candidate-validation-delta-feasibility-gate
+   mission_repository_migration_level = 50
+   replan_validation_identity_prefix = rpdec-
+   replan_validation_validated_status = VALIDATED_FOR_COMMIT
+   replan_validation_rejected_status = REJECTED_INFEASIBLE
+   replan_validation_persistence_store = mission_replan_decisions
+7. Run authoritative acceptance:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_7_6_ACCEPTANCE.ps1
+
+Do not record Stage-3.7.6 formal acceptance unless the script terminates with:
+
+   STAGE 3.7.6 ACCEPTANCE: PASS
+
+Operational boundary: Stage 3.7.6 validates only. It does not create/activate a successor Plan, commit replanning, supersede the source Plan, transition Mission state, route/delegate work, dispatch execution, or actuate a target. Those remain reserved for later stages.

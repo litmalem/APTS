@@ -1,0 +1,46 @@
+-- Stage 3.5.9 — Execution Event Lineage, Replay & Recovery
+-- Adds immutable execution recovery checkpoints derived exclusively from durable
+-- Stage 3.5.1–3.5.8 artifacts and the verified Mission event ledger. Replay is
+-- read-only and recovery performs no runtime I/O, governance query, redispatch,
+-- new execution attempt, target actuation, or Mission lifecycle transition.
+
+CREATE TABLE IF NOT EXISTS mission_execution_recovery_checkpoints (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    checkpoint_id VARCHAR(100) NOT NULL,
+    mission_id VARCHAR(80) NOT NULL,
+    checkpoint_version INT UNSIGNED NOT NULL,
+    outcome_propagation_id VARCHAR(100) NOT NULL,
+    result_capture_id VARCHAR(100) NOT NULL,
+    termination_control_id VARCHAR(100) NULL,
+    execution_attempt_id VARCHAR(100) NOT NULL,
+    plan_version_record_id VARCHAR(100) NOT NULL,
+    plan_version INT UNSIGNED NOT NULL,
+    planned_task_id VARCHAR(100) NOT NULL,
+    schema_version VARCHAR(180) NOT NULL,
+    request_sha256 CHAR(64) NOT NULL,
+    idempotency_key VARCHAR(128) NOT NULL,
+    canonical_sha256 CHAR(64) NOT NULL,
+    canonical_json LONGTEXT NOT NULL,
+    source_state VARCHAR(40) NOT NULL,
+    source_state_version BIGINT UNSIGNED NOT NULL,
+    source_version_sha256 CHAR(64) NOT NULL,
+    source_event_count INT UNSIGNED NOT NULL,
+    source_event_tip_sha256 CHAR(64) NOT NULL,
+    created_by VARCHAR(128) NOT NULL,
+    reason TEXT NULL,
+    created_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_execution_recovery_checkpoint_id (checkpoint_id),
+    UNIQUE KEY uq_execution_recovery_idempotency (mission_id, idempotency_key),
+    UNIQUE KEY uq_execution_recovery_version (mission_id, checkpoint_version),
+    UNIQUE KEY uq_execution_recovery_outcome (mission_id, outcome_propagation_id),
+    KEY idx_execution_recovery_mission (mission_id, checkpoint_version),
+    CONSTRAINT fk_execution_recovery_mission FOREIGN KEY (mission_id) REFERENCES global_missions(mission_id),
+    CONSTRAINT fk_execution_recovery_outcome FOREIGN KEY (outcome_propagation_id) REFERENCES mission_execution_outcome_propagations(outcome_propagation_id),
+    CONSTRAINT fk_execution_recovery_result FOREIGN KEY (result_capture_id) REFERENCES mission_execution_result_captures(result_capture_id),
+    CONSTRAINT fk_execution_recovery_termination FOREIGN KEY (termination_control_id) REFERENCES mission_execution_termination_controls(termination_control_id),
+    CONSTRAINT fk_execution_recovery_attempt FOREIGN KEY (execution_attempt_id) REFERENCES mission_execution_attempts(execution_attempt_id),
+    CONSTRAINT fk_execution_recovery_plan FOREIGN KEY (plan_version_record_id) REFERENCES mission_plan_versions(plan_version_record_id),
+    CONSTRAINT fk_execution_recovery_task FOREIGN KEY (planned_task_id) REFERENCES mission_planned_tasks(planned_task_id),
+    CONSTRAINT chk_execution_recovery_json CHECK (json_valid(canonical_json))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

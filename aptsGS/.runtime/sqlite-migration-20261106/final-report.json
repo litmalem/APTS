@@ -1,0 +1,109 @@
+{
+  "source": "mysql",
+  "target": "D:\\APTS\\aptsGS\\data\\governance.sqlite3",
+  "tables": {
+    "gov_approval_decisions": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "gov_approval_requests": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "gov_audit_log": {
+      "rows": 28,
+      "sha256": "f9f609415e4534e25c249e52910d6a0d833aa24dcd57abd72bcea178ccb39587"
+    },
+    "gov_authorization_requests": {
+      "rows": 18,
+      "sha256": "7f050b7deb1b625cc4bd9725ae72820858e2eda7800dbee7a53868fe7c648fcb"
+    },
+    "gov_compliance_obligations": {
+      "rows": 3,
+      "sha256": "ac1a6eb154924755608b94ada5f09c3cfc7d829042a3bfba3c353f4bc03ca2f4"
+    },
+    "gov_emergency_actions": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "gov_emergency_state": {
+      "rows": 1,
+      "sha256": "28f82ff6c14c5649cf1648055d8e992349bd9560077dd1685017df25aee24d14"
+    },
+    "gov_event_outbox": {
+      "rows": 28,
+      "sha256": "0dde8b7fe3361bb5003807a446dfec4a7b9dc7a72785b58ca111c041c0f46530"
+    },
+    "gov_policy_decisions": {
+      "rows": 18,
+      "sha256": "44002f1bcd3a120da2b33e49add6bb37379cd7afc9ce12fdbbab054930d2b2ab"
+    },
+    "gov_policy_rules": {
+      "rows": 6,
+      "sha256": "19c6e5d983fddb0cc8c34b8f9ec87bedce069a765d60d7e0f1c9d63eb07e154e"
+    },
+    "gov_policy_sets": {
+      "rows": 1,
+      "sha256": "2e9d5c12a82307f451919ecd6a7e4ae3a690b07706008cbb452ee77e35a4fad8"
+    },
+    "gov_risk_assessments": {
+      "rows": 18,
+      "sha256": "845ccd35dac01d0a78df6373f01e3d0f411645a872e58c86c9d3cd544e45d2bc"
+    },
+    "gov_scope_action_constraints": {
+      "rows": 16,
+      "sha256": "3fd5a40ec915ff92cbee8587f9322d8e34e8f5c1eaed726c5c37a583d0f15b21"
+    },
+    "gov_scope_contracts": {
+      "rows": 4,
+      "sha256": "b6d0c19399148e97a136474523f552ce37a67f61768ddc7f835208fef0e58d9f"
+    },
+    "gov_scope_sources": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "gov_scope_targets": {
+      "rows": 4,
+      "sha256": "b882623b114efa29f14f73b183eecf0c6a3eac12e765d0e22c8c8382e05ec1cc"
+    }
+  },
+  "audit": {
+    "records": 28,
+    "head_sha256": "6ead0a08412ddd2ddbcbfe8278924386cbbdbf14ae9431ccb21202cd6055a97c",
+    "valid": true
+  },
+  "foreign_keys": 13,
+  "identity_collation": "ASCII NOCASE; non-ASCII identity keys rejected",
+  "total_rows": 145,
+  "integrity_check": "ok",
+  "foreign_key_check": "ok",
+  "cutover": {
+    "database_backend": "sqlite",
+    "database": "ok",
+    "outbox_worker_running": true,
+    "mysql_preserved": true,
+    "tests_passed": 175
+  },
+  "snapshot_sha256": "9a951cfa06852e142287372578923c64003d3622b9faab0181cf78dd29bb829e",
+  "live_http_checks": {
+    "/api/session": 200,
+    "/api/governance/console/overview": 200,
+    "/api/governance/console/records/scopes": 200,
+    "/api/governance/console/records/decisions": 200,
+    "/api/governance/console/records/audit": 200,
+    "/api/governance/console/records/policies": 200,
+    "/api/governance/console/records/approvals": 200,
+    "/api/governance/console/records/emergency-history": 200,
+    "/api/governance/runtime/status": 200
+  },
+  "quick_login": "HTTP 200",
+  "logout": "HTTP 200",
+  "post_cutover_tests_passed": 26,
+  "source_clock_note": {
+    "mysql_session_timezone": "SYSTEM",
+    "observed_offset_minutes": 420,
+    "historical_timestamps": "copied unchanged",
+    "sqlite_new_sql_timestamps": "UTC",
+    "source_outbox_pending_or_failed_at_cutover": 0
+  }
+}

@@ -1,0 +1,55 @@
+Stage 3.1.2 - Canonical Mission State Model
+============================================
+
+Target folder: D:\mission_orchestrator
+
+1. Stop APTS-MO01 if it is running.
+
+2. Backup current Stage 3.1.1 folder (recommended):
+
+   Copy-Item D:\mission_orchestrator D:\mission_orchestrator_stage3_1_1_backup -Recurse
+
+3. Extract STAGE3_1_2_CANONICAL_MISSION_STATE_PATCH.zip into:
+
+   D:\mission_orchestrator
+
+   Preserve folder paths and overwrite the four existing Python files when asked.
+
+4. SQLite mode:
+
+   No manual database migration is required. On first startup, APTS-MO01 creates
+   mission_states and mission_state_transitions and backfills existing Stage-3.1.1
+   missions as CREATED/state_version=1 without rewriting mission_envelopes.
+
+5. MariaDB/MySQL mode only:
+
+   cd D:\mission_orchestrator
+   mysql -u root -p < .\migrations\002_stage3_1_2_canonical_mission_state_model.sql
+
+6. Regression before service start:
+
+   cd D:\mission_orchestrator
+   python -m pytest -q
+
+   Expected: 19 passed (with the Stage-3.1.1 + Stage-3.1.2 files supplied here).
+
+7. Start APTS-MO01:
+
+   cd D:\mission_orchestrator
+   python .\run\run_mission_orchestrator.py --host 127.0.0.1 --port 8780
+
+8. In a second PowerShell run acceptance:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process Bypass -Force
+   .\STAGE3_1_2_ACCEPTANCE.ps1
+
+   Expected final line:
+
+   STAGE 3.1.2 ACCEPTANCE: PASS
+
+Important boundary:
+- no CTI/Pentest dispatch is enabled;
+- no Governance authorization is performed by this patch;
+- no target actuation is enabled;
+- Stage-3.1.1 canonical envelopes remain immutable.

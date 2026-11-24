@@ -1,0 +1,46 @@
+Stage 3.9.2 Hotfix 1 — Regression Evidence
+
+Triggering authoritative host result
+------------------------------------
+Stage 3.9.2 pre-regression qualification: PASS
+Canonical inventory: 1458
+Full regression: 3 failed, 1455 passed
+
+Failing assertions
+------------------
+1. tests/test_stage3_4_10_routing_delegation_acceptance_regression_gate.py
+   test_stage3410_final_supported_control_tail_is_complete_and_ordered
+
+2. tests/test_stage3_5_10_execution_dispatch_acceptance_regression_gate.py
+   test_12_stage35_supported_control_tail_is_complete_ordered_and_closed
+
+3. tests/test_stage3_8_1_canonical_observability_trace_identity_contract.py
+   test_12_stage3710_remains_immediate_predecessor_in_supported_control_chain
+
+Root cause
+----------
+All three assertions omitted the preserved Stage 3.9.1 control from a fixed supported_controls suffix/tail.
+Canonical runtime order is:
+
+stage3.8.10-observe-reconstruct-acceptance-regression-gate
+stage3.9.1-canonical-e2e-mission-scenario-acceptance-contract
+stage3.9.2-intake-lifecycle-e2e-segment-qualification
+
+Hotfix scope
+------------
+Test-only supported-control regression rebase. No production runtime changes.
+
+Local verification
+------------------
+Python compilation: PASS
+Canonical collection: 1458 tests
+Previously failing assertions: 3/3 PASS
+Affected + predecessor/current modules:
+  - Stage 3.4.10
+  - Stage 3.5.10
+  - Stage 3.8.1
+  - Stage 3.9.1
+  - Stage 3.9.2
+Result: 63/63 PASS
+
+Full 1458-test regression is intentionally left for authoritative Windows-host acceptance.

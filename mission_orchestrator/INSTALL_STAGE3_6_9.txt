@@ -1,0 +1,33 @@
+STAGE 3.6.9 INSTALLATION — OUTCOME LINEAGE, REPLAY & RECOVERY
+
+1. Stop the Mission Orchestrator runtime.
+2. Back up D:\mission_orchestrator\data\mission_orchestrator.db and operator configuration.
+3. Extract the Stage-3.6.9 patch/full bundle over D:\mission_orchestrator, preserving the live data directory.
+4. Apply migrations\044_stage3_6_9_outcome_lineage_replay_recovery.sql using the normal production migration procedure. Fresh/test SQLite repositories receive the schema from repository.py; existing production databases must be migrated before restart.
+5. Restart the runtime.
+6. Verify GET http://127.0.0.1:8780/health reports:
+   control_version = stage3.6.9-outcome-lineage-replay-recovery
+   mission_repository_migration_level = 44
+   outcome_event_lineage_schema_version = apts-outcome-event-lineage-v1
+   outcome_event_replay_schema_version = apts-outcome-event-replay-v1
+   outcome_recovery_checkpoint_schema_version = apts-outcome-recovery-checkpoint-v1
+   outcome_recovery_checkpoint_identity_prefix = orecover-
+   outcome_recovery_persistence_store = mission_outcome_recovery_checkpoints
+   outcome_recovery_event_type = MISSION_OUTCOME_RECOVERY_CHECKPOINTED
+   outcome_recovery_allowed_states = [COMPLETED]
+7. Run from PowerShell:
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_6_9_ACCEPTANCE.ps1
+8. Acceptance is complete only when the script prints STAGE 3.6.9 ACCEPTANCE: PASS.
+
+Operational semantics:
+- Stage 3.6.9 is valid only after the Stage-3.6.8 verified-completion lifecycle handoff has reached COMPLETED.
+- Recovery binds the exact current Mission version/state, active Plan head, verified-completion declaration, and current outcome-event count/tip hash.
+- The complete Stage-3.6.1 through Stage-3.6.8 durable evidence chain is re-verified during reconstruction.
+- Replay is deterministic, ordered, read-only, and side-effect free.
+- The immutable orecover-* checkpoint is persisted in mission_outcome_recovery_checkpoints and is covered by repository reconstruction/integrity verification.
+- Recovery never re-executes work, redispatches, resumes runtime execution, queries Governance/runtime services, creates an execution attempt, issues a target action, changes Mission state, or actuates a target.
+- Replaying the same idempotency key returns the same durable checkpoint; reusing the key with a changed canonical request fails closed.
+
+Do not replace or delete the live data directory from the bundle.

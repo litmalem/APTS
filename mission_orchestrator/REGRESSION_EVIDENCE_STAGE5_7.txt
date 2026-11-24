@@ -1,0 +1,83 @@
+Stage 5.7 implementation-environment regression evidence
+Date: 2026-10-01
+
+Control:
+  stage5.7-post-exploitation-impact-agent
+
+Pentest migration:
+  14
+
+Python compilation:
+  PASS
+
+Canonical pytest inventory:
+  1985 tests collected
+
+Focused Stage 5.6 predecessor compatibility:
+  28 passed in 7.32s
+
+Focused Stage 5.7:
+  28 passed in 7.91s
+
+Stage 5.1 -> Stage 5.4 predecessor segment:
+  102 passed in 15.99s
+
+Stage 5.5 -> Stage 5.7 predecessor/impact segment:
+  84 passed in 21.17s
+
+Stage 4.7 -> Stage 4.9 governance/evidence foundation:
+  87 passed in 5.60s
+
+Critical Stage 3.9.10 -> Stage 4.10 -> Stage 5.1/5.5/5.6/5.7 regression:
+  138 passed in 32.80s
+
+Combined Stage 5.1 -> Stage 5.7 and Stage 4.7 -> Stage 5.7 aggregate invocations:
+  attempted in the packaging environment; the long combined invocations reached the final
+  portion of their test sets without an observed failure before the container time limit, but
+  did not complete within that tool window. They are therefore not reported as PASS here.
+  The same coverage was qualified in completed split runs above.
+
+Full historical suite:
+  not executed to completion inside the packaging environment because the repository-wide
+  suite is long-running. The deployment-host STAGE5_7_ACCEPTANCE.ps1 is the final PASS/FAIL
+  authority and executes all 1985 collected tests after focused, predecessor, governance,
+  and critical acceptance qualification.
+
+Implemented Stage 5.7 capabilities:
+  bounded PENTEST_POST_EXPLOITATION_IMPACT_AGENT specialist
+  strict request schema and executable/post-exploitation-result injection rejection
+  deterministic imprun-* run identity
+  exact Stage-5.6 run/output/evidence hash binding
+  Stage-5.5 attack-path provenance verification
+  reached-privilege assessment without false observation claims
+  accessible-resource assessment without target enumeration
+  potential lateral-movement projection without execution
+  security-impact projection without confirmed-compromise semantics
+  operator-declared business-impact context
+  evidence-sufficiency assessment with explicit Stage-6 evidence gaps
+  fail-closed / review / defer stop-condition model
+  provisional PostValidationFinding artifacts only
+  SHA-bound Stage-5.7 output and evidence bundle
+  no candidate fabrication when Stage-5.6 has no proposals
+  idempotent replay and restart-safe persistence
+  tamper detection on stored output/evidence
+  Stage-5.1 impact_analysis handoff and Stage-5 specialist-pipeline completion
+  HTTP contract/run/get/list aliases
+
+Authority boundary:
+  no caller-supplied post-exploitation observations or credentials
+  no raw tool access
+  no direct external target-network I/O
+  no target actuation
+  no credential extraction
+  no lateral-movement execution
+  no Stage-6 ExecutionRequest creation
+  no ACTION_RESULT creation
+  no new target execution evidence
+  no confirmed FINDING creation
+  no proof-of-compromise claim
+  no PolicyDecision minting
+  Stage 6 remains controlled execution and target-evidence authority
+
+Next:
+  Stage 5.8 — Cross-Agent Feedback, Shared State & Replanning

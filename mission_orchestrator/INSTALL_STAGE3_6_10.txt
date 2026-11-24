@@ -1,0 +1,122 @@
+STAGE 3.6.10 INSTALL / ACTIVATION
+Outcome Acceptance / Regression Gate
+======================================================================
+
+EXPECTED RUNTIME
+----------------
+control_version              = stage3.6.10-outcome-acceptance-regression-gate
+server_version               = APTSMissionOrchestrator/3.6.10
+repository_migration_level   = 44
+new database migration       = NONE
+new durable store            = NONE
+canonical pytest inventory   = 1156 tests
+Stage-3.6 chain              = 193 tests
+focused Stage-3.6.10 tests   = 12 tests
+
+IMPORTANT
+---------
+Stage 3.6.10 is a closure/acceptance gate. It adds no outcome-processing
+primitive, no task/Mission completion authority, no Governance query, no
+runtime I/O, no dispatch/redelivery, no target actuation, no new lifecycle
+transition path, and no new persistence capability.
+
+The runtime does NOT self-certify acceptance. Official Stage-3.6 closure is
+the result of the external acceptance harness on the target host.
+
+INSTALL / UPDATE
+----------------
+1. Stop the currently running Mission Orchestrator process on port 8780.
+
+2. Back up D:\mission_orchestrator. Preserve local runtime data, databases,
+   secrets/configuration, and any operator-managed files before replacement.
+
+3. Apply/extract this Stage-3.6.10 package over D:\mission_orchestrator.
+
+4. Verify that migration 045 was NOT introduced:
+
+   Get-ChildItem D:\mission_orchestrator\migrations\*.sql |
+       Sort-Object Name |
+       Select-Object -Last 3 Name
+
+   The newest migration must remain:
+
+   044_stage3_6_9_outcome_lineage_replay_recovery.sql
+
+5. Start/restart Mission Orchestrator with the existing launcher.
+
+6. Verify activation:
+
+   Invoke-RestMethod http://127.0.0.1:8780/health |
+       Select-Object `
+           status,
+           control_version,
+           mission_repository_migration_level,
+           stage3_6_outcome_acceptance_gate_schema_version,
+           stage3_6_outcome_acceptance_gate_baseline,
+           stage3_6_outcome_acceptance_gate_declared_only,
+           stage3_6_outcome_acceptance_gate_runtime_self_certification,
+           stage3_6_outcome_acceptance_gate_external_execution_required
+
+   Expected essentials:
+
+   status                                             ok
+   control_version                                    stage3.6.10-outcome-acceptance-regression-gate
+   mission_repository_migration_level                 44
+   stage3_6_outcome_acceptance_gate_schema_version   apts-mission-stage3.6-outcome-acceptance-gate-v1
+   stage3_6_outcome_acceptance_gate_baseline         STAGE_3_6_1_THROUGH_3_6_9
+   ...declared_only                                   True
+   ...runtime_self_certification                      False
+   ...external_execution_required                     True
+
+ACCEPTANCE
+----------
+Run:
+
+   cd D:\mission_orchestrator
+
+   Set-ExecutionPolicy `
+       -Scope Process `
+       -ExecutionPolicy Bypass `
+       -Force
+
+   .\STAGE3_6_10_ACCEPTANCE.ps1
+
+The harness performs:
+
+- runtime Stage-3.6.10 activation preflight;
+- Python compilation;
+- exact 1156-test collection check;
+- complete Stage 3.1-3.6.10 pytest regression;
+- exact 193-test Stage-3.6.1-3.6.10 chain regression;
+- exact 12-test Stage-3.6.10 focused proof;
+- migration/source closure verification (no migration 045);
+- Stage-3.6 completion-authority matrix verification;
+- Stage-3.6.9 read-only/non-actuating replay/recovery verification;
+- Stage-3.6.10 no-new-authority/no-new-I/O/no-new-persistence proof.
+
+Do not declare Stage 3.6 closed unless the script ends with:
+
+   STAGE 3.6.10 ACCEPTANCE: PASS
+
+ROLLBACK
+--------
+If activation or acceptance fails:
+
+1. Stop Mission Orchestrator.
+2. Restore the backed-up Stage-3.6.9 source tree.
+3. Do NOT perform a database downgrade. Stage 3.6.10 introduced no migration,
+   so repository migration level remains 44.
+4. Restart the Stage-3.6.9 runtime and verify its health/control version.
+
+FILES OF INTEREST
+-----------------
+README_STAGE3_6_10.md
+PATCH_NOTES_STAGE3_6_10.md
+PATCH_MANIFEST_STAGE3_6_10.txt
+REGRESSION_EVIDENCE_STAGE3_6_10.txt
+SHA256_STAGE3_6_10.txt
+STAGE3_6_10_ACCEPTANCE.ps1
+mission_orchestrator\outcome_acceptance_gate.py
+mission_orchestrator\service.py
+mission_orchestrator\api_service.py
+tests\test_stage3_6_10_outcome_acceptance_regression_gate.py

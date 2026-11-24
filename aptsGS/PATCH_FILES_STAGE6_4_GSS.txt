@@ -1,0 +1,17 @@
+INSTALL_STAGE6_4_GSS.txt
+PATCH_FILES_STAGE6_4_GSS.txt
+PATCH_MANIFEST_STAGE6_4_GSS.json
+PATCH_NOTES_STAGE6_4_GSS.md
+PATCH_SHA256_STAGE6_4_GSS.txt
+README_STAGE6_4_GSS.md
+REGRESSION_EVIDENCE_STAGE6_4_GSS.txt
+STAGE6_4_GSS_ACCEPTANCE.ps1
+app/execution_revalidation.py
+app/governance_service.py
+app/main.py
+evidence/stage6_4/cold_overlay.log
+evidence/stage6_4/cold_overlay_tests.xml
+evidence/stage6_4/cold_overlay_verification.json
+evidence/stage6_4/full_regression.log
+evidence/stage6_4/full_regression.xml
+tests/test_execution_revalidation_stage6_4.py

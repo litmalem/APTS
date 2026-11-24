@@ -1,0 +1,75 @@
+======================================================================
+STAGE 3.6.9 PATCH MANIFEST
+Outcome Lineage, Replay & Recovery
+======================================================================
+
+RUNTIME IDENTITY
+----------------
+control_version            = stage3.6.9-outcome-lineage-replay-recovery
+server_version             = APTSMissionOrchestrator/3.6.9
+repository_migration_level = 44
+new migration              = 044_stage3_6_9_outcome_lineage_replay_recovery.sql
+new durable store          = mission_outcome_recovery_checkpoints
+identity prefix            = orecover-
+lineage schema             = apts-outcome-event-lineage-v1
+replay schema              = apts-outcome-event-replay-v1
+recovery schema            = apts-outcome-recovery-checkpoint-v1
+recovery event             = MISSION_OUTCOME_RECOVERY_CHECKPOINTED
+recovery Mission state     = COMPLETED
+expected test inventory    = 1144
+focused Stage-3.6.9        = 22
+Stage-3.6 chain            = 181
+next stage                 = 3.6.10
+
+VALIDATION EVIDENCE IN BUILD ENVIRONMENT
+----------------------------------------
+Python compile             = PASS
+pytest collection          = 1144 tests
+isolated-file regression   = 59/59 test files PASS; 1144/1144 tests PASS
+isolated elapsed           = 482 seconds
+Stage-3.6.1..3.6.9 chain   = 181/181 PASS in 121.07s
+focused Stage-3.6.9        = 22/22 PASS
+nonzero isolated results   = 0
+
+NOTE: STAGE3_6_9_ACCEPTANCE.ps1 remains the authoritative host-side gate. It
+runs the canonical monolithic regression against the activated runtime and
+must PASS on D:\mission_orchestrator before Stage 3.6.9 is formally closed.
+
+PRIMARY STAGE 3.6.9 CONTENTS
+----------------------------
++ INSTALL_STAGE3_6_9.txt
++ PATCH_MANIFEST_STAGE3_6_9.txt
++ PATCH_NOTES_STAGE3_6_9.md
++ README_STAGE3_6_9.md
++ STAGE3_6_9_ACCEPTANCE.ps1
++ migrations/044_stage3_6_9_outcome_lineage_replay_recovery.sql
++ mission_orchestrator/outcome_lineage.py
++ tests/test_stage3_6_9_outcome_lineage_replay_recovery.py
+
+CORE INTEGRATION FILES
+----------------------
++ mission_orchestrator/api_service.py
++ mission_orchestrator/errors.py
++ mission_orchestrator/mission_events.py
++ mission_orchestrator/repository.py
++ mission_orchestrator/repository_model.py
++ mission_orchestrator/service.py
+
+REGRESSION HEAD REBASE
+----------------------
+Current-head assertions under Stage 3.1 through Stage 3.6.8 were rebased to:
+- control_version stage3.6.9-outcome-lineage-replay-recovery
+- server_version APTSMissionOrchestrator/3.6.9
+- repository migration level 44
+- migration inventory through 044
+- stable positive supported_controls ranges where historical negative-tail
+  slices would drift whenever a new head control is appended.
+
+PATCH FILE COUNT
+----------------
+added files               = 9
+changed existing files    = 60
+total patch files         = 69
+
+Patch-file counts exclude SHA256_STAGE3_6_9.txt itself. See PATCH_FILE_LIST.txt
+for the exact payload inventory and SHA256_STAGE3_6_9.txt for per-file digests.

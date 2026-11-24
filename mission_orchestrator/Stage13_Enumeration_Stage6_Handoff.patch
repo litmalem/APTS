@@ -1,0 +1,3056 @@
+diff --git a/PATCH_NOTES_STAGE13.md b/PATCH_NOTES_STAGE13.md
+new file mode 100644
+index 0000000..e972274
+--- /dev/null
++++ b/PATCH_NOTES_STAGE13.md
+@@ -0,0 +1,18 @@
++# Patch notes — Stage 13 Enumeration to Stage 6
++
++## Changes
++
++- Adds a versioned Stage 6.1 intake for exact persisted Stage-5.3 proposals.
++- Adds read-only source verification for the completed Enumeration run, its immutable output/evidence bundle, proposal lineage, Stage-4.8 eligibility, task/orchestration binding, current scope/RoE, and bounded resource budget.
++- Enables only the exact `enumeration / TARGET_RECON / TCP_BANNER_READ` adapter tuple. Semantic enumeration labels remain rejected.
++- Carries Stage-5.3 proposal lineage through GSS, gateway admission, runtime, and Stage 6.6 evidence without coercing it into a Recon Action Request identity.
++- Adds a read-only Stage-6.6 Enumeration result route and a read-only Enumeration iteration projection. The parent run is not modified.
++- Allows the Stage-5.3 repository reader to open later append-only schema heads when required Stage-5.2/5.3 tables exist; it does not downgrade the metadata head.
++- Adds a loopback E2E acceptance and focused PowerShell runner.
++
++## Verification performed here
++
++- `py_compile` succeeded for all modified Python modules and the new E2E test.
++- Intake normalization and registry selection smoke check resolved a URL target to `network.tcp-banner.v1`.
++- Static Stage-6 JSON schemas were regenerated from the canonical schema functions.
++- Pytest could not run in this environment because the runtime does not include the `pytest` module. Run `STAGE13_ACCEPTANCE.ps1` on Windows before treating Stage 13 acceptance as complete.
+diff --git a/README_STAGE13.md b/README_STAGE13.md
+new file mode 100644
+index 0000000..8b34a46
+--- /dev/null
++++ b/README_STAGE13.md
+@@ -0,0 +1,33 @@
++# Stage 13 — Enumeration Agent to Stage 6 handoff
++
++Stage 13 closes one controlled path from a persisted Stage-5.3 Enumeration proposal through Stage 6.6. The only enabled action tuple is:
++
++```text
++capability_id = enumeration
++action_class  = TARGET_RECON
++technique     = TCP_BANNER_READ
++```
++
++Stage 5.3 remains non-executing. It may persist the explicit technique as a governed proposal, but it cannot create a Stage-6 request, authorization, or target I/O. Stage 6.1 verifies the exact run, output/evidence hashes, task, orchestration node, proposal lineage, Stage-4.8 decision, current scope/RoE, and a one-request/one-worker budget. `SERVICE_ENUMERATION` and the other semantic proposal labels are rejected before Stage-6.1 creates a request.
++
++Stage 6.2/GSS must freshly ALLOW the immutable request. Stage 6.3 admits the exact registry tuple; Stage 6.4 selects `network.tcp-banner.v1` server-side; Stage 6.5 executes through the fixed sandbox; Stage 6.6 seals metadata-only evidence. The raw banner is not returned or retained. The Stage-6.6 result lookup is read-only and keyed by the exact `actp-...` proposal reference. Enumeration iteration validates the result and emits a separate integrity-bound projection without mutating the parent Enumeration run.
++
++## API additions
++
++- Stage 6.6 read-only lookup: `GET /api/execution/enumeration-proposals/{proposal_ref}/results`
++- Stage 6.6 result contract: `GET /api/contracts/enumeration-execution-result`
++- Pentest read-only proxy: `GET /api/pentest/ui/enumeration-proposals/{proposal_ref}/results`
++- Enumeration iteration: `POST /api/pentest/agentic-orchestrations/{orchestration_id}/enumeration/iterations/run`
++
++The Stage-5.3 process fetches results only from the configured loopback Stage-6 result API (`APTS_STAGE6_RESULT_API_BASE`, default `http://127.0.0.1:8791`).
++
++## Apply and verify on Windows
++
++From `D:\mission_orchestrator`, first check and apply `Stage13_Enumeration_Stage6_Handoff.patch`, then run:
++
++```powershell
++Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
++.\STAGE13_ACCEPTANCE.ps1
++```
++
++The E2E uses an ephemeral loopback TCP server. It checks one banner-read connection, verifies that the banner bytes are not retained, and validates proposal-to-GSS/gateway/runtime/evidence/result/iteration binding.
+diff --git a/README_STAGE5_3.md b/README_STAGE5_3.md
+index b59d5a1..686786a 100644
+--- a/README_STAGE5_3.md
++++ b/README_STAGE5_3.md
+@@ -127,9 +127,13 @@ Stage 5.3 explicitly keeps the following disabled:
+ - direct external target-network I/O;
+ - target actuation;
+ - creation of `PolicyDecision` authorization;
+-- Stage-6 controlled execution intake.
++- direct Stage-6 intake by the Stage-5.3 specialist (requests are submitted by a separate controlled Stage-6 service).
+ 
+-Stage-4.8 scope/RoE decisions remain **eligibility decisions, not authorization artifacts**.
++Stage-4.8 scope/RoE decisions remain **eligibility decisions, not authorization artifacts**. Stage 13 adds a narrowly bounded Stage-6 handoff for an explicitly persisted `TCP_BANNER_READ` proposal. Stage 5.3 still performs no target I/O and does not create an ExecutionRequest, authorization, or execution result.
++
++Stage 13 only allows Stage 6 to intake an exact persisted `TCP_BANNER_READ` proposal after revalidating its Stage-5.3 run/evidence, Stage-4.8 decision, current task/orchestration/scope/RoE, explicit one-request budget, and the fixed Stage-6.4 adapter tuple. Semantic proposal techniques such as `SERVICE_ENUMERATION` remain non-executable until an exact registered adapter exists. Stage 6.2/GSS is the authorization authority; Stage 6.3 admission, Stage 6.4 adapter selection, Stage 6.5 runtime, and Stage 6.6 evidence remain mandatory.
++
++The Stage-6.6 result is returned through a read-only exact-proposal lookup. Enumeration iteration verifies terminal success, sealed evidence, and mission/task/orchestration binding, then produces a separate integrity-bound iteration projection without updating the parent Stage-5.3 run.
+ 
+ ## Acceptance
+ 
+diff --git a/STAGE13_ACCEPTANCE.ps1 b/STAGE13_ACCEPTANCE.ps1
+new file mode 100644
+index 0000000..cf47bd0
+--- /dev/null
++++ b/STAGE13_ACCEPTANCE.ps1
+@@ -0,0 +1,40 @@
++$ErrorActionPreference = "Stop"
++
++$compileFiles = @(
++  ".\execution_subsystem\execution_contract.py",
++  ".\execution_subsystem\proposal_source.py",
++  ".\execution_subsystem\authorization_source.py",
++  ".\execution_subsystem\authorization_contract.py",
++  ".\execution_subsystem\gateway_service.py",
++  ".\execution_subsystem\tool_registry.py",
++  ".\execution_subsystem\adapter_repository.py",
++  ".\execution_subsystem\runtime_repository.py",
++  ".\execution_subsystem\evidence_contract.py",
++  ".\execution_subsystem\evidence_repository.py",
++  ".\execution_subsystem\execution_result_contract.py",
++  ".\execution_subsystem\evidence_service.py",
++  ".\execution_subsystem\evidence_api.py",
++  ".\execution_subsystem\vep_source.py",
++  ".\pentest_subsystem\enumeration.py",
++  ".\pentest_subsystem\api_service.py",
++  ".\tests\test_stage13_enumeration_stage6_e2e.py"
++)
++python -m py_compile @compileFiles
++if ($LASTEXITCODE -ne 0) { throw "Stage 13 Python compilation failed" }
++
++$tests = @(
++  ".\tests\test_stage4_8_governance_scope_roe_enforcement.py",
++  ".\tests\test_stage5_3_enumeration_agent.py",
++  ".\tests\test_stage6_1_canonical_execution_request_contract.py",
++  ".\tests\test_stage6_2_authoritative_execution_authorization.py",
++  ".\tests\test_stage6_3_controlled_execution_gateway.py",
++  ".\tests\test_stage6_3_4_recon_gateway_capability.py",
++  ".\tests\test_stage6_4_authorized_tool_adapters_sandboxing.py",
++  ".\tests\test_stage6_5_execution_runtime_control.py",
++  ".\tests\test_stage6_6_artifact_evidence_capture.py",
++  ".\tests\test_stage12_recon_active_e2e_acceptance.py",
++  ".\tests\test_stage13_enumeration_stage6_e2e.py"
++)
++python -m pytest -q @tests
++if ($LASTEXITCODE -ne 0) { throw "Stage 13 acceptance/regression suite failed" }
++Write-Host "Stage 13 acceptance and related regressions passed."
+diff --git a/execution_subsystem/adapter_repository.py b/execution_subsystem/adapter_repository.py
+index b50aa38..fdd305b 100644
+--- a/execution_subsystem/adapter_repository.py
++++ b/execution_subsystem/adapter_repository.py
+@@ -169,11 +169,14 @@ class ExecutionAdapterRepository(ExecutionGatewayRepository):
+         # can reserve an adapter. Bind the admission to this exact immutable
+         # request; an admission for another execution or a stale request cannot
+         # be used as a capability to reach the adapter layer.
+-        if req.get("proposing_agent", {}).get("role") == "RECONNAISSANCE":
++        role = req.get("proposing_agent", {}).get("role")
++        if role in {"RECONNAISSANCE", "ENUMERATION"}:
+             if gate is None:
+-                raise ExecutionSourceRejected("RECON_ACTION_REQUIRES_STAGE6_3_GATEWAY_ADMISSION")
++                code = "RECON_ACTION_REQUIRES_STAGE6_3_GATEWAY_ADMISSION" if role == "RECONNAISSANCE" else "ENUMERATION_ACTION_REQUIRES_STAGE6_3_GATEWAY_ADMISSION"
++                raise ExecutionSourceRejected(code)
+             if gate.get("request_sha256") != req.get("integrity", {}).get("canonical_sha256"):
+-                raise ExecutionSourceRejected("RECON_GATEWAY_ADMISSION_REQUEST_BINDING_MISMATCH")
++                code = "RECON_GATEWAY_ADMISSION_REQUEST_BINDING_MISMATCH" if role == "RECONNAISSANCE" else "ENUMERATION_GATEWAY_ADMISSION_REQUEST_BINDING_MISMATCH"
++                raise ExecutionSourceRejected(code)
+         return gate
+ 
+     def _check_reservation_identity(self, conn, req, items, runtime_context):
+diff --git a/execution_subsystem/authorization_contract.py b/execution_subsystem/authorization_contract.py
+index c0990f9..8a02b4c 100644
+--- a/execution_subsystem/authorization_contract.py
++++ b/execution_subsystem/authorization_contract.py
+@@ -126,7 +126,8 @@ def canonical_execution_authorization_contract() -> dict[str, Any]:
+                       "remote_https_required": True, "hash_is_authentication": False},
+         "source": {"mission_migration_level": 53, "pentest_migration_level": 16,
+                    "supported_source_types": ["PERSISTED_STAGE5_6_EXPLOIT_ACTION_PROPOSAL",
+-                                              "STAGE5_2_RECON_ACTION_REQUEST"],
++                                              "STAGE5_2_RECON_ACTION_REQUEST",
++                                              "STAGE5_3_ENUMERATION_ACTION_PROPOSAL"],
+                    "mission_and_pentest_read_only": True, "mission_state_required": "RUNNING",
+                    "recheck_sources_after_governance": True},
+         "repository": {"migration_level": AUTHORIZATION_MIGRATION_LEVEL,
+diff --git a/execution_subsystem/authorization_source.py b/execution_subsystem/authorization_source.py
+index 885006f..478e3de 100644
+--- a/execution_subsystem/authorization_source.py
++++ b/execution_subsystem/authorization_source.py
+@@ -31,13 +31,21 @@ class ExecutionAuthorizationProposalSource(PentestProposalSource):
+                 current = self._build(conn, intake)
+                 if canonical_json(current) != canonical_json(envelope):
+                     raise ExecutionSourceRejected("persisted proposal no longer matches the execution envelope")
+-                if intake.get("schema_version") == "apts-execution-request-intake-v2":
++                if intake.get("schema_version") in {"apts-execution-request-intake-v2", "apts-execution-request-intake-v3"}:
+                     # _build_recon revalidates the persisted Action Request, task artifact,
+                     # current scope/RoE snapshots, capability registry, orchestration node,
+                     # task lifecycle, and evidence lineage before returning this context.
+-                    run_id = self._recon_run_id_for_action(conn, intake["recon_action_id"])
+-                    run = self._one(conn, "pentest_recon_runs", "recon_run_id", run_id)
+-                    run_record = ReconnaissanceAgentRepository._run_row(run)
++                    if intake["schema_version"] == "apts-execution-request-intake-v2":
++                        run_id = self._recon_run_id_for_action(conn, intake["recon_action_id"])
++                        run = self._one(conn, "pentest_recon_runs", "recon_run_id", run_id)
++                        run_record = ReconnaissanceAgentRepository._run_row(run)
++                        context = {"source_type": "STAGE5_2_RECON_ACTION_REQUEST",
++                                   "source_action_id": intake["recon_action_id"]}
++                    else:
++                        run = self._one(conn, "pentest_enumeration_runs", "enumeration_run_id", intake["enumeration_run_id"])
++                        run_record = __import__("pentest_subsystem.enumeration", fromlist=["EnumerationAgentRepository"]).EnumerationAgentRepository._enumeration_run_row(run)
++                        context = {"source_type": "STAGE5_3_ENUMERATION_ACTION_PROPOSAL",
++                                   "source_action_id": intake["enumeration_proposal_ref"]}
+                     task_row = self._one(conn, "pentest_tasks", "pentest_task_id", run_record["pentest_task_id"])
+                     task_record = PentestTaskRepository._row_to_record(task_row)
+                     orchestration = self._one(conn, "pentest_agentic_orchestrations", "orchestration_id",
+@@ -47,8 +55,7 @@ class ExecutionAuthorizationProposalSource(PentestProposalSource):
+                     return {"boundary": run_record["request"]["boundary"],
+                             "task": task_record["task"],
+                             "orchestration_status": orchestration["orchestration_status"],
+-                            "source_type": "STAGE5_2_RECON_ACTION_REQUEST",
+-                            "recon_action_id": intake["recon_action_id"]}
++                            **context}
+                 run = self._one(conn, "pentest_exploitation_runs", "exploitation_run_id", envelope["intake"]["exploitation_run_id"])
+                 run_request = json.loads(run["request_json"])
+                 task = self._one(conn, "pentest_tasks", "pentest_task_id", envelope["source_binding"]["pentest_task_id"])
+diff --git a/execution_subsystem/evidence_api.py b/execution_subsystem/evidence_api.py
+index 0edd80c..8cff378 100644
+--- a/execution_subsystem/evidence_api.py
++++ b/execution_subsystem/evidence_api.py
+@@ -14,6 +14,7 @@ ARTIFACT_ROUTE = "/api/execution/artifacts"
+ ATTEMPT_ROUTE = EVIDENCE_ROUTE + "/attempts/"
+ RECON_RESULT_PREFIX = "/api/execution/recon-action-requests/"
+ RECON_RESULT_SUFFIX = "/results"
++ENUMERATION_RESULT_PREFIX = "/api/execution/enumeration-proposals/"
+ 
+ 
+ class ExecutionSubsystemStage66Handler(ExecutionSubsystemStage65Handler):
+@@ -33,6 +34,11 @@ class ExecutionSubsystemStage66Handler(ExecutionSubsystemStage65Handler):
+                     raise ExecutionRequestValidationError("Recon ExecutionResult contract forbids query overrides")
+                 self._send_json(200, self._service().get_recon_execution_result_contract())
+                 return
++            if parsed.path == "/api/contracts/enumeration-execution-result":
++                if parsed.query:
++                    raise ExecutionRequestValidationError("Enumeration ExecutionResult contract forbids query overrides")
++                self._send_json(200, self._service().get_enumeration_execution_result_contract())
++                return
+             if parsed.path.startswith(RECON_RESULT_PREFIX) and parsed.path.endswith(RECON_RESULT_SUFFIX):
+                 if parsed.query:
+                     raise ExecutionRequestValidationError("Recon result read forbids query overrides")
+@@ -46,6 +52,19 @@ class ExecutionSubsystemStage66Handler(ExecutionSubsystemStage65Handler):
+                     return
+                 self._send_json(200, result)
+                 return
++            if parsed.path.startswith(ENUMERATION_RESULT_PREFIX) and parsed.path.endswith(RECON_RESULT_SUFFIX):
++                if parsed.query:
++                    raise ExecutionRequestValidationError("Enumeration result read forbids query overrides")
++                identity = unquote(parsed.path[len(ENUMERATION_RESULT_PREFIX):-len(RECON_RESULT_SUFFIX)])
++                if not identity or "/" in identity:
++                    raise ExecutionRequestValidationError("Enumeration result route requires one exact proposal reference")
++                try:
++                    result = self._service().get_enumeration_execution_results(identity)
++                except ExecutionSourceNotFound as exc:
++                    self._send_json(404, {"status":"not_found", "error":str(exc), "proposal_ref":identity})
++                    return
++                self._send_json(200, result)
++                return
+             if parsed.path.startswith(ATTEMPT_ROUTE):
+                 if parsed.query:
+                     raise ExecutionRequestValidationError("evidence read forbids query overrides")
+@@ -97,6 +116,9 @@ class ExecutionSubsystemStage66Handler(ExecutionSubsystemStage65Handler):
+         if path.startswith(RECON_RESULT_PREFIX) and path.endswith(RECON_RESULT_SUFFIX):
+             self._send_json(409, self._service().reject_execution())
+             return
++        if path.startswith(ENUMERATION_RESULT_PREFIX) and path.endswith(RECON_RESULT_SUFFIX):
++            self._send_json(409, self._service().reject_execution())
++            return
+         if any(path == p or path.startswith(p + "/") for p in (EVIDENCE_ROUTE, ARTIFACT_ROUTE)):
+             self._send_json(409, self._service().reject_execution())
+             return
+diff --git a/execution_subsystem/evidence_contract.py b/execution_subsystem/evidence_contract.py
+index 5bfcdd6..e388a27 100644
+--- a/execution_subsystem/evidence_contract.py
++++ b/execution_subsystem/evidence_contract.py
+@@ -49,7 +49,8 @@ def canonical_evidence_contract():
+             "terminal_manifest_and_result_atomic": True, "caller_paths_supported": False},
+         "capture": {"producer": "SERVER_RUNTIME_AND_TRUSTED_BROKER", "kinds": list(KINDS),
+             "link_fields": list(LINK_FIELDS), "caller_upload_supported": False,
+-            "recon_proposal_action_authorization_binding": True,
++            "specialist_proposal_action_authorization_binding": True,
++            "recon_action_id_is_null_for_enumeration_proposals": True,
+             "screenshots": "NOT_SUPPORTED_BY_CURRENT_FIXED_ADAPTERS",
+             "target_before_after_state": "NOT_MEASURED_BY_CURRENT_FIXED_ADAPTERS",
+             "runtime_before_after_state": "CAPTURED", "partial_failures": "EXPLICIT_COVERAGE",
+diff --git a/execution_subsystem/evidence_repository.py b/execution_subsystem/evidence_repository.py
+index a97b57d..64350f8 100644
+--- a/execution_subsystem/evidence_repository.py
++++ b/execution_subsystem/evidence_repository.py
+@@ -38,13 +38,21 @@ class ExecutionEvidenceRepository(ExecutionRuntimeRepository):
+         record = json.loads(row["record_json"])
+         envelope = self._envelope(conn, record["execution_id"])
+         request = envelope["execution_request"]
+-        is_recon = envelope["intake"].get("source_type") == "STAGE5_2_RECON_ACTION_REQUEST"
++        source_type = envelope["intake"].get("source_type")
++        is_recon = source_type == "STAGE5_2_RECON_ACTION_REQUEST"
++        is_enumeration = source_type == "STAGE5_3_ENUMERATION_ACTION_PROPOSAL"
+         if is_recon:
+             recon_action_id = request["parameters"].get("source_action_id")
+             proposal_ref = envelope["source_binding"].get("action_proposal_ref")
+             if (not recon_action_id or not proposal_ref
+                     or recon_action_id != envelope["intake"].get("recon_action_id")):
+                 raise ExecutionRequestIntegrityError("Recon evidence lineage is incomplete or mismatched")
++        elif is_enumeration:
++            recon_action_id = None
++            proposal_ref = request["parameters"].get("source_proposal_id")
++            if (not proposal_ref or proposal_ref != envelope["intake"].get("enumeration_proposal_ref")
++                    or proposal_ref != envelope["source_binding"].get("action_proposal_ref")):
++                raise ExecutionRequestIntegrityError("Enumeration evidence proposal lineage is incomplete or mismatched")
+         else:
+             recon_action_id = proposal_ref = None
+         session = with_integrity({"schema_version": SESSION_SCHEMA, "control_version": EVIDENCE_CONTROL_VERSION,
+@@ -69,8 +77,8 @@ class ExecutionEvidenceRepository(ExecutionRuntimeRepository):
+             "action": req["action"], "target": req["target"], "operation": adapter.operation,
+             "recon_action_id": session["recon_action_id"], "proposal_ref": session["proposal_ref"],
+             "authorization_id": session["authorization_id"],
+-            "parameters": {("source_action_id" if "source_action_id" in req["parameters"] else "validation_task_id"):
+-                req["parameters"].get("source_action_id", req["parameters"].get("validation_task_id")),
++            "parameters": {next(k for k in ("source_action_id", "source_proposal_id", "validation_task_id") if k in req["parameters"]):
++                next(req["parameters"][k] for k in ("source_action_id", "source_proposal_id", "validation_task_id") if k in req["parameters"]),
+                 "estimated_impact": req["parameters"]["estimated_impact"],
+                 "expected_evidence_sha256": bytes_sha256(canonical_json(req["parameters"]["expected_evidence"]).encode())},
+             "parameters_sha256": bytes_sha256(canonical_json(req["parameters"]).encode()),
+@@ -100,10 +108,12 @@ class ExecutionEvidenceRepository(ExecutionRuntimeRepository):
+                 raise ExecutionRequestIntegrityError("capture authorization event missing")
+             authorization_id = json.loads(first_event["record_json"])["data"].get("authorization_id")
+             envelope = self._envelope(conn, record["execution_id"])
+-            is_recon = envelope["intake"].get("source_type") == "STAGE5_2_RECON_ACTION_REQUEST"
++            source_type = envelope["intake"].get("source_type")
++            is_recon = source_type == "STAGE5_2_RECON_ACTION_REQUEST"
++            is_enumeration = source_type == "STAGE5_3_ENUMERATION_ACTION_PROPOSAL"
+             request = envelope["execution_request"]
+             expected_action_id = request["parameters"].get("source_action_id") if is_recon else None
+-            expected_proposal_ref = envelope["source_binding"].get("action_proposal_ref") if is_recon else None
++            expected_proposal_ref = envelope["source_binding"].get("action_proposal_ref") if (is_recon or is_enumeration) else None
+             if (not verify_session(value) or row["record_sha256"] != value["integrity"]["canonical_sha256"]
+                 or row["attempt_id"] != value["attempt_id"]
+                 or any(value[k] != record[k] for k in LINK_FIELDS if k in record)
+@@ -375,6 +385,44 @@ class ExecutionEvidenceRepository(ExecutionRuntimeRepository):
+                 results.append(result)
+             return results
+ 
++    def get_enumeration_proposal_attempts(self, proposal_ref):
++        """Return verified Stage-6 attempts for one exact Stage-5.3 proposal."""
++        require_id(proposal_ref, "enumeration_proposal_ref", "actp-")
++        self.initialize()
++        with closing(self._connect()) as conn:
++            conn.execute("BEGIN")
++            rows = conn.execute(
++                "SELECT a.*, s.record_json AS capture_session_json FROM execution_runtime_attempts a "
++                "JOIN execution_capture_sessions s ON s.attempt_id=a.attempt_id "
++                "ORDER BY a.execution_id, a.attempt_number, a.rowid").fetchall()
++            results = []
++            for row in rows:
++                try:
++                    indexed_session = json.loads(row["capture_session_json"])
++                except (TypeError, ValueError) as exc:
++                    raise ExecutionRequestIntegrityError("unreadable Enumeration runtime capture session") from exc
++                if indexed_session.get("proposal_ref") != proposal_ref:
++                    continue
++                item = self._runtime_item(row, conn)
++                session = self._session(conn, item["record"])
++                envelope = self._envelope(conn, item["record"]["execution_id"])
++                intake = envelope["intake"]
++                if (session is None or session["proposal_ref"] != proposal_ref
++                        or intake.get("source_type") != "STAGE5_3_ENUMERATION_ACTION_PROPOSAL"
++                        or intake.get("enumeration_proposal_ref") != proposal_ref
++                        or envelope["execution_request"]["parameters"].get("source_proposal_id") != proposal_ref):
++                    raise ExecutionRequestIntegrityError("runtime attempt is not bound to the requested Enumeration proposal")
++                manifest, _ = self._verified_capture(conn, item)
++                from .execution_result_contract import build_enumeration_execution_result
++                try:
++                    result = build_enumeration_execution_result(proposal_ref=proposal_ref,
++                        orchestration_id=envelope["execution_request"]["proposing_agent"]["orchestration_id"],
++                        item=item, manifest=manifest)
++                except (KeyError, TypeError, ValueError) as exc:
++                    raise ExecutionRequestIntegrityError("invalid durable Enumeration ExecutionResult") from exc
++                results.append(result)
++            return results
++
+     def get_artifact(self, identity, attempt_id):
+         require_id(identity, "artifact_id", "xartifact-")
+         require_id(attempt_id, "attempt_id", "xattempt-")
+diff --git a/execution_subsystem/evidence_service.py b/execution_subsystem/evidence_service.py
+index 9a9f9d8..371d19e 100644
+--- a/execution_subsystem/evidence_service.py
++++ b/execution_subsystem/evidence_service.py
+@@ -43,6 +43,11 @@ class ExecutionEvidenceService(ExecutionRuntimeService):
+         return {"control_version":"stage6-recon-execution-result-return", "status":"declared",
+             "read_only":True, "contract":canonical_recon_execution_result_contract()}
+ 
++    def get_enumeration_execution_result_contract(self):
++        from .execution_result_contract import canonical_enumeration_execution_result_contract
++        return {"control_version":"stage6-enumeration-execution-result-return", "status":"declared",
++            "read_only":True, "contract":canonical_enumeration_execution_result_contract()}
++
+     def get_contract(self):
+         return {**super().get_contract(), "control_version": EVIDENCE_CONTROL_VERSION}
+ 
+@@ -121,6 +126,21 @@ class ExecutionEvidenceService(ExecutionRuntimeService):
+             "target_network_io_performed": False, "vulnerability_confirmed": False,
+             "vep_created": False}
+ 
++    def get_enumeration_execution_results(self, proposal_ref):
++        """Read-only Stage-6 result lookup bound to one persisted Enumeration proposal."""
++        require_id(proposal_ref, "enumeration_proposal_ref", "actp-")
++        results = self.repository.get_enumeration_proposal_attempts(proposal_ref)
++        if not results:
++            from .execution_contract import ExecutionSourceNotFound
++            raise ExecutionSourceNotFound("no Stage 6 runtime result is stored for this Enumeration proposal")
++        return {"control_version": EVIDENCE_CONTROL_VERSION, "status": "ok",
++            "proposal_ref": proposal_ref, "count": len(results), "results": results,
++            "latest_result": results[-1], "read_only": True,
++            "source": "DURABLE_STAGE6_RUNTIME_AND_STAGE6_6_EVIDENCE",
++            "caller_result_accepted": False, "execution_authorized": False,
++            "target_network_io_performed": False, "vulnerability_confirmed": False,
++            "vep_created": False, "source_run_mutated": False}
++
+     def reject_execution(self):
+         return {**super().reject_execution(), "control_version": EVIDENCE_CONTROL_VERSION,
+             "error_code": "STAGE6_6_SERVER_OWNED_EVIDENCE_AND_RUNTIME_REQUIRED", "next_stage": "6.7"}
+diff --git a/execution_subsystem/execution_contract.py b/execution_subsystem/execution_contract.py
+index ffcd94f..895c502 100644
+--- a/execution_subsystem/execution_contract.py
++++ b/execution_subsystem/execution_contract.py
+@@ -17,6 +17,7 @@ EXECUTION_REQUEST_CONTRACT_SCHEMA_VERSION = "apts-stage6.1-canonical-execution-r
+ EXECUTION_REQUEST_SCHEMA_VERSION = "apts-execution-request-v1"
+ EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION = "apts-execution-request-intake-v1"
+ RECON_EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION = "apts-execution-request-intake-v2"
++ENUMERATION_EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION = "apts-execution-request-intake-v3"
+ CANONICAL_ACTION_ENVELOPE_SCHEMA_VERSION = "apts-canonical-action-envelope-v1"
+ EXECUTION_REQUEST_HASH_DOMAIN = "APTS_STAGE6_1_EXECUTION_REQUEST_V1"
+ EXECUTION_REQUEST_CONTRACT_HASH_DOMAIN = "APTS_STAGE6_1_EXECUTION_REQUEST_CONTRACT_V1"
+@@ -162,6 +163,16 @@ def normalize_execution_request_intake(payload: Any) -> dict[str, Any]:
+                 "idempotency_key": require_id(obj["idempotency_key"], "idempotency_key"),
+                 "recon_action_id": require_id(obj["recon_action_id"], "recon_action_id", "rareq-"),
+                 "recon_request_sha256": require_sha(obj["recon_request_sha256"], "recon_request_sha256")}
++    if version == ENUMERATION_EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION:
++        obj = require_object(payload, common | {"source_type", "enumeration_run_id", "enumeration_proposal_ref", "proposal_sha256"}, "Enumeration execution request intake")
++        if obj["source_type"] != "STAGE5_3_ENUMERATION_ACTION_PROPOSAL":
++            raise ExecutionRequestValidationError("unsupported Stage 6.1 source_type")
++        return {"schema_version": version, "source_type": obj["source_type"],
++                "request_id": require_id(obj["request_id"], "request_id", "ereq-"),
++                "idempotency_key": require_id(obj["idempotency_key"], "idempotency_key"),
++                "enumeration_run_id": require_id(obj["enumeration_run_id"], "enumeration_run_id", "enumrun-"),
++                "enumeration_proposal_ref": require_id(obj["enumeration_proposal_ref"], "enumeration_proposal_ref", "actp-"),
++                "proposal_sha256": require_sha(obj["proposal_sha256"], "proposal_sha256")}
+     raise ExecutionRequestValidationError("unsupported execution request intake schema_version")
+ 
+ 
+@@ -199,18 +210,21 @@ def normalize_execution_request(payload: Any) -> dict[str, Any]:
+     params = obj["parameters"]
+     if not isinstance(params, dict) or set(params) not in (
+             {"validation_task_id", "expected_evidence", "estimated_impact"},
+-            {"source_action_id", "expected_evidence", "estimated_impact"}):
+-        raise ExecutionRequestValidationError("parameters must bind either a validation task or a Recon source action")
++            {"source_action_id", "expected_evidence", "estimated_impact"},
++            {"source_proposal_id", "expected_evidence", "estimated_impact"}):
++        raise ExecutionRequestValidationError("parameters must bind a validation task or a persisted Recon/Enumeration proposal")
+     expected = params["expected_evidence"]
+     if not isinstance(expected, list) or len(expected) > 100:
+         raise ExecutionRequestValidationError("parameters.expected_evidence must be a bounded array")
+     if (not isinstance(params["estimated_impact"], str)
+             or params["estimated_impact"] not in {"NONE", "LOW", "MODERATE", "HIGH", "CRITICAL", "DESTRUCTIVE"}):
+         raise ExecutionRequestValidationError("parameters.estimated_impact is unsupported")
+-    parameter_source_field = "validation_task_id" if "validation_task_id" in params else "source_action_id"
++    parameter_source_field = "validation_task_id" if "validation_task_id" in params else (
++        "source_proposal_id" if "source_proposal_id" in params else "source_action_id")
+     result["parameters"] = {
+         parameter_source_field: require_id(params[parameter_source_field], f"parameters.{parameter_source_field}",
+-                                           "valtask-" if parameter_source_field == "validation_task_id" else "rareq-"),
++                                           "valtask-" if parameter_source_field == "validation_task_id" else
++                                           "actp-" if parameter_source_field == "source_proposal_id" else "rareq-"),
+         "expected_evidence": [require_text(x, "parameters.expected_evidence[]") for x in expected],
+         "estimated_impact": params["estimated_impact"],
+     }
+@@ -289,6 +303,9 @@ def execution_request_json_schema() -> dict[str, Any]:
+                  "expected_evidence": {"type": "array", "maxItems": 100, "items": text},
+                  "estimated_impact": {"enum": ["NONE", "LOW", "MODERATE", "HIGH", "CRITICAL", "DESTRUCTIVE"]}}),
+             obj({"source_action_id": prefixed("rareq-"),
++                 "expected_evidence": {"type": "array", "maxItems": 100, "items": text},
++                 "estimated_impact": {"enum": ["NONE", "LOW", "MODERATE", "HIGH", "CRITICAL", "DESTRUCTIVE"]}}),
++            obj({"source_proposal_id": prefixed("actp-"),
+                  "expected_evidence": {"type": "array", "maxItems": 100, "items": text},
+                  "estimated_impact": {"enum": ["NONE", "LOW", "MODERATE", "HIGH", "CRITICAL", "DESTRUCTIVE"]}})]},
+         "evidence_basis": {"type": "array", "minItems": 1, "maxItems": 500, "uniqueItems": True,
+@@ -330,7 +347,11 @@ def canonical_action_envelope_json_schema() -> dict[str, Any]:
+                  "exploit_action_proposal_id": ident, "proposal_sha256": digest}),
+             obj({"schema_version": {"const": RECON_EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION},
+                  "source_type": {"const": "STAGE5_2_RECON_ACTION_REQUEST"}, "request_id": ident,
+-                 "idempotency_key": ident, "recon_action_id": ident, "recon_request_sha256": digest})]},
++                 "idempotency_key": ident, "recon_action_id": ident, "recon_request_sha256": digest}),
++            obj({"schema_version": {"const": ENUMERATION_EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION},
++                 "source_type": {"const": "STAGE5_3_ENUMERATION_ACTION_PROPOSAL"}, "request_id": ident,
++                 "idempotency_key": ident, "enumeration_run_id": ident, "enumeration_proposal_ref": ident,
++                 "proposal_sha256": digest})]},
+         "execution_request": request, "source_binding": obj(binding),
+         "status": {"const": EXECUTION_REQUEST_STATUS},
+         "semantics": {"const": dict(REQUEST_SEMANTICS)}, "integrity": integrity(ACTION_ENVELOPE_HASH_DOMAIN),
+@@ -357,6 +378,7 @@ def _contract() -> dict[str, Any]:
+         "canonical_action_envelope_json_schema": canonical_action_envelope_json_schema(),
+         "intake_schema_version": EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION,
+         "supported_proposal_source": "PERSISTED_STAGE5_6_EXPLOIT_ACTION_PROPOSAL",
++        "additional_specialist_sources": ["STAGE5_2_RECON_ACTION_REQUEST", "STAGE5_3_ENUMERATION_ACTION_PROPOSAL"],
+         "task_id_semantics": "IMMUTABLE_GLOBAL_MISSION_UPSTREAM_TASK_ID",
+         "local_task_id_binding": "source_binding.pentest_task_id",
+         "repository": {"migration_level": EXECUTION_REPOSITORY_MIGRATION_LEVEL,
+@@ -399,8 +421,9 @@ def canonical_execution_request_definition() -> dict[str, Any]:
+     return {"schema_version": c["schema_version"], "control_version": c["control_version"],
+             "request_schema_version": EXECUTION_REQUEST_SCHEMA_VERSION,
+             "envelope_schema_version": CANONICAL_ACTION_ENVELOPE_SCHEMA_VERSION,
+-            "intake_schema_versions": [EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION,
+-                                       RECON_EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION],
++        "intake_schema_versions": [EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION,
++                                       RECON_EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION,
++                                       ENUMERATION_EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION],
+             "required_execution_request_fields": list(EXECUTION_REQUEST_FIELDS),
+             "predecessor_control": c["predecessor"]["control"],
+             "predecessor_contract_sha256": c["predecessor"]["contract_sha256"],
+@@ -451,6 +474,9 @@ def verify_canonical_action_envelope(envelope: Any) -> bool:
+             and binding["policy_reference_sha256"] == request["authorization_requirement"]["policy_reference"]["reference_sha256"]
+             and ((intake["schema_version"] == RECON_EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION
+                   and request["parameters"].get("source_action_id") == intake["recon_action_id"])
++                 or (intake["schema_version"] == ENUMERATION_EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION
++                     and request["parameters"].get("source_proposal_id") == intake["enumeration_proposal_ref"]
++                     and binding["action_proposal_ref"] == intake["enumeration_proposal_ref"])
+                  or (intake["schema_version"] == EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION
+                      and "validation_task_id" in request["parameters"]))
+             and request["execution_id"] == deterministic_execution_id(
+diff --git a/execution_subsystem/execution_result_contract.py b/execution_subsystem/execution_result_contract.py
+index c3bf393..8819aad 100644
+--- a/execution_subsystem/execution_result_contract.py
++++ b/execution_subsystem/execution_result_contract.py
+@@ -8,6 +8,8 @@ RESULT_SCHEMA = "apts-recon-execution-result-v1"
+ RESULT_DOMAIN = "APTS_RECON_EXECUTION_RESULT_V1"
+ RESULT_CONTRACT_SCHEMA = "apts-recon-execution-result-contract-v1"
+ RESULT_CONTRACT_DOMAIN = "APTS_RECON_EXECUTION_RESULT_CONTRACT_V1"
++ENUM_RESULT_SCHEMA = "apts-enumeration-execution-result-v1"
++ENUM_RESULT_DOMAIN = "APTS_ENUMERATION_EXECUTION_RESULT_V1"
+ 
+ 
+ def canonical_recon_execution_result_contract():
+@@ -33,6 +35,22 @@ def canonical_recon_execution_result_contract():
+     }, RESULT_CONTRACT_DOMAIN)
+ 
+ 
++def canonical_enumeration_execution_result_contract():
++    return with_integrity({"schema_version": "apts-enumeration-execution-result-contract-v1",
++        "control_version": "stage6-enumeration-execution-result-return",
++        "result_schema_version": ENUM_RESULT_SCHEMA,
++        "predecessor": {"control": EVIDENCE_CONTROL_VERSION,
++            "contract_sha256": canonical_evidence_contract()["integrity"]["canonical_sha256"]},
++        "source": "DURABLE_STAGE6_RUNTIME_AND_SEALED_STAGE6_6_EVIDENCE_ONLY",
++        "lookup": "EXACT_STAGE5_3_ACTION_PROPOSAL_REF",
++        "allowed_execution_tuple": {"capability_id": "enumeration", "action_class": "TARGET_RECON",
++            "technique": "TCP_BANNER_READ"},
++        "source_run_mutated": False, "result_is_authorization": False,
++        "result_is_vulnerability_finding": False, "result_is_vep": False,
++        "raw_target_bytes_returned": False, "read_only": True, "fail_closed": True},
++        "APTS_ENUMERATION_EXECUTION_RESULT_CONTRACT_V1")
++
++
+ def build_recon_execution_result(*, action_id, proposal_ref, orchestration_id, item, manifest):
+     """Project only durable Stage 6 runtime/evidence records; never accepts caller result data."""
+     record = item["record"]
+@@ -115,3 +133,55 @@ def verify_recon_execution_result(value):
+         return value["semantics"] == expected and verify_integrity(value, RESULT_DOMAIN)
+     except (KeyError, TypeError, ValueError):
+         return False
++
++
++def build_enumeration_execution_result(*, proposal_ref, orchestration_id, item, manifest):
++    """Read-only, evidence-bound projection for one Stage-5.3 proposal."""
++    record = item["record"]
++    terminal = item["state"] in {"SUCCEEDED", "FAILED", "TIMEOUT", "CANCELLED", "ABORTED"}
++    if terminal and manifest is None:
++        raise ValueError("terminal Enumeration attempt has no Stage 6.6 evidence")
++    if manifest is not None and (manifest["recon_action_id"] is not None
++            or manifest["proposal_ref"] != proposal_ref
++            or manifest["attempt_id"] != item["attempt_id"]
++            or manifest["terminal_event_sha256"] != item["head_sha256"]):
++        raise ValueError("Enumeration result evidence binding mismatch")
++    runtime_result = item["invocation"]["result"]
++    safe_result = None if runtime_result is None else {
++        "status": runtime_result["status"], "reason_codes": list(runtime_result["reason_codes"]),
++        "observation": runtime_result["observation"], "semantics": dict(runtime_result["semantics"]),
++        "adapter_result_sha256": runtime_result["integrity"]["canonical_sha256"]}
++    core = {"schema_version": ENUM_RESULT_SCHEMA, "action_id": proposal_ref,
++        "proposal_ref": proposal_ref, "mission_id": record["mission_id"],
++        "pentest_id": record["pentest_id"], "task_id": record["task_id"],
++        "pentest_task_id": record["pentest_task_id"], "orchestration_id": orchestration_id,
++        "execution_id": record["execution_id"], "attempt_id": item["attempt_id"],
++        "attempt_number": record["attempt_number"], "attempt_sha256": record["integrity"]["canonical_sha256"],
++        "runtime_state": item["state"], "terminal": terminal, "execution_result": safe_result,
++        "evidence": None if manifest is None else {"evidence_id": manifest["evidence_id"],
++            "manifest_sha256": manifest["integrity"]["canonical_sha256"],
++            "capture_status": "SEALED" if manifest["capture_status"] == "CAPTURED" else manifest["capture_status"],
++            "target_io_uncertain": manifest["target_io_uncertain"],
++            "artifact_refs": [{"artifact_id": a["artifact_id"], "kind": a["kind"],
++                               "content_sha256": a["content_sha256"]} for a in manifest["artifacts"]]},
++        "lineage": {"authorization_id": item["events"][0]["data"].get("authorization_id"),
++            "terminal_event_id": item["events"][-1]["event_id"] if terminal else None,
++            "terminal_event_sha256": item["head_sha256"] if terminal else None,
++            "retry_of_attempt_id": record["retry_of_attempt_id"]},
++        "semantics": {"result_is_authorization": False, "result_is_vulnerability_finding": False,
++            "result_is_vep": False, "target_state_measurement_performed": False,
++            "raw_target_bytes_returned": False, "source_run_mutated": False}}
++    return with_integrity(core, ENUM_RESULT_DOMAIN)
++
++
++def verify_enumeration_execution_result(value):
++    try:
++        return (value["schema_version"] == ENUM_RESULT_SCHEMA
++            and value["semantics"] == {"result_is_authorization": False,
++                "result_is_vulnerability_finding": False, "result_is_vep": False,
++                "target_state_measurement_performed": False, "raw_target_bytes_returned": False,
++                "source_run_mutated": False}
++            and value["action_id"] == value["proposal_ref"]
++            and verify_integrity(value, ENUM_RESULT_DOMAIN))
++    except (KeyError, TypeError, ValueError):
++        return False
+diff --git a/execution_subsystem/gateway_service.py b/execution_subsystem/gateway_service.py
+index 49fe64b..7819571 100644
+--- a/execution_subsystem/gateway_service.py
++++ b/execution_subsystem/gateway_service.py
+@@ -94,8 +94,8 @@ class ExecutionGatewayService(ExecutionAuthorizationService):
+             envelope = stored_request["envelope"]
+             if envelope["integrity"]["canonical_sha256"] != intake["envelope_sha256"]:
+                 raise ExecutionSourceRejected("gateway request hash does not match the stored envelope")
+-            if envelope["intake"].get("source_type") == "STAGE5_2_RECON_ACTION_REQUEST":
+-                # Do not admit Recon actions that the Stage 6.4 server-owned
++            if envelope["intake"].get("source_type") in {"STAGE5_2_RECON_ACTION_REQUEST", "STAGE5_3_ENUMERATION_ACTION_PROPOSAL"}:
++                # Do not admit specialist actions that the Stage 6.4 server-owned
+                 # registry cannot execute exactly. This is capability validation
+                 # only; adapter invocation and all target I/O remain downstream.
+                 from .tool_registry import select_adapter
+diff --git a/execution_subsystem/proposal_source.py b/execution_subsystem/proposal_source.py
+index 04988d7..d0b6002 100644
+--- a/execution_subsystem/proposal_source.py
++++ b/execution_subsystem/proposal_source.py
+@@ -5,6 +5,7 @@ from copy import deepcopy
+ from pathlib import Path
+ import sqlite3
+ from typing import Any
++from mission_orchestrator.governance_binding import resource_in_canonical_scope
+ 
+ from pentest_subsystem.exploitation import ExploitationAgentRepository, EXPLOITATION_AGENT_ID
+ from pentest_subsystem.attack_path_planning import AttackPathPlanningAgentRepository
+@@ -19,6 +20,7 @@ from pentest_subsystem.reconnaissance import (
+     RECON_ACTION_REQUEST_SCHEMA_VERSION, ReconnaissanceAgentRepository,
+     normalize_recon_action_request,
+ )
++from pentest_subsystem.enumeration import EnumerationAgentRepository
+ from pentest_subsystem.lifecycle_contract import build_lifecycle_state_projection
+ from pentest_subsystem.lineage_contract import verify_pentest_lineage_object
+ from pentest_subsystem.orchestration.task_graph import graph_node
+@@ -106,6 +108,8 @@ class PentestProposalSource:
+     def _build(self, conn: sqlite3.Connection, intake: dict[str, Any]) -> dict[str, Any]:
+         if intake["schema_version"] == "apts-execution-request-intake-v2":
+             return self._build_recon(conn, intake)
++        if intake["schema_version"] == "apts-execution-request-intake-v3":
++            return self._build_enumeration(conn, intake)
+         run_row = self._one(conn, "pentest_exploitation_runs", "exploitation_run_id", intake["exploitation_run_id"])
+         run = ExploitationAgentRepository._exploitation_run_row(run_row)
+         output = run["output"]
+@@ -277,6 +281,144 @@ class PentestProposalSource:
+         }
+         return build_canonical_action_envelope(intake=intake, request=request, source_binding=source_binding)
+ 
++    def _build_enumeration(self, conn: sqlite3.Connection, intake: dict[str, Any]) -> dict[str, Any]:
++        """Build the sole Stage-5.3 active handoff from an immutable persisted proposal."""
++        row = self._one(conn, "pentest_enumeration_runs", "enumeration_run_id", intake["enumeration_run_id"])
++        run = EnumerationAgentRepository._enumeration_run_row(row)
++        if run["run_status"] != "COMPLETED" or run["enumeration_run_id"] != intake["enumeration_run_id"]:
++            raise ExecutionSourceRejected("only a completed Stage 5.3 Enumeration run can enter Stage 6")
++        output, bundle = run["output"], run["evidence_bundle"]
++        if (output["enumeration_run_id"] != run["enumeration_run_id"]
++                or output["orchestration_id"] != run["orchestration_id"]
++                or output["mission_id"] != run["mission_id"]
++                or output["pentest_task_id"] != run["pentest_task_id"]
++                or bundle["output_sha256"] != output["integrity"]["canonical_sha256"]
++                or bundle["enumeration_run_id"] != run["enumeration_run_id"]):
++            raise ExecutionRequestIntegrityError("Enumeration output/evidence bundle lineage mismatch")
++        matches = [item for item in output["action_proposals"]
++                   if item.get("action_proposal_ref") == intake["enumeration_proposal_ref"]]
++        if len(matches) != 1:
++            raise ExecutionSourceNotFound("Enumeration proposal is absent or ambiguous in its persisted run")
++        action = matches[0]
++        if action.get("action_proposal_sha256") != intake["proposal_sha256"]:
++            raise ExecutionRequestIntegrityError("Enumeration proposal hash does not match the persisted proposal")
++        # No semantic aliasing: only the exact Stage-6.4 registered primitive is executable.
++        if action.get("technique") != "TCP_BANNER_READ":
++            raise ExecutionSourceRejected("Stage 13 enables only an explicit TCP_BANNER_READ proposal")
++        if action.get("execution_status") != "DEFERRED_TO_STAGE6":
++            raise ExecutionSourceRejected("Enumeration proposal is not explicitly deferred to Stage 6")
++
++        task_row = self._one(conn, "pentest_tasks", "pentest_task_id", run["pentest_task_id"])
++        task_record = PentestTaskRepository._row_to_record(task_row)
++        task, task_binding = task_record["task"], task_record["binding"]
++        if (not verify_pentest_task_artifact(task) or not verify_pentest_task_binding(task_binding)
++                or task_binding["task"] != task
++                or task["integrity"]["canonical_sha256"] != task_row["task_contract_sha256"]
++                or task_binding["integrity"]["canonical_sha256"] != task_row["task_binding_sha256"]
++                or any(task[key] != run[key] for key in ("mission_id", "pentest_id", "pentest_task_id"))):
++            raise ExecutionRequestIntegrityError("Enumeration task artifact or run binding failed verification")
++        boundary = run["request"]["boundary"]
++        _assert_boundary_matches_task(boundary, task)
++        if ("TARGET_RECON" not in boundary["roe"].get("allowed_action_classes", [])
++                or "TCP_BANNER_READ" not in boundary["roe"].get("allowed_techniques", [])
++                or int(boundary["roe"].get("maximum_concurrency", 0)) < 1
++                or int(boundary["constraints"].get("resource_budget", {}).get("max_network_requests", 0)) < 1):
++            raise ExecutionSourceRejected("Enumeration intake requires explicit TCP_BANNER_READ RoE and a positive network budget")
++        target = action["target"]
++        if target.get("target_type") not in {"URL", "IP", "HOST", "DOMAIN"}:
++            raise ExecutionSourceRejected("TCP_BANNER_READ target type is not supported by the fixed adapter")
++        if not resource_in_canonical_scope(boundary, target["target_value"])[0] or not resource_in_canonical_scope(task, target["target_value"])[0]:
++            raise ExecutionSourceRejected("Enumeration target is outside the current Mission/Pentest scope")
++
++        orch_row = self._one(conn, "pentest_agentic_orchestrations", "orchestration_id", run["orchestration_id"])
++        orch = AgenticPentestOrchestratorRepository._orchestration_row(orch_row)
++        if (orch["orchestration_status"] != "ACTIVE" or orch["mission_id"] != run["mission_id"]
++                or orch["pentest_id"] != run["pentest_id"] or orch["pentest_task_id"] != run["pentest_task_id"]):
++            raise ExecutionSourceRejected("Enumeration orchestration is inactive or its task binding changed")
++        node = graph_node(orch["task_graph"], run["subtask_id"])
++        if (node is None or node.get("capability_id") != "enumeration"
++                or node.get("specialist", {}).get("agent_id") != run["agent_id"]
++                or node.get("status") != "SUCCEEDED" or run["agent_id"] != "PENTEST_ENUMERATION_AGENT"):
++            raise ExecutionSourceRejected("persisted Enumeration proposal is not owned by a succeeded Stage-5.3 subtask")
++
++        proposal = self._lineage(conn, action["action_proposal_ref"], "ACTION_PROPOSAL", task)
++        if (not verify_pentest_lineage_object(proposal)
++                or proposal["integrity"]["canonical_sha256"] != action["action_proposal_sha256"]
++                or proposal["provenance"]["source_id"] != run["enumeration_run_id"]
++                or proposal["provenance"]["actor_id"] != run["agent_id"]
++                or proposal["data"].get("target") != target
++                or proposal["data"].get("technique") != "TCP_BANNER_READ"
++                or proposal["data"].get("capability_id") != "enumeration"
++                or proposal["data"].get("action_class") != "TARGET_RECON"
++                or proposal["provenance"]["metadata"].get("execution_deferred_to_stage6") is not True):
++            raise ExecutionRequestIntegrityError("Enumeration ACTION_PROPOSAL lineage/hash/target mismatch")
++        decisions = self._one(conn, "pentest_scope_roe_decisions", "decision_id", action["governance_decision_ref"])
++        stored_decision = PentestGovernanceRepository._row(decisions)
++        decision, evaluation = stored_decision["decision"], stored_decision["request"]
++        if (not verify_integrity(evaluation, PENTEST_GOVERNANCE_EVALUATION_HASH_DOMAIN)
++                or decision["status"] != "ELIGIBLE" or decision["capability_id"] != "enumeration"
++                or decision["semantics"]["decision_is_authorization"] is not False
++                or evaluation["boundary"] != boundary or evaluation["target"] != target
++                or evaluation["technique"] != "TCP_BANNER_READ"
++                or evaluation["action_class"] != "TARGET_RECON"
++                or decision["request_sha256"] != evaluation["integrity"]["canonical_sha256"]
++                or any(decision[key] != task[key] for key in ("mission_id", "pentest_id", "pentest_task_id"))):
++            raise ExecutionSourceRejected("Stage-4.8 Enumeration eligibility is absent, stale, or does not authorize this exact action")
++        impact = evaluation["estimated_impact"]
++        rate_cost = evaluation["rate_cost"]
++        active_concurrency = evaluation["active_concurrency"]
++        budget = boundary["constraints"].get("resource_budget", {}).get("max_network_requests", 0)
++        if (impact not in {"NONE", "LOW"} or rate_cost != 1 or active_concurrency != 1
++                or rate_cost > int(budget) or active_concurrency > int(boundary["roe"].get("maximum_concurrency", 0))):
++            raise ExecutionSourceRejected("TCP_BANNER_READ proposal exceeds the Stage 13 one-request/one-worker budget")
++        evidence_basis = []
++        for item in bundle["lineage_items"]:
++            if item.get("scope_status") != "IN_LOCAL_TASK_SCOPE":
++                continue
++            evidence = self._lineage(conn, item["evidence_ref"], "EVIDENCE", task)
++            if evidence["integrity"]["canonical_sha256"] != item["evidence_sha256"]:
++                raise ExecutionRequestIntegrityError("Enumeration evidence lineage hash mismatch")
++            evidence_basis.append({"evidence_id": item["evidence_ref"],
++                                  "canonical_sha256": item["evidence_sha256"]})
++        if not evidence_basis:
++            raise ExecutionSourceRejected("Enumeration proposal has no verified source evidence")
++        policy = task["authorization_reference"]
++        request = seal_execution_request({
++            "schema_version": EXECUTION_REQUEST_SCHEMA_VERSION,
++            "execution_id": deterministic_execution_id(task["mission_id"], task["upstream_task_id"],
++                                                       task["pentest_id"], intake["idempotency_key"]),
++            "mission_id": task["mission_id"], "task_id": task["upstream_task_id"],
++            "pentest_id": task["pentest_id"],
++            "proposing_agent": {"agent_id": run["agent_id"], "role": "ENUMERATION",
++                "orchestration_id": run["orchestration_id"], "subtask_id": run["subtask_id"]},
++            "action": {"action_class": "TARGET_RECON", "capability_id": "enumeration",
++                       "technique": "TCP_BANNER_READ"},
++            "target": target,
++            "parameters": {"source_proposal_id": action["action_proposal_ref"],
++                "expected_evidence": ["bounded TCP banner response digest", "connected peer address"],
++                "estimated_impact": impact},
++            "evidence_basis": evidence_basis,
++            "authorization_requirement": {"authority": "EXTERNAL_APTS_GSS", "revalidation_required": True,
++                "required_checks": list(REQUIRED_AUTHORIZATION_CHECKS), "human_review_required": False,
++                "policy_reference": {"policy_decision_id": policy["policy_decision_id"],
++                    "policy_decision_hash": policy["policy_decision_hash"], "policy_version": policy["policy_version"],
++                    "reference_sha256": sha256_hex(policy)}}})
++        return build_canonical_action_envelope(intake=intake, request=request, source_binding={
++            "pentest_task_id": task_record["pentest_task_id"],
++            "task_artifact_sha256": task["integrity"]["canonical_sha256"],
++            "task_binding_sha256": task_binding["integrity"]["canonical_sha256"],
++            "source_run_output_sha256": output["integrity"]["canonical_sha256"],
++            "source_run_evidence_bundle_sha256": bundle["integrity"]["canonical_sha256"],
++            "action_proposal_ref": action["action_proposal_ref"],
++            "action_proposal_sha256": action["action_proposal_sha256"],
++            "orchestration_graph_sha256": orch["task_graph_sha256"],
++            "scope_sha256": sha256_hex({"bound_scope": boundary["scope"], "local_scope": task["scope"]}),
++            "roe_sha256": sha256_hex(boundary["roe"]), "constraints_sha256": sha256_hex(task["constraints"]),
++            "policy_reference_sha256": sha256_hex(policy),
++            "validation_decision_sha256": sha256_hex({"source": "STAGE5_3_ENUMERATION", "decision": decision["decision_id"]}),
++            "exploitation_decision_sha256": sha256_hex({"source": "STAGE5_3_ENUMERATION", "decision": "NOT_APPLICABLE"}),
++            "stage5_closure_contract_sha256": canonical_execution_request_contract()["predecessor"]["contract_sha256"]})
++
+     def _build_recon(self, conn: sqlite3.Connection, intake: dict[str, Any]) -> dict[str, Any]:
+         """Build a Stage 6.1 envelope from a persisted, lifecycle-bound Stage 5.2 request."""
+         row = self._one(conn, "pentest_recon_runs", "recon_run_id",
+diff --git a/execution_subsystem/runtime_repository.py b/execution_subsystem/runtime_repository.py
+index 54c34de..fcf3fe1 100644
+--- a/execution_subsystem/runtime_repository.py
++++ b/execution_subsystem/runtime_repository.py
+@@ -216,11 +216,14 @@ class ExecutionRuntimeRepository(ExecutionAdapterRepository):
+         # preceding attempt failed before target I/O. Stage 6.5 still obtains
+         # fresh GSS authorization for every attempt and the adapter repository
+         # verifies this receipt against the request hash before reserving.
+-        if req.get("proposing_agent", {}).get("role") == "RECONNAISSANCE":
++        role = req.get("proposing_agent", {}).get("role")
++        if role in {"RECONNAISSANCE", "ENUMERATION"}:
+             if gate is None:
+-                raise ExecutionSourceRejected("RECON_ACTION_REQUIRES_STAGE6_3_GATEWAY_ADMISSION")
++                code = "RECON_ACTION_REQUIRES_STAGE6_3_GATEWAY_ADMISSION" if role == "RECONNAISSANCE" else "ENUMERATION_ACTION_REQUIRES_STAGE6_3_GATEWAY_ADMISSION"
++                raise ExecutionSourceRejected(code)
+             if gate.get("request_sha256") != req.get("integrity", {}).get("canonical_sha256"):
+-                raise ExecutionSourceRejected("RECON_GATEWAY_ADMISSION_REQUEST_BINDING_MISMATCH")
++                code = "RECON_GATEWAY_ADMISSION_REQUEST_BINDING_MISMATCH" if role == "RECONNAISSANCE" else "ENUMERATION_GATEWAY_ADMISSION_REQUEST_BINDING_MISMATCH"
++                raise ExecutionSourceRejected(code)
+             return gate
+         # For non-Recon actions, a predecessor gateway reservation covers
+         # only the first attempt.
+diff --git a/execution_subsystem/schemas/canonical_action_envelope_v1.schema.json b/execution_subsystem/schemas/canonical_action_envelope_v1.schema.json
+index 90b85c5..2b7045c 100644
+--- a/execution_subsystem/schemas/canonical_action_envelope_v1.schema.json
++++ b/execution_subsystem/schemas/canonical_action_envelope_v1.schema.json
+@@ -1,554 +1,635 @@
+-{
+-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+-  "$id": "apts-canonical-action-envelope-v1",
+-  "title": "APTS canonical action envelope",
+-  "type": "object",
+-  "additionalProperties": false,
+-  "required": [
+-    "schema_version",
+-    "control_version",
+-    "contract_sha256",
+-    "intake",
+-    "execution_request",
+-    "source_binding",
+-    "status",
+-    "semantics",
+-    "integrity"
+-  ],
+-  "properties": {
+-    "schema_version": {
+-      "const": "apts-canonical-action-envelope-v1"
+-    },
+-    "control_version": {
+-      "const": "stage6.1-canonical-execution-request-contract"
+-    },
+-    "contract_sha256": {
+-      "type": "string",
+-      "pattern": "^[0-9a-f]{64}$"
+-    },
+-    "intake": {
+-      "oneOf": [
+-        {
+-          "type": "object",
+-          "additionalProperties": false,
+-          "required": [
+-            "schema_version",
+-            "request_id",
+-            "idempotency_key",
+-            "exploitation_run_id",
+-            "exploit_action_proposal_id",
+-            "proposal_sha256"
+-          ],
+-          "properties": {
+-            "schema_version": {
+-              "const": "apts-execution-request-intake-v1"
+-            },
+-            "request_id": {
+-              "type": "string",
+-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-              "maxLength": 200
+-            },
+-            "idempotency_key": {
+-              "type": "string",
+-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-              "maxLength": 200
+-            },
+-            "exploitation_run_id": {
+-              "type": "string",
+-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-              "maxLength": 200
+-            },
+-            "exploit_action_proposal_id": {
+-              "type": "string",
+-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-              "maxLength": 200
+-            },
+-            "proposal_sha256": {
+-              "type": "string",
+-              "pattern": "^[0-9a-f]{64}$"
+-            }
+-          }
+-        },
+-        {
+-          "type": "object",
+-          "additionalProperties": false,
+-          "required": [
+-            "schema_version",
+-            "source_type",
+-            "request_id",
+-            "idempotency_key",
+-            "recon_action_id",
+-            "recon_request_sha256"
+-          ],
+-          "properties": {
+-            "schema_version": {
+-              "const": "apts-execution-request-intake-v2"
+-            },
+-            "source_type": {
+-              "const": "STAGE5_2_RECON_ACTION_REQUEST"
+-            },
+-            "request_id": {
+-              "type": "string",
+-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-              "maxLength": 200
+-            },
+-            "idempotency_key": {
+-              "type": "string",
+-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-              "maxLength": 200
+-            },
+-            "recon_action_id": {
+-              "type": "string",
+-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-              "maxLength": 200
+-            },
+-            "recon_request_sha256": {
+-              "type": "string",
+-              "pattern": "^[0-9a-f]{64}$"
+-            }
+-          }
+-        }
+-      ]
+-    },
+-    "execution_request": {
+-      "title": "APTS ExecutionRequest core",
+-      "type": "object",
+-      "additionalProperties": false,
+-      "required": [
+-        "schema_version",
+-        "execution_id",
+-        "mission_id",
+-        "task_id",
+-        "pentest_id",
+-        "proposing_agent",
+-        "action",
+-        "target",
+-        "parameters",
+-        "evidence_basis",
+-        "authorization_requirement",
+-        "integrity"
+-      ],
+-      "properties": {
+-        "schema_version": {
+-          "const": "apts-execution-request-v1"
+-        },
+-        "execution_id": {
+-          "type": "string",
+-          "pattern": "^exec-[A-Za-z0-9._:@\\-]*$",
+-          "maxLength": 200
+-        },
+-        "mission_id": {
+-          "type": "string",
+-          "pattern": "^mission-gmo-[A-Za-z0-9._:@\\-]*$",
+-          "maxLength": 200
+-        },
+-        "task_id": {
+-          "type": "string",
+-          "pattern": "^ptask-[A-Za-z0-9._:@\\-]*$",
+-          "maxLength": 200
+-        },
+-        "pentest_id": {
+-          "type": "string",
+-          "pattern": "^pentest-[A-Za-z0-9._:@\\-]*$",
+-          "maxLength": 200
+-        },
+-        "proposing_agent": {
+-          "type": "object",
+-          "additionalProperties": false,
+-          "required": [
+-            "agent_id",
+-            "role",
+-            "orchestration_id",
+-            "subtask_id"
+-          ],
+-          "properties": {
+-            "agent_id": {
+-              "type": "string",
+-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-              "maxLength": 200
+-            },
+-            "role": {
+-              "type": "string",
+-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-              "maxLength": 200
+-            },
+-            "orchestration_id": {
+-              "type": "string",
+-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-              "maxLength": 200
+-            },
+-            "subtask_id": {
+-              "type": "string",
+-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-              "maxLength": 200
+-            }
+-          }
+-        },
+-        "action": {
+-          "type": "object",
+-          "additionalProperties": false,
+-          "required": [
+-            "action_class",
+-            "capability_id",
+-            "technique"
+-          ],
+-          "properties": {
+-            "action_class": {
+-              "type": "string",
+-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-              "maxLength": 200
+-            },
+-            "capability_id": {
+-              "type": "string",
+-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-              "maxLength": 200
+-            },
+-            "technique": {
+-              "type": "string",
+-              "minLength": 1,
+-              "maxLength": 2000,
+-              "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
+-            }
+-          }
+-        },
+-        "target": {
+-          "type": "object",
+-          "additionalProperties": false,
+-          "required": [
+-            "target_type",
+-            "target_value"
+-          ],
+-          "properties": {
+-            "target_type": {
+-              "type": "string",
+-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-              "maxLength": 200
+-            },
+-            "target_value": {
+-              "type": "string",
+-              "minLength": 1,
+-              "maxLength": 2000,
+-              "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
+-            }
+-          }
+-        },
+-        "parameters": {
+-          "oneOf": [
+-            {
+-              "type": "object",
+-              "additionalProperties": false,
+-              "required": [
+-                "validation_task_id",
+-                "expected_evidence",
+-                "estimated_impact"
+-              ],
+-              "properties": {
+-                "validation_task_id": {
+-                  "type": "string",
+-                  "pattern": "^valtask-[A-Za-z0-9._:@\\-]*$",
+-                  "maxLength": 200
+-                },
+-                "expected_evidence": {
+-                  "type": "array",
+-                  "maxItems": 100,
+-                  "items": {
+-                    "type": "string",
+-                    "minLength": 1,
+-                    "maxLength": 2000,
+-                    "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
+-                  }
+-                },
+-                "estimated_impact": {
+-                  "enum": [
+-                    "NONE",
+-                    "LOW",
+-                    "MODERATE",
+-                    "HIGH",
+-                    "CRITICAL",
+-                    "DESTRUCTIVE"
+-                  ]
+-                }
+-              }
+-            },
+-            {
+-              "type": "object",
+-              "additionalProperties": false,
+-              "required": [
+-                "source_action_id",
+-                "expected_evidence",
+-                "estimated_impact"
+-              ],
+-              "properties": {
+-                "source_action_id": {
+-                  "type": "string",
+-                  "pattern": "^rareq-[A-Za-z0-9._:@\\-]*$",
+-                  "maxLength": 200
+-                },
+-                "expected_evidence": {
+-                  "type": "array",
+-                  "maxItems": 100,
+-                  "items": {
+-                    "type": "string",
+-                    "minLength": 1,
+-                    "maxLength": 2000,
+-                    "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
+-                  }
+-                },
+-                "estimated_impact": {
+-                  "enum": [
+-                    "NONE",
+-                    "LOW",
+-                    "MODERATE",
+-                    "HIGH",
+-                    "CRITICAL",
+-                    "DESTRUCTIVE"
+-                  ]
+-                }
+-              }
+-            }
+-          ]
+-        },
+-        "evidence_basis": {
+-          "type": "array",
+-          "minItems": 1,
+-          "maxItems": 500,
+-          "uniqueItems": true,
+-          "items": {
+-            "type": "object",
+-            "additionalProperties": false,
+-            "required": [
+-              "evidence_id",
+-              "canonical_sha256"
+-            ],
+-            "properties": {
+-              "evidence_id": {
+-                "type": "string",
+-                "pattern": "^evi-[A-Za-z0-9._:@\\-]*$",
+-                "maxLength": 200
+-              },
+-              "canonical_sha256": {
+-                "type": "string",
+-                "pattern": "^[0-9a-f]{64}$"
+-              }
+-            }
+-          }
+-        },
+-        "authorization_requirement": {
+-          "type": "object",
+-          "additionalProperties": false,
+-          "required": [
+-            "authority",
+-            "revalidation_required",
+-            "required_checks",
+-            "human_review_required",
+-            "policy_reference"
+-          ],
+-          "properties": {
+-            "authority": {
+-              "const": "EXTERNAL_APTS_GSS"
+-            },
+-            "revalidation_required": {
+-              "const": true
+-            },
+-            "required_checks": {
+-              "const": [
+-                "SCOPE",
+-                "ROE",
+-                "POLICY",
+-                "RISK",
+-                "EXPIRY",
+-                "REVOCATION",
+-                "TARGET",
+-                "TECHNIQUE"
+-              ]
+-            },
+-            "human_review_required": {
+-              "type": "boolean"
+-            },
+-            "policy_reference": {
+-              "type": "object",
+-              "additionalProperties": false,
+-              "required": [
+-                "policy_decision_id",
+-                "policy_decision_hash",
+-                "policy_version",
+-                "reference_sha256"
+-              ],
+-              "properties": {
+-                "policy_decision_id": {
+-                  "type": "string",
+-                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-                  "maxLength": 200
+-                },
+-                "policy_decision_hash": {
+-                  "type": "string",
+-                  "pattern": "^[0-9a-f]{64}$"
+-                },
+-                "policy_version": {
+-                  "type": "integer",
+-                  "minimum": 1,
+-                  "maximum": 9223372036854775807
+-                },
+-                "reference_sha256": {
+-                  "type": "string",
+-                  "pattern": "^[0-9a-f]{64}$"
+-                }
+-              }
+-            }
+-          }
+-        },
+-        "integrity": {
+-          "type": "object",
+-          "additionalProperties": false,
+-          "required": [
+-            "algorithm",
+-            "canonicalization",
+-            "hash_domain",
+-            "canonical_sha256"
+-          ],
+-          "properties": {
+-            "algorithm": {
+-              "const": "SHA-256"
+-            },
+-            "canonicalization": {
+-              "const": "UTF8_SORTED_JSON_V1"
+-            },
+-            "hash_domain": {
+-              "const": "APTS_STAGE6_1_EXECUTION_REQUEST_V1"
+-            },
+-            "canonical_sha256": {
+-              "type": "string",
+-              "pattern": "^[0-9a-f]{64}$"
+-            }
+-          }
+-        }
+-      }
+-    },
+-    "source_binding": {
+-      "type": "object",
+-      "additionalProperties": false,
+-      "required": [
+-        "pentest_task_id",
+-        "task_artifact_sha256",
+-        "task_binding_sha256",
+-        "source_run_output_sha256",
+-        "source_run_evidence_bundle_sha256",
+-        "action_proposal_ref",
+-        "action_proposal_sha256",
+-        "orchestration_graph_sha256",
+-        "scope_sha256",
+-        "roe_sha256",
+-        "constraints_sha256",
+-        "policy_reference_sha256",
+-        "validation_decision_sha256",
+-        "exploitation_decision_sha256",
+-        "stage5_closure_contract_sha256"
+-      ],
+-      "properties": {
+-        "pentest_task_id": {
+-          "type": "string",
+-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-          "maxLength": 200
+-        },
+-        "task_artifact_sha256": {
+-          "type": "string",
+-          "pattern": "^[0-9a-f]{64}$"
+-        },
+-        "task_binding_sha256": {
+-          "type": "string",
+-          "pattern": "^[0-9a-f]{64}$"
+-        },
+-        "source_run_output_sha256": {
+-          "type": "string",
+-          "pattern": "^[0-9a-f]{64}$"
+-        },
+-        "source_run_evidence_bundle_sha256": {
+-          "type": "string",
+-          "pattern": "^[0-9a-f]{64}$"
+-        },
+-        "action_proposal_ref": {
+-          "type": "string",
+-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-          "maxLength": 200
+-        },
+-        "action_proposal_sha256": {
+-          "type": "string",
+-          "pattern": "^[0-9a-f]{64}$"
+-        },
+-        "orchestration_graph_sha256": {
+-          "type": "string",
+-          "pattern": "^[0-9a-f]{64}$"
+-        },
+-        "scope_sha256": {
+-          "type": "string",
+-          "pattern": "^[0-9a-f]{64}$"
+-        },
+-        "roe_sha256": {
+-          "type": "string",
+-          "pattern": "^[0-9a-f]{64}$"
+-        },
+-        "constraints_sha256": {
+-          "type": "string",
+-          "pattern": "^[0-9a-f]{64}$"
+-        },
+-        "policy_reference_sha256": {
+-          "type": "string",
+-          "pattern": "^[0-9a-f]{64}$"
+-        },
+-        "validation_decision_sha256": {
+-          "type": "string",
+-          "pattern": "^[0-9a-f]{64}$"
+-        },
+-        "exploitation_decision_sha256": {
+-          "type": "string",
+-          "pattern": "^[0-9a-f]{64}$"
+-        },
+-        "stage5_closure_contract_sha256": {
+-          "type": "string",
+-          "pattern": "^[0-9a-f]{64}$"
+-        }
+-      }
+-    },
+-    "status": {
+-      "const": "AWAITING_AUTHORIZATION"
+-    },
+-    "semantics": {
+-      "const": {
+-        "request_is_authorization": false,
+-        "authorization_minted": false,
+-        "execution_authorized": false,
+-        "dispatch_performed": false,
+-        "tool_invocation_performed": false,
+-        "external_network_io_performed": false,
+-        "target_actuation": false,
+-        "action_result_created": false,
+-        "new_target_evidence_created": false
+-      }
+-    },
+-    "integrity": {
+-      "type": "object",
+-      "additionalProperties": false,
+-      "required": [
+-        "algorithm",
+-        "canonicalization",
+-        "hash_domain",
+-        "canonical_sha256"
+-      ],
+-      "properties": {
+-        "algorithm": {
+-          "const": "SHA-256"
+-        },
+-        "canonicalization": {
+-          "const": "UTF8_SORTED_JSON_V1"
+-        },
+-        "hash_domain": {
+-          "const": "APTS_STAGE6_1_CANONICAL_ACTION_ENVELOPE_V1"
+-        },
+-        "canonical_sha256": {
+-          "type": "string",
+-          "pattern": "^[0-9a-f]{64}$"
+-        }
+-      }
+-    }
+-  }
+-}
++{
++  "$schema": "https://json-schema.org/draft/2020-12/schema",
++  "$id": "apts-canonical-action-envelope-v1",
++  "title": "APTS canonical action envelope",
++  "type": "object",
++  "additionalProperties": false,
++  "required": [
++    "schema_version",
++    "control_version",
++    "contract_sha256",
++    "intake",
++    "execution_request",
++    "source_binding",
++    "status",
++    "semantics",
++    "integrity"
++  ],
++  "properties": {
++    "schema_version": {
++      "const": "apts-canonical-action-envelope-v1"
++    },
++    "control_version": {
++      "const": "stage6.1-canonical-execution-request-contract"
++    },
++    "contract_sha256": {
++      "type": "string",
++      "pattern": "^[0-9a-f]{64}$"
++    },
++    "intake": {
++      "oneOf": [
++        {
++          "type": "object",
++          "additionalProperties": false,
++          "required": [
++            "schema_version",
++            "request_id",
++            "idempotency_key",
++            "exploitation_run_id",
++            "exploit_action_proposal_id",
++            "proposal_sha256"
++          ],
++          "properties": {
++            "schema_version": {
++              "const": "apts-execution-request-intake-v1"
++            },
++            "request_id": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "idempotency_key": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "exploitation_run_id": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "exploit_action_proposal_id": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "proposal_sha256": {
++              "type": "string",
++              "pattern": "^[0-9a-f]{64}$"
++            }
++          }
++        },
++        {
++          "type": "object",
++          "additionalProperties": false,
++          "required": [
++            "schema_version",
++            "source_type",
++            "request_id",
++            "idempotency_key",
++            "recon_action_id",
++            "recon_request_sha256"
++          ],
++          "properties": {
++            "schema_version": {
++              "const": "apts-execution-request-intake-v2"
++            },
++            "source_type": {
++              "const": "STAGE5_2_RECON_ACTION_REQUEST"
++            },
++            "request_id": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "idempotency_key": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "recon_action_id": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "recon_request_sha256": {
++              "type": "string",
++              "pattern": "^[0-9a-f]{64}$"
++            }
++          }
++        },
++        {
++          "type": "object",
++          "additionalProperties": false,
++          "required": [
++            "schema_version",
++            "source_type",
++            "request_id",
++            "idempotency_key",
++            "enumeration_run_id",
++            "enumeration_proposal_ref",
++            "proposal_sha256"
++          ],
++          "properties": {
++            "schema_version": {
++              "const": "apts-execution-request-intake-v3"
++            },
++            "source_type": {
++              "const": "STAGE5_3_ENUMERATION_ACTION_PROPOSAL"
++            },
++            "request_id": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "idempotency_key": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "enumeration_run_id": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "enumeration_proposal_ref": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "proposal_sha256": {
++              "type": "string",
++              "pattern": "^[0-9a-f]{64}$"
++            }
++          }
++        }
++      ]
++    },
++    "execution_request": {
++      "title": "APTS ExecutionRequest core",
++      "type": "object",
++      "additionalProperties": false,
++      "required": [
++        "schema_version",
++        "execution_id",
++        "mission_id",
++        "task_id",
++        "pentest_id",
++        "proposing_agent",
++        "action",
++        "target",
++        "parameters",
++        "evidence_basis",
++        "authorization_requirement",
++        "integrity"
++      ],
++      "properties": {
++        "schema_version": {
++          "const": "apts-execution-request-v1"
++        },
++        "execution_id": {
++          "type": "string",
++          "pattern": "^exec-[A-Za-z0-9._:@\\-]*$",
++          "maxLength": 200
++        },
++        "mission_id": {
++          "type": "string",
++          "pattern": "^mission-gmo-[A-Za-z0-9._:@\\-]*$",
++          "maxLength": 200
++        },
++        "task_id": {
++          "type": "string",
++          "pattern": "^ptask-[A-Za-z0-9._:@\\-]*$",
++          "maxLength": 200
++        },
++        "pentest_id": {
++          "type": "string",
++          "pattern": "^pentest-[A-Za-z0-9._:@\\-]*$",
++          "maxLength": 200
++        },
++        "proposing_agent": {
++          "type": "object",
++          "additionalProperties": false,
++          "required": [
++            "agent_id",
++            "role",
++            "orchestration_id",
++            "subtask_id"
++          ],
++          "properties": {
++            "agent_id": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "role": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "orchestration_id": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "subtask_id": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            }
++          }
++        },
++        "action": {
++          "type": "object",
++          "additionalProperties": false,
++          "required": [
++            "action_class",
++            "capability_id",
++            "technique"
++          ],
++          "properties": {
++            "action_class": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "capability_id": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "technique": {
++              "type": "string",
++              "minLength": 1,
++              "maxLength": 2000,
++              "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
++            }
++          }
++        },
++        "target": {
++          "type": "object",
++          "additionalProperties": false,
++          "required": [
++            "target_type",
++            "target_value"
++          ],
++          "properties": {
++            "target_type": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "target_value": {
++              "type": "string",
++              "minLength": 1,
++              "maxLength": 2000,
++              "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
++            }
++          }
++        },
++        "parameters": {
++          "oneOf": [
++            {
++              "type": "object",
++              "additionalProperties": false,
++              "required": [
++                "validation_task_id",
++                "expected_evidence",
++                "estimated_impact"
++              ],
++              "properties": {
++                "validation_task_id": {
++                  "type": "string",
++                  "pattern": "^valtask-[A-Za-z0-9._:@\\-]*$",
++                  "maxLength": 200
++                },
++                "expected_evidence": {
++                  "type": "array",
++                  "maxItems": 100,
++                  "items": {
++                    "type": "string",
++                    "minLength": 1,
++                    "maxLength": 2000,
++                    "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
++                  }
++                },
++                "estimated_impact": {
++                  "enum": [
++                    "NONE",
++                    "LOW",
++                    "MODERATE",
++                    "HIGH",
++                    "CRITICAL",
++                    "DESTRUCTIVE"
++                  ]
++                }
++              }
++            },
++            {
++              "type": "object",
++              "additionalProperties": false,
++              "required": [
++                "source_action_id",
++                "expected_evidence",
++                "estimated_impact"
++              ],
++              "properties": {
++                "source_action_id": {
++                  "type": "string",
++                  "pattern": "^rareq-[A-Za-z0-9._:@\\-]*$",
++                  "maxLength": 200
++                },
++                "expected_evidence": {
++                  "type": "array",
++                  "maxItems": 100,
++                  "items": {
++                    "type": "string",
++                    "minLength": 1,
++                    "maxLength": 2000,
++                    "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
++                  }
++                },
++                "estimated_impact": {
++                  "enum": [
++                    "NONE",
++                    "LOW",
++                    "MODERATE",
++                    "HIGH",
++                    "CRITICAL",
++                    "DESTRUCTIVE"
++                  ]
++                }
++              }
++            },
++            {
++              "type": "object",
++              "additionalProperties": false,
++              "required": [
++                "source_proposal_id",
++                "expected_evidence",
++                "estimated_impact"
++              ],
++              "properties": {
++                "source_proposal_id": {
++                  "type": "string",
++                  "pattern": "^actp-[A-Za-z0-9._:@\\-]*$",
++                  "maxLength": 200
++                },
++                "expected_evidence": {
++                  "type": "array",
++                  "maxItems": 100,
++                  "items": {
++                    "type": "string",
++                    "minLength": 1,
++                    "maxLength": 2000,
++                    "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
++                  }
++                },
++                "estimated_impact": {
++                  "enum": [
++                    "NONE",
++                    "LOW",
++                    "MODERATE",
++                    "HIGH",
++                    "CRITICAL",
++                    "DESTRUCTIVE"
++                  ]
++                }
++              }
++            }
++          ]
++        },
++        "evidence_basis": {
++          "type": "array",
++          "minItems": 1,
++          "maxItems": 500,
++          "uniqueItems": true,
++          "items": {
++            "type": "object",
++            "additionalProperties": false,
++            "required": [
++              "evidence_id",
++              "canonical_sha256"
++            ],
++            "properties": {
++              "evidence_id": {
++                "type": "string",
++                "pattern": "^evi-[A-Za-z0-9._:@\\-]*$",
++                "maxLength": 200
++              },
++              "canonical_sha256": {
++                "type": "string",
++                "pattern": "^[0-9a-f]{64}$"
++              }
++            }
++          }
++        },
++        "authorization_requirement": {
++          "type": "object",
++          "additionalProperties": false,
++          "required": [
++            "authority",
++            "revalidation_required",
++            "required_checks",
++            "human_review_required",
++            "policy_reference"
++          ],
++          "properties": {
++            "authority": {
++              "const": "EXTERNAL_APTS_GSS"
++            },
++            "revalidation_required": {
++              "const": true
++            },
++            "required_checks": {
++              "const": [
++                "SCOPE",
++                "ROE",
++                "POLICY",
++                "RISK",
++                "EXPIRY",
++                "REVOCATION",
++                "TARGET",
++                "TECHNIQUE"
++              ]
++            },
++            "human_review_required": {
++              "type": "boolean"
++            },
++            "policy_reference": {
++              "type": "object",
++              "additionalProperties": false,
++              "required": [
++                "policy_decision_id",
++                "policy_decision_hash",
++                "policy_version",
++                "reference_sha256"
++              ],
++              "properties": {
++                "policy_decision_id": {
++                  "type": "string",
++                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++                  "maxLength": 200
++                },
++                "policy_decision_hash": {
++                  "type": "string",
++                  "pattern": "^[0-9a-f]{64}$"
++                },
++                "policy_version": {
++                  "type": "integer",
++                  "minimum": 1,
++                  "maximum": 9223372036854775807
++                },
++                "reference_sha256": {
++                  "type": "string",
++                  "pattern": "^[0-9a-f]{64}$"
++                }
++              }
++            }
++          }
++        },
++        "integrity": {
++          "type": "object",
++          "additionalProperties": false,
++          "required": [
++            "algorithm",
++            "canonicalization",
++            "hash_domain",
++            "canonical_sha256"
++          ],
++          "properties": {
++            "algorithm": {
++              "const": "SHA-256"
++            },
++            "canonicalization": {
++              "const": "UTF8_SORTED_JSON_V1"
++            },
++            "hash_domain": {
++              "const": "APTS_STAGE6_1_EXECUTION_REQUEST_V1"
++            },
++            "canonical_sha256": {
++              "type": "string",
++              "pattern": "^[0-9a-f]{64}$"
++            }
++          }
++        }
++      }
++    },
++    "source_binding": {
++      "type": "object",
++      "additionalProperties": false,
++      "required": [
++        "pentest_task_id",
++        "task_artifact_sha256",
++        "task_binding_sha256",
++        "source_run_output_sha256",
++        "source_run_evidence_bundle_sha256",
++        "action_proposal_ref",
++        "action_proposal_sha256",
++        "orchestration_graph_sha256",
++        "scope_sha256",
++        "roe_sha256",
++        "constraints_sha256",
++        "policy_reference_sha256",
++        "validation_decision_sha256",
++        "exploitation_decision_sha256",
++        "stage5_closure_contract_sha256"
++      ],
++      "properties": {
++        "pentest_task_id": {
++          "type": "string",
++          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++          "maxLength": 200
++        },
++        "task_artifact_sha256": {
++          "type": "string",
++          "pattern": "^[0-9a-f]{64}$"
++        },
++        "task_binding_sha256": {
++          "type": "string",
++          "pattern": "^[0-9a-f]{64}$"
++        },
++        "source_run_output_sha256": {
++          "type": "string",
++          "pattern": "^[0-9a-f]{64}$"
++        },
++        "source_run_evidence_bundle_sha256": {
++          "type": "string",
++          "pattern": "^[0-9a-f]{64}$"
++        },
++        "action_proposal_ref": {
++          "type": "string",
++          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++          "maxLength": 200
++        },
++        "action_proposal_sha256": {
++          "type": "string",
++          "pattern": "^[0-9a-f]{64}$"
++        },
++        "orchestration_graph_sha256": {
++          "type": "string",
++          "pattern": "^[0-9a-f]{64}$"
++        },
++        "scope_sha256": {
++          "type": "string",
++          "pattern": "^[0-9a-f]{64}$"
++        },
++        "roe_sha256": {
++          "type": "string",
++          "pattern": "^[0-9a-f]{64}$"
++        },
++        "constraints_sha256": {
++          "type": "string",
++          "pattern": "^[0-9a-f]{64}$"
++        },
++        "policy_reference_sha256": {
++          "type": "string",
++          "pattern": "^[0-9a-f]{64}$"
++        },
++        "validation_decision_sha256": {
++          "type": "string",
++          "pattern": "^[0-9a-f]{64}$"
++        },
++        "exploitation_decision_sha256": {
++          "type": "string",
++          "pattern": "^[0-9a-f]{64}$"
++        },
++        "stage5_closure_contract_sha256": {
++          "type": "string",
++          "pattern": "^[0-9a-f]{64}$"
++        }
++      }
++    },
++    "status": {
++      "const": "AWAITING_AUTHORIZATION"
++    },
++    "semantics": {
++      "const": {
++        "request_is_authorization": false,
++        "authorization_minted": false,
++        "execution_authorized": false,
++        "dispatch_performed": false,
++        "tool_invocation_performed": false,
++        "external_network_io_performed": false,
++        "target_actuation": false,
++        "action_result_created": false,
++        "new_target_evidence_created": false
++      }
++    },
++    "integrity": {
++      "type": "object",
++      "additionalProperties": false,
++      "required": [
++        "algorithm",
++        "canonicalization",
++        "hash_domain",
++        "canonical_sha256"
++      ],
++      "properties": {
++        "algorithm": {
++          "const": "SHA-256"
++        },
++        "canonicalization": {
++          "const": "UTF8_SORTED_JSON_V1"
++        },
++        "hash_domain": {
++          "const": "APTS_STAGE6_1_CANONICAL_ACTION_ENVELOPE_V1"
++        },
++        "canonical_sha256": {
++          "type": "string",
++          "pattern": "^[0-9a-f]{64}$"
++        }
++      }
++    }
++  }
++}
+diff --git a/execution_subsystem/schemas/execution_request_v1.schema.json b/execution_subsystem/schemas/execution_request_v1.schema.json
+index 554bb72..a79ccf7 100644
+--- a/execution_subsystem/schemas/execution_request_v1.schema.json
++++ b/execution_subsystem/schemas/execution_request_v1.schema.json
+@@ -1,290 +1,326 @@
+-{
+-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+-  "$id": "apts-execution-request-v1",
+-  "title": "APTS ExecutionRequest core",
+-  "type": "object",
+-  "additionalProperties": false,
+-  "required": [
+-    "schema_version",
+-    "execution_id",
+-    "mission_id",
+-    "task_id",
+-    "pentest_id",
+-    "proposing_agent",
+-    "action",
+-    "target",
+-    "parameters",
+-    "evidence_basis",
+-    "authorization_requirement"
+-  ],
+-  "properties": {
+-    "schema_version": {
+-      "const": "apts-execution-request-v1"
+-    },
+-    "execution_id": {
+-      "type": "string",
+-      "pattern": "^exec-[A-Za-z0-9._:@\\-]*$",
+-      "maxLength": 200
+-    },
+-    "mission_id": {
+-      "type": "string",
+-      "pattern": "^mission-gmo-[A-Za-z0-9._:@\\-]*$",
+-      "maxLength": 200
+-    },
+-    "task_id": {
+-      "type": "string",
+-      "pattern": "^ptask-[A-Za-z0-9._:@\\-]*$",
+-      "maxLength": 200
+-    },
+-    "pentest_id": {
+-      "type": "string",
+-      "pattern": "^pentest-[A-Za-z0-9._:@\\-]*$",
+-      "maxLength": 200
+-    },
+-    "proposing_agent": {
+-      "type": "object",
+-      "additionalProperties": false,
+-      "required": [
+-        "agent_id",
+-        "role",
+-        "orchestration_id",
+-        "subtask_id"
+-      ],
+-      "properties": {
+-        "agent_id": {
+-          "type": "string",
+-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-          "maxLength": 200
+-        },
+-        "role": {
+-          "type": "string",
+-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-          "maxLength": 200
+-        },
+-        "orchestration_id": {
+-          "type": "string",
+-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-          "maxLength": 200
+-        },
+-        "subtask_id": {
+-          "type": "string",
+-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-          "maxLength": 200
+-        }
+-      }
+-    },
+-    "action": {
+-      "type": "object",
+-      "additionalProperties": false,
+-      "required": [
+-        "action_class",
+-        "capability_id",
+-        "technique"
+-      ],
+-      "properties": {
+-        "action_class": {
+-          "type": "string",
+-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-          "maxLength": 200
+-        },
+-        "capability_id": {
+-          "type": "string",
+-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-          "maxLength": 200
+-        },
+-        "technique": {
+-          "type": "string",
+-          "minLength": 1,
+-          "maxLength": 2000,
+-          "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
+-        }
+-      }
+-    },
+-    "target": {
+-      "type": "object",
+-      "additionalProperties": false,
+-      "required": [
+-        "target_type",
+-        "target_value"
+-      ],
+-      "properties": {
+-        "target_type": {
+-          "type": "string",
+-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-          "maxLength": 200
+-        },
+-        "target_value": {
+-          "type": "string",
+-          "minLength": 1,
+-          "maxLength": 2000,
+-          "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
+-        }
+-      }
+-    },
+-    "parameters": {
+-      "oneOf": [
+-        {
+-          "type": "object",
+-          "additionalProperties": false,
+-          "required": [
+-            "validation_task_id",
+-            "expected_evidence",
+-            "estimated_impact"
+-          ],
+-          "properties": {
+-            "validation_task_id": {
+-              "type": "string",
+-              "pattern": "^valtask-[A-Za-z0-9._:@\\-]*$",
+-              "maxLength": 200
+-            },
+-            "expected_evidence": {
+-              "type": "array",
+-              "maxItems": 100,
+-              "items": {
+-                "type": "string",
+-                "minLength": 1,
+-                "maxLength": 2000,
+-                "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
+-              }
+-            },
+-            "estimated_impact": {
+-              "enum": [
+-                "NONE",
+-                "LOW",
+-                "MODERATE",
+-                "HIGH",
+-                "CRITICAL",
+-                "DESTRUCTIVE"
+-              ]
+-            }
+-          }
+-        },
+-        {
+-          "type": "object",
+-          "additionalProperties": false,
+-          "required": [
+-            "source_action_id",
+-            "expected_evidence",
+-            "estimated_impact"
+-          ],
+-          "properties": {
+-            "source_action_id": {
+-              "type": "string",
+-              "pattern": "^rareq-[A-Za-z0-9._:@\\-]*$",
+-              "maxLength": 200
+-            },
+-            "expected_evidence": {
+-              "type": "array",
+-              "maxItems": 100,
+-              "items": {
+-                "type": "string",
+-                "minLength": 1,
+-                "maxLength": 2000,
+-                "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
+-              }
+-            },
+-            "estimated_impact": {
+-              "enum": [
+-                "NONE",
+-                "LOW",
+-                "MODERATE",
+-                "HIGH",
+-                "CRITICAL",
+-                "DESTRUCTIVE"
+-              ]
+-            }
+-          }
+-        }
+-      ]
+-    },
+-    "evidence_basis": {
+-      "type": "array",
+-      "minItems": 1,
+-      "maxItems": 500,
+-      "uniqueItems": true,
+-      "items": {
+-        "type": "object",
+-        "additionalProperties": false,
+-        "required": [
+-          "evidence_id",
+-          "canonical_sha256"
+-        ],
+-        "properties": {
+-          "evidence_id": {
+-            "type": "string",
+-            "pattern": "^evi-[A-Za-z0-9._:@\\-]*$",
+-            "maxLength": 200
+-          },
+-          "canonical_sha256": {
+-            "type": "string",
+-            "pattern": "^[0-9a-f]{64}$"
+-          }
+-        }
+-      }
+-    },
+-    "authorization_requirement": {
+-      "type": "object",
+-      "additionalProperties": false,
+-      "required": [
+-        "authority",
+-        "revalidation_required",
+-        "required_checks",
+-        "human_review_required",
+-        "policy_reference"
+-      ],
+-      "properties": {
+-        "authority": {
+-          "const": "EXTERNAL_APTS_GSS"
+-        },
+-        "revalidation_required": {
+-          "const": true
+-        },
+-        "required_checks": {
+-          "const": [
+-            "SCOPE",
+-            "ROE",
+-            "POLICY",
+-            "RISK",
+-            "EXPIRY",
+-            "REVOCATION",
+-            "TARGET",
+-            "TECHNIQUE"
+-          ]
+-        },
+-        "human_review_required": {
+-          "type": "boolean"
+-        },
+-        "policy_reference": {
+-          "type": "object",
+-          "additionalProperties": false,
+-          "required": [
+-            "policy_decision_id",
+-            "policy_decision_hash",
+-            "policy_version",
+-            "reference_sha256"
+-          ],
+-          "properties": {
+-            "policy_decision_id": {
+-              "type": "string",
+-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-              "maxLength": 200
+-            },
+-            "policy_decision_hash": {
+-              "type": "string",
+-              "pattern": "^[0-9a-f]{64}$"
+-            },
+-            "policy_version": {
+-              "type": "integer",
+-              "minimum": 1,
+-              "maximum": 9223372036854775807
+-            },
+-            "reference_sha256": {
+-              "type": "string",
+-              "pattern": "^[0-9a-f]{64}$"
+-            }
+-          }
+-        }
+-      }
+-    }
+-  }
+-}
++{
++  "$schema": "https://json-schema.org/draft/2020-12/schema",
++  "$id": "apts-execution-request-v1",
++  "title": "APTS ExecutionRequest core",
++  "type": "object",
++  "additionalProperties": false,
++  "required": [
++    "schema_version",
++    "execution_id",
++    "mission_id",
++    "task_id",
++    "pentest_id",
++    "proposing_agent",
++    "action",
++    "target",
++    "parameters",
++    "evidence_basis",
++    "authorization_requirement"
++  ],
++  "properties": {
++    "schema_version": {
++      "const": "apts-execution-request-v1"
++    },
++    "execution_id": {
++      "type": "string",
++      "pattern": "^exec-[A-Za-z0-9._:@\\-]*$",
++      "maxLength": 200
++    },
++    "mission_id": {
++      "type": "string",
++      "pattern": "^mission-gmo-[A-Za-z0-9._:@\\-]*$",
++      "maxLength": 200
++    },
++    "task_id": {
++      "type": "string",
++      "pattern": "^ptask-[A-Za-z0-9._:@\\-]*$",
++      "maxLength": 200
++    },
++    "pentest_id": {
++      "type": "string",
++      "pattern": "^pentest-[A-Za-z0-9._:@\\-]*$",
++      "maxLength": 200
++    },
++    "proposing_agent": {
++      "type": "object",
++      "additionalProperties": false,
++      "required": [
++        "agent_id",
++        "role",
++        "orchestration_id",
++        "subtask_id"
++      ],
++      "properties": {
++        "agent_id": {
++          "type": "string",
++          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++          "maxLength": 200
++        },
++        "role": {
++          "type": "string",
++          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++          "maxLength": 200
++        },
++        "orchestration_id": {
++          "type": "string",
++          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++          "maxLength": 200
++        },
++        "subtask_id": {
++          "type": "string",
++          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++          "maxLength": 200
++        }
++      }
++    },
++    "action": {
++      "type": "object",
++      "additionalProperties": false,
++      "required": [
++        "action_class",
++        "capability_id",
++        "technique"
++      ],
++      "properties": {
++        "action_class": {
++          "type": "string",
++          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++          "maxLength": 200
++        },
++        "capability_id": {
++          "type": "string",
++          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++          "maxLength": 200
++        },
++        "technique": {
++          "type": "string",
++          "minLength": 1,
++          "maxLength": 2000,
++          "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
++        }
++      }
++    },
++    "target": {
++      "type": "object",
++      "additionalProperties": false,
++      "required": [
++        "target_type",
++        "target_value"
++      ],
++      "properties": {
++        "target_type": {
++          "type": "string",
++          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++          "maxLength": 200
++        },
++        "target_value": {
++          "type": "string",
++          "minLength": 1,
++          "maxLength": 2000,
++          "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
++        }
++      }
++    },
++    "parameters": {
++      "oneOf": [
++        {
++          "type": "object",
++          "additionalProperties": false,
++          "required": [
++            "validation_task_id",
++            "expected_evidence",
++            "estimated_impact"
++          ],
++          "properties": {
++            "validation_task_id": {
++              "type": "string",
++              "pattern": "^valtask-[A-Za-z0-9._:@\\-]*$",
++              "maxLength": 200
++            },
++            "expected_evidence": {
++              "type": "array",
++              "maxItems": 100,
++              "items": {
++                "type": "string",
++                "minLength": 1,
++                "maxLength": 2000,
++                "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
++              }
++            },
++            "estimated_impact": {
++              "enum": [
++                "NONE",
++                "LOW",
++                "MODERATE",
++                "HIGH",
++                "CRITICAL",
++                "DESTRUCTIVE"
++              ]
++            }
++          }
++        },
++        {
++          "type": "object",
++          "additionalProperties": false,
++          "required": [
++            "source_action_id",
++            "expected_evidence",
++            "estimated_impact"
++          ],
++          "properties": {
++            "source_action_id": {
++              "type": "string",
++              "pattern": "^rareq-[A-Za-z0-9._:@\\-]*$",
++              "maxLength": 200
++            },
++            "expected_evidence": {
++              "type": "array",
++              "maxItems": 100,
++              "items": {
++                "type": "string",
++                "minLength": 1,
++                "maxLength": 2000,
++                "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
++              }
++            },
++            "estimated_impact": {
++              "enum": [
++                "NONE",
++                "LOW",
++                "MODERATE",
++                "HIGH",
++                "CRITICAL",
++                "DESTRUCTIVE"
++              ]
++            }
++          }
++        },
++        {
++          "type": "object",
++          "additionalProperties": false,
++          "required": [
++            "source_proposal_id",
++            "expected_evidence",
++            "estimated_impact"
++          ],
++          "properties": {
++            "source_proposal_id": {
++              "type": "string",
++              "pattern": "^actp-[A-Za-z0-9._:@\\-]*$",
++              "maxLength": 200
++            },
++            "expected_evidence": {
++              "type": "array",
++              "maxItems": 100,
++              "items": {
++                "type": "string",
++                "minLength": 1,
++                "maxLength": 2000,
++                "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
++              }
++            },
++            "estimated_impact": {
++              "enum": [
++                "NONE",
++                "LOW",
++                "MODERATE",
++                "HIGH",
++                "CRITICAL",
++                "DESTRUCTIVE"
++              ]
++            }
++          }
++        }
++      ]
++    },
++    "evidence_basis": {
++      "type": "array",
++      "minItems": 1,
++      "maxItems": 500,
++      "uniqueItems": true,
++      "items": {
++        "type": "object",
++        "additionalProperties": false,
++        "required": [
++          "evidence_id",
++          "canonical_sha256"
++        ],
++        "properties": {
++          "evidence_id": {
++            "type": "string",
++            "pattern": "^evi-[A-Za-z0-9._:@\\-]*$",
++            "maxLength": 200
++          },
++          "canonical_sha256": {
++            "type": "string",
++            "pattern": "^[0-9a-f]{64}$"
++          }
++        }
++      }
++    },
++    "authorization_requirement": {
++      "type": "object",
++      "additionalProperties": false,
++      "required": [
++        "authority",
++        "revalidation_required",
++        "required_checks",
++        "human_review_required",
++        "policy_reference"
++      ],
++      "properties": {
++        "authority": {
++          "const": "EXTERNAL_APTS_GSS"
++        },
++        "revalidation_required": {
++          "const": true
++        },
++        "required_checks": {
++          "const": [
++            "SCOPE",
++            "ROE",
++            "POLICY",
++            "RISK",
++            "EXPIRY",
++            "REVOCATION",
++            "TARGET",
++            "TECHNIQUE"
++          ]
++        },
++        "human_review_required": {
++          "type": "boolean"
++        },
++        "policy_reference": {
++          "type": "object",
++          "additionalProperties": false,
++          "required": [
++            "policy_decision_id",
++            "policy_decision_hash",
++            "policy_version",
++            "reference_sha256"
++          ],
++          "properties": {
++            "policy_decision_id": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "policy_decision_hash": {
++              "type": "string",
++              "pattern": "^[0-9a-f]{64}$"
++            },
++            "policy_version": {
++              "type": "integer",
++              "minimum": 1,
++              "maximum": 9223372036854775807
++            },
++            "reference_sha256": {
++              "type": "string",
++              "pattern": "^[0-9a-f]{64}$"
++            }
++          }
++        }
++      }
++    }
++  }
++}
+diff --git a/execution_subsystem/tool_registry.py b/execution_subsystem/tool_registry.py
+index d72538b..90e48e3 100644
+--- a/execution_subsystem/tool_registry.py
++++ b/execution_subsystem/tool_registry.py
+@@ -28,7 +28,7 @@ ADAPTERS = (
+     ToolAdapter("scanner.tcp-connect.v1", "SCANNER", "TCP_CONNECT", "reconnaissance", "TARGET_RECON",
+                 "TCP_CONNECT_SCAN", ("URL", "IP", "HOST", "DOMAIN"), 80),
+     ToolAdapter("network.tcp-banner.v1", "NETWORK_TOOL", "TCP_BANNER", "enumeration", "TARGET_RECON",
+-                "TCP_BANNER_READ", ("IP", "HOST", "DOMAIN"), 80),
++                "TCP_BANNER_READ", ("URL", "IP", "HOST", "DOMAIN"), 80),
+     ToolAdapter("web.http-head.v1", "WEB_TESTING", "HTTP_HEAD", "validation", "VULNERABILITY_VALIDATION",
+                 "HTTP_HEADER_INSPECTION", ("URL", "IP", "HOST", "DOMAIN"), 80, True),
+     ToolAdapter("validation.version-configuration.v1", "EXPLOIT_VALIDATION", "HTTP_HEAD", "exploitation",
+diff --git a/execution_subsystem/vep_source.py b/execution_subsystem/vep_source.py
+index 193a830..d422ab6 100644
+--- a/execution_subsystem/vep_source.py
++++ b/execution_subsystem/vep_source.py
+@@ -116,6 +116,10 @@ class PentestVEPSource(PentestProposalSource):
+             raise ExecutionSourceRejected(
+                 "Stage 6.7 VEP source snapshots for Recon requests are not enabled; the request remains unauthorised and undispatched"
+             )
++        if envelope.get("intake", {}).get("schema_version") == "apts-execution-request-intake-v3":
++            raise ExecutionSourceRejected(
++                "Stage 6.7 VEP source snapshots for Stage 5.3 Enumeration proposals are not enabled; evidence remains a read-only Stage 6.6 result"
++            )
+         # Historical source records survive Mission stops and authorization expiry.
+         # No current_context(), GSS, repository initializer, or target adapter is called.
+         try:
+diff --git a/pentest_subsystem/api_service.py b/pentest_subsystem/api_service.py
+index f812c53..aea4084 100644
+--- a/pentest_subsystem/api_service.py
++++ b/pentest_subsystem/api_service.py
+@@ -1634,6 +1634,21 @@ class PentestSubsystemStage53Handler(PentestSubsystemStage52Handler):
+             orchestration_id = unquote(path[len(prefix):-len(suffix)])
+             if orchestration_id and "/" not in orchestration_id:
+                 return orchestration_id, "get"
++        suffix = "/enumeration/iterations/run"
++        if path.startswith(prefix) and path.endswith(suffix):
++            orchestration_id = unquote(path[len(prefix):-len(suffix)])
++            if orchestration_id and "/" not in orchestration_id:
++                return orchestration_id, "iteration"
++        return None
++
++    @staticmethod
++    def _enumeration_result_route(path: str) -> str | None:
++        prefix = "/api/pentest/ui/enumeration-proposals/"
++        suffix = "/results"
++        if path.startswith(prefix) and path.endswith(suffix):
++            identity = unquote(path[len(prefix):-len(suffix)])
++            if identity and "/" not in identity:
++                return identity
+         return None
+ 
+     @staticmethod
+@@ -1649,6 +1664,18 @@ class PentestSubsystemStage53Handler(PentestSubsystemStage52Handler):
+     def do_GET(self) -> None:  # noqa: N802
+         parsed = urlparse(self.path)
+         path = parsed.path
++        proposal_ref = self._enumeration_result_route(path)
++        if proposal_ref is not None:
++            try:
++                result = self.service.get_stage6_execution_results(proposal_ref)
++                self._send_json(200, result)
++            except EnumerationAgentNotFound as exc:
++                self._send_json(404, {"status": "not_found", "error": str(exc), "read_only": True})
++            except EnumerationAgentIntegrityError as exc:
++                self._send_json(409, {"status": "invalid", "error": str(exc), "read_only": True})
++            except (EnumerationAgentConflict, EnumerationAgentValidationError) as exc:
++                self._send_json(503, {"status": "unavailable", "error": str(exc), "read_only": True})
++            return
+         if path in {
+             "/api/pentest/enumeration-agent-contract",
+             "/api/contracts/enumeration-agent",
+@@ -1714,6 +1741,17 @@ class PentestSubsystemStage53Handler(PentestSubsystemStage52Handler):
+             })
+             return
+         route = self._enumeration_orchestration_route(path)
++        if route is not None and route[1] == "iteration":
++            try:
++                result = self.service.run_enumeration_iteration(route[0], self._read_json())
++                self._send_json(200, result)
++            except EnumerationAgentNotFound as exc:
++                self._send_json(404, {"status": "not_found", "error": str(exc)})
++            except (EnumerationAgentConflict, EnumerationAgentIntegrityError) as exc:
++                self._send_json(409, {"status": "rejected", "error": str(exc), "execution_started": False})
++            except (EnumerationAgentValidationError, EnumerationAgentRepositoryError) as exc:
++                self._send_json(400, {"status": "invalid", "error": str(exc), "execution_started": False})
++            return
+         if route is not None and route[1] == "run":
+             try:
+                 result = self.service.run_enumeration(route[0], self._read_json())
+diff --git a/pentest_subsystem/enumeration.py b/pentest_subsystem/enumeration.py
+index 025a0a4..dfcfa04 100644
+--- a/pentest_subsystem/enumeration.py
++++ b/pentest_subsystem/enumeration.py
+@@ -4,10 +4,14 @@ from copy import deepcopy
+ from datetime import datetime, timezone
+ import ipaddress
+ import json
++import os
+ from pathlib import Path
+ import re
+ import sqlite3
+ from typing import Any, Mapping
++from urllib.error import URLError
++from urllib.request import Request, urlopen
++from urllib.parse import urlsplit
+ 
+ from .boundary_contract import canonical_json, normalize_pentest_boundary_payload, sha256_hex
+ from .governance_contract import evaluate_scope_roe, normalize_scope_roe_evaluation_request
+@@ -62,6 +66,8 @@ ENUMERATION_TECHNIQUES = (
+     "VERSION_DISCOVERY",
+     "ENDPOINT_DISCOVERY",
+     "CONFIGURATION_OBSERVATION",
++    # Exact fixed Stage-6.4 technique; never inferred from a semantic technique.
++    "TCP_BANNER_READ",
+ )
+ 
+ ENUMERATION_AGENT_INVARIANTS = (
+@@ -883,12 +889,7 @@ class EnumerationAgentRepository(ReconnaissanceAgentRepository):
+                         "SELECT migration_level FROM pentest_repository_meta WHERE repository_id=?",
+                         (PENTEST_REPOSITORY_ID,),
+                     ).fetchone()
+-                    if row is not None and int(row[0]) > ENUMERATION_AGENT_REPOSITORY_MIGRATION_LEVEL:
+-                        raise EnumerationAgentRepositoryError(
+-                            f"Pentest repository migration level {row[0]} is newer than supported level "
+-                            f"{ENUMERATION_AGENT_REPOSITORY_MIGRATION_LEVEL}"
+-                        )
+-                    if row is not None and int(row[0]) == ENUMERATION_AGENT_REPOSITORY_MIGRATION_LEVEL:
++                    if row is not None and int(row[0]) >= ENUMERATION_AGENT_REPOSITORY_MIGRATION_LEVEL:
+                         required_tables = {"pentest_recon_runs", "pentest_enumeration_runs"}
+                         present = {
+                             r[0] for r in probe.execute(
+@@ -897,7 +898,7 @@ class EnumerationAgentRepository(ReconnaissanceAgentRepository):
+                         }
+                         if present != required_tables:
+                             raise EnumerationAgentIntegrityError(
+-                                "Stage 5.3 repository metadata is level 10 but required Stage 5.2/5.3 stores are missing"
++                                "Pentest repository metadata is at or beyond Stage 5.3 but required Stage 5.2/5.3 stores are missing"
+                             )
+                         self._enumeration_initialized = True
+                         return
+@@ -916,10 +917,15 @@ class EnumerationAgentRepository(ReconnaissanceAgentRepository):
+             if row is None:
+                 raise EnumerationAgentRepositoryError("Pentest repository metadata is unavailable")
+             if int(row["migration_level"]) > ENUMERATION_AGENT_REPOSITORY_MIGRATION_LEVEL:
+-                raise EnumerationAgentRepositoryError(
+-                    f"Pentest repository migration level {row['migration_level']} is newer than supported level "
+-                    f"{ENUMERATION_AGENT_REPOSITORY_MIGRATION_LEVEL}"
+-                )
++                # A later append-only repository owns the migration head. Stage 5.3
++                # adds no schema changes after level 10 and must not downgrade it.
++                required_tables = {"pentest_recon_runs", "pentest_enumeration_runs"}
++                present = {r[0] for r in conn.execute(
++                    "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('pentest_recon_runs','pentest_enumeration_runs')").fetchall()}
++                if present != required_tables:
++                    raise EnumerationAgentIntegrityError("later Pentest repository is missing Stage 5.2/5.3 stores")
++                self._enumeration_initialized = True
++                return
+             conn.execute(
+                 "UPDATE pentest_repository_meta SET migration_level=?, schema_version=?, updated_at=? WHERE repository_id=?",
+                 (
+@@ -1441,8 +1447,9 @@ class EnumerationAgentRepository(ReconnaissanceAgentRepository):
+ class EnumerationAgentService(ReconnaissanceAgentService):
+     repository: EnumerationAgentRepository
+ 
+-    def __init__(self, repository: EnumerationAgentRepository | None = None) -> None:
++    def __init__(self, repository: EnumerationAgentRepository | None = None, *, execution_result_provider=None) -> None:
+         super().__init__(repository or EnumerationAgentRepository())
++        self.execution_result_provider = execution_result_provider
+ 
+     def health(self) -> dict[str, Any]:
+         base = dict(super().health())
+@@ -1525,6 +1532,97 @@ class EnumerationAgentService(ReconnaissanceAgentService):
+     def list_enumeration_runs(self, **kwargs: Any) -> list[dict[str, Any]]:
+         return self.repository.list_enumeration_runs(**kwargs)
+ 
++    def get_stage6_execution_results(self, proposal_ref: str) -> dict[str, Any]:
++        """Fetch Stage-6-owned records by exact proposal reference; never accepts caller results."""
++        if self.execution_result_provider is None:
++            raise EnumerationAgentConflict("Stage 6 result provider is not configured")
++        from execution_subsystem.execution_contract import ExecutionRequestValidationError, require_id
++        try:
++            require_id(proposal_ref, "enumeration_proposal_ref", "actp-")
++            if self.execution_result_provider is not None:
++                response = self.execution_result_provider(proposal_ref)
++            else:
++                base = os.environ.get("APTS_STAGE6_RESULT_API_BASE", "http://127.0.0.1:8791").rstrip("/")
++                parsed = urlsplit(base)
++                try:
++                    loopback = parsed.hostname == "localhost" or (parsed.hostname is not None
++                        and ipaddress.ip_address(parsed.hostname).is_loopback)
++                except ValueError:
++                    loopback = False
++                if parsed.scheme != "http" or not loopback or parsed.username or parsed.password:
++                    raise EnumerationAgentValidationError("Stage 6 result API must use an HTTP loopback endpoint")
++                req = Request(base + "/api/execution/enumeration-proposals/" + proposal_ref + "/results",
++                              headers={"Accept": "application/json"}, method="GET")
++                try:
++                    with urlopen(req, timeout=5) as handle:
++                        response = json.loads(handle.read().decode("utf-8"))
++                except (URLError, TimeoutError, OSError, ValueError) as exc:
++                    raise EnumerationAgentConflict("Stage 6 result source is unavailable or returned invalid JSON") from exc
++        except ExecutionRequestValidationError as exc:
++            raise EnumerationAgentValidationError(str(exc)) from exc
++        if (not isinstance(response, dict) or response.get("proposal_ref") != proposal_ref
++                or response.get("read_only") is not True
++                or response.get("source_run_mutated") is not False
++                or response.get("caller_result_accepted") is not False):
++            raise EnumerationAgentIntegrityError("Stage 6 result response is not bound to the requested Enumeration proposal")
++        results = response.get("results")
++        if not isinstance(results, list) or not results:
++            raise EnumerationAgentConflict("Stage 6 has no durable result for this Enumeration proposal")
++        from execution_subsystem.execution_result_contract import verify_enumeration_execution_result
++        for item in results:
++            if not verify_enumeration_execution_result(item) or item.get("proposal_ref") != proposal_ref:
++                raise EnumerationAgentIntegrityError("Stage 6 returned an invalid or mismatched Enumeration ExecutionResult")
++        latest = response.get("latest_result")
++        if latest != results[-1] or not latest.get("terminal"):
++            raise EnumerationAgentConflict("Enumeration iteration requires the latest Stage 6 attempt to be terminal")
++        if (latest.get("runtime_state") != "SUCCEEDED"
++                or latest.get("execution_result", {}).get("status") != "SUCCEEDED"):
++            raise EnumerationAgentConflict("Enumeration iteration requires a successful terminal Stage 6 result")
++        if not latest.get("evidence") or latest["evidence"].get("capture_status") != "SEALED":
++            raise EnumerationAgentConflict("Enumeration iteration requires sealed Stage 6.6 evidence")
++        return {"proposal_ref": proposal_ref, "count": len(results), "results": deepcopy(results),
++            "latest_result": deepcopy(latest), "read_only": True, "caller_result_accepted": False,
++            "source_run_mutated": False, "execution_authorized": False, "target_network_io_performed": False}
++
++    def run_enumeration_iteration(self, orchestration_id: str, payload: Any) -> dict[str, Any]:
++        """Create a read-only iteration projection; parent Stage-5.3 run is immutable."""
++        required = {"schema_version", "parent_enumeration_run_id", "proposal_ref"}
++        if not isinstance(payload, dict) or set(payload) != required:
++            raise EnumerationAgentValidationError("iteration request must contain exactly schema_version, parent_enumeration_run_id, and proposal_ref")
++        if payload["schema_version"] != "apts-stage5.3-enumeration-iteration-request-v1":
++            raise EnumerationAgentValidationError("unsupported Enumeration iteration schema_version")
++        parent_id = _canonical_id(payload["parent_enumeration_run_id"], "parent_enumeration_run_id", prefix=ENUMERATION_RUN_ID_PREFIX)
++        proposal_ref = _canonical_id(payload["proposal_ref"], "proposal_ref", prefix="actp-")
++        parent = self.repository.get_enumeration_run(parent_id)
++        if parent is None:
++            raise EnumerationAgentNotFound("parent Enumeration run was not found")
++        if parent["orchestration_id"] != orchestration_id:
++            raise EnumerationAgentConflict("parent Enumeration run belongs to another orchestration")
++        proposal = next((item for item in parent["output"].get("action_proposals", [])
++                         if item.get("action_proposal_ref") == proposal_ref), None)
++        if proposal is None:
++            raise EnumerationAgentConflict("proposal is not part of the selected parent Enumeration run")
++        readback = self.get_stage6_execution_results(proposal_ref)
++        latest = readback["latest_result"]
++        if (latest.get("mission_id") != parent["mission_id"]
++                or latest.get("pentest_id") != parent["pentest_id"]
++                or latest.get("pentest_task_id") != parent["pentest_task_id"]
++                or latest.get("orchestration_id") != orchestration_id):
++            raise EnumerationAgentIntegrityError("Stage 6 result mission/task/orchestration binding mismatch")
++        core = {"schema_version": "apts-stage5.3-enumeration-iteration-v1",
++            "parent_enumeration_run_id": parent_id,
++            "parent_output_sha256": parent["output"]["integrity"]["canonical_sha256"],
++            "proposal_ref": proposal_ref, "execution_result": deepcopy(latest),
++            "execution_result_sha256": latest["integrity"]["canonical_sha256"],
++            "evidence_refs": [latest["evidence"]["evidence_id"]],
++            "semantics": {"source_run_mutated": False, "new_execution_authorized": False,
++                "target_network_io_performed": False, "result_is_vulnerability_finding": False,
++                "iteration_is_read_only": True}}
++        iteration = _with_integrity(core, domain="APTS_STAGE5_3_ENUMERATION_ITERATION_V1")
++        return {"status": "completed", "read_only": True, "iteration": iteration,
++            "parent_run_mutated": False, "authorization_minted": False,
++            "target_network_io_performed": False}
++
+ 
+ __all__ = [
+     "ENUMERATION_AGENT_CONTROL_VERSION",
+diff --git a/tests/test_stage13_enumeration_stage6_e2e.py b/tests/test_stage13_enumeration_stage6_e2e.py
+new file mode 100644
+index 0000000..477927e
+--- /dev/null
++++ b/tests/test_stage13_enumeration_stage6_e2e.py
+@@ -0,0 +1,144 @@
++from __future__ import annotations
++
++from socketserver import BaseRequestHandler, ThreadingTCPServer
++from threading import Thread
++
++import pytest
++
++from execution_subsystem.authorization_source import ExecutionAuthorizationProposalSource, MissionAuthorizationSource
++from execution_subsystem.evidence_repository import ExecutionEvidenceRepository
++from execution_subsystem.evidence_service import ExecutionEvidenceService
++from execution_subsystem.execution_contract import ExecutionSourceRejected
++from execution_subsystem.execution_result_contract import verify_enumeration_execution_result
++from execution_subsystem.gateway_contract import GATEWAY_INTAKE_SCHEMA
++from execution_subsystem.gateway_repository import ExecutionGatewayRepository
++from execution_subsystem.gateway_service import ExecutionGatewayService
++from execution_subsystem.proposal_source import PentestProposalSource
++from execution_subsystem.runtime_contract import START_SCHEMA
++from execution_subsystem.request_service import ExecutionRequestService
++from execution_subsystem.request_repository import ExecutionRequestRepository
++from execution_subsystem.adapter_service import ExecutionAdapterService
++from execution_subsystem.adapter_repository import ExecutionAdapterRepository
++from execution_subsystem.execution_contract import ENUMERATION_EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION
++from pentest_subsystem.enumeration import EnumerationAgentRepository, EnumerationAgentService
++from tests import test_stage4_6_pentest_workflow_orchestrator_skeleton as materialize_module
++from tests.test_stage5_3_enumeration_agent import enumeration_request
++from tests.test_stage5_9_governance_bound_multi_agent_pentest_e2e import _pipeline
++from tests.test_stage6_2_authoritative_execution_authorization import NOW, seed_mission
++from tests.test_stage6_3_controlled_execution_gateway import UniqueAuthority
++from tests.test_stage6_5_execution_runtime_control import wait_for
++
++
++@pytest.fixture
++def tcp_banner_server():
++    calls = []
++    class Handler(BaseRequestHandler):
++        def handle(self):
++            calls.append(self.client_address)
++            self.request.sendall(b"Authorized-Loopback-Banner")
++    server = ThreadingTCPServer(("127.0.0.1", 0), Handler)
++    thread = Thread(target=server.serve_forever, daemon=True)
++    thread.start()
++    try:
++        yield f"http://127.0.0.1:{server.server_address[1]}/", calls
++    finally:
++        server.shutdown(); server.server_close(); thread.join(timeout=5)
++
++
++def test_stage13_enumeration_tcp_banner_handoff_to_stage66_and_read_only_iteration(tmp_path, tcp_banner_server):
++    target_url, calls = tcp_banner_server
++    original = materialize_module.sample_boundary
++    def lab_boundary():
++        boundary = original()
++        boundary["scope"]["targets"][0] = {"target_type": "URL", "target_value": target_url}
++        boundary["roe"]["allowed_action_classes"] = ["TARGET_RECON"]
++        boundary["roe"]["allowed_techniques"] = ["TCP_CONNECT_SCAN", "TCP_BANNER_READ"]
++        boundary["roe"]["maximum_concurrency"] = 1
++        boundary["constraints"]["resource_budget"] = {"max_network_requests": 1}
++        return boundary
++    materialize_module.sample_boundary = lab_boundary
++    try:
++        pentest_repo, boundary, task, orchestration_id, runs = _pipeline(
++            tmp_path, "stage13-e2e", through_stage="5.2")
++    finally:
++        materialize_module.sample_boundary = original
++
++    # Reopen the advanced Stage-5.9 repository without downgrading its schema head.
++    enum_repo = EnumerationAgentRepository(pentest_repo.sqlite_path)
++    enum_service = EnumerationAgentService(enum_repo)
++    enum_request = enumeration_request(boundary, task, runs["5.2"], "stage13-e2e")
++    enum_request["enumeration_proposals"][0]["technique"] = "TCP_BANNER_READ"
++    enum_request["enumeration_proposals"][0]["target"] = {"target_type": "URL", "target_value": target_url}
++    enum_request["enumeration_proposals"].append({
++        "proposal_key": "stage13-semantic-only", "target": {"target_type": "URL", "target_value": target_url},
++        "technique": "SERVICE_ENUMERATION", "estimated_impact": "LOW", "rate_cost": 1,
++        "active_concurrency": 1, "stop_signals": []})
++    enum_result = enum_service.run_enumeration(orchestration_id, enum_request)
++    parent = enum_result["run"]
++    proposals = parent["output"]["action_proposals"]
++    banner_proposal = next(item for item in proposals if item["technique"] == "TCP_BANNER_READ")
++    semantic_proposal = next(item for item in proposals if item["technique"] == "SERVICE_ENUMERATION")
++
++    mission_db = tmp_path / "mission.db"
++    seed_mission(mission_db, boundary)
++    execution_db = tmp_path / "execution.db"
++    authority = UniqueAuthority()
++    source = ExecutionAuthorizationProposalSource(pentest_repo.sqlite_path)
++    mission = MissionAuthorizationSource(mission_db)
++    gateway = ExecutionGatewayService(ExecutionGatewayRepository(execution_db), source, mission,
++        authority, clock=lambda: NOW)
++    intake = {"schema_version": ENUMERATION_EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION,
++        "source_type": "STAGE5_3_ENUMERATION_ACTION_PROPOSAL", "request_id": "ereq-stage13-e2e",
++        "idempotency_key": "idem-stage13-e2e", "enumeration_run_id": parent["enumeration_run_id"],
++        "enumeration_proposal_ref": banner_proposal["action_proposal_ref"],
++        "proposal_sha256": banner_proposal["action_proposal_sha256"]}
++    request = gateway.create_request(intake)
++    envelope = request["envelope"]
++    assert envelope["execution_request"]["action"] == {
++        "action_class": "TARGET_RECON", "capability_id": "enumeration", "technique": "TCP_BANNER_READ"}
++    assert envelope["execution_request"]["target"] == {"target_type": "URL", "target_value": target_url}
++
++    rejected = {**intake, "request_id": "ereq-stage13-semantic", "idempotency_key": "idem-stage13-semantic",
++        "enumeration_proposal_ref": semantic_proposal["action_proposal_ref"],
++        "proposal_sha256": semantic_proposal["action_proposal_sha256"]}
++    with pytest.raises(ExecutionSourceRejected, match="only an explicit TCP_BANNER_READ"):
++        gateway.create_request(rejected)
++
++    admission = gateway.submit_execution({"schema_version": GATEWAY_INTAKE_SCHEMA,
++        "submission_id": "gwreq-stage13-e2e", "idempotency_key": "idem-gateway-stage13-e2e",
++        "execution_id": request["execution_id"], "envelope_sha256": envelope["integrity"]["canonical_sha256"],
++        "requested_by": "stage13-acceptance-test"})
++    assert admission["gateway_admitted"] is True and admission["execution_authorized"] is False
++
++    service = ExecutionEvidenceService(ExecutionEvidenceRepository(execution_db), source, mission,
++        authority, clock=lambda: NOW)
++    start = {"schema_version": START_SCHEMA, "invocation_request_id": "toolreq-stage13-e2e",
++        "idempotency_key": "idem-tool-stage13-e2e", "execution_id": request["execution_id"],
++        "envelope_sha256": envelope["integrity"]["canonical_sha256"], "requested_by": "stage13-acceptance-test"}
++    try:
++        attempt = service.start_execution(start)
++        item = wait_for(service, attempt["attempt_id"])
++        assert item["state"] == "SUCCEEDED", service._failures
++        assert authority.calls[0]["context"]["execution_authorization_evaluation"]["execution_request"]["action"]["technique"] == "TCP_BANNER_READ"
++        capture = service.get_evidence(attempt["attempt_id"])
++        manifest = capture["manifest"]
++        assert capture["sealed"] is True and capture["status"] == "CAPTURED"
++        assert manifest["recon_action_id"] is None
++        assert manifest["proposal_ref"] == banner_proposal["action_proposal_ref"]
++        assert all("Authorized-Loopback-Banner" not in str(a) for a in capture["artifacts"])
++
++        readback = service.get_enumeration_execution_results(banner_proposal["action_proposal_ref"])
++        result = readback["latest_result"]
++        assert readback["read_only"] is True and verify_enumeration_execution_result(result)
++        consumer = EnumerationAgentService(enum_repo,
++            execution_result_provider=lambda proposal_ref: service.get_enumeration_execution_results(proposal_ref))
++        iteration = consumer.run_enumeration_iteration(orchestration_id, {
++            "schema_version": "apts-stage5.3-enumeration-iteration-request-v1",
++            "parent_enumeration_run_id": parent["enumeration_run_id"],
++            "proposal_ref": banner_proposal["action_proposal_ref"]})
++        assert iteration["read_only"] is True and iteration["parent_run_mutated"] is False
++        assert iteration["iteration"]["execution_result_sha256"] == result["integrity"]["canonical_sha256"]
++        assert enum_repo.get_enumeration_run(parent["enumeration_run_id"]) == parent
++        assert len(calls) == 1
++    finally:
++        service.close()

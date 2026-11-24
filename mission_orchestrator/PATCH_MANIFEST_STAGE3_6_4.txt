@@ -1,0 +1,111 @@
+======================================================================
+STAGE 3.6.4 PATCH MANIFEST
+Dependency-Aware Task Completion
+======================================================================
+
+RUNTIME IDENTITY
+----------------
+control_version            = stage3.6.4-dependency-aware-task-completion
+server_version             = APTSMissionOrchestrator/3.6.4
+repository_migration_level = 39
+new migration              = 039_stage3_6_4_dependency_aware_task_completion.sql
+new durable store          = mission_task_completion_commits
+identity prefix            = tcomp-
+completion status          = COMPLETED_DEPENDENCY_CONSISTENT
+expected test inventory    = 1042
+focused Stage-3.6.4        = 20
+Stage-3.6 chain            = 79
+next stage                 = 3.6.5
+
+NEW STAGE-3.6.4 FILES
+---------------------
++ INSTALL_STAGE3_6_4.txt
++ PATCH_MANIFEST_STAGE3_6_4.txt
++ PATCH_NOTES_STAGE3_6_4.md
++ README_STAGE3_6_4.md
++ REGRESSION_EVIDENCE_STAGE3_6_4.txt
++ SHA256_STAGE3_6_4.txt
++ STAGE3_6_4_ACCEPTANCE.ps1
++ migrations/039_stage3_6_4_dependency_aware_task_completion.sql
++ mission_orchestrator/task_completion.py
++ tests/test_stage3_6_4_dependency_aware_task_completion.py
+
+MODIFIED RUNTIME FILES
+----------------------
+* mission_orchestrator/api_service.py
+* mission_orchestrator/errors.py
+* mission_orchestrator/mission_events.py
+* mission_orchestrator/repository.py
+* mission_orchestrator/repository_model.py
+* mission_orchestrator/service.py
+
+MODIFIED REGRESSION FILES
+-------------------------
+* tests/test_stage3_1_10_acceptance_regression_gate.py
+* tests/test_stage3_1_6_mission_versioning_concurrency.py
+* tests/test_stage3_1_7_mission_persistence_repository_model.py
+* tests/test_stage3_1_8_canonical_mission_api_validation_layer.py
+* tests/test_stage3_1_9_mission_event_lineage_foundation.py
+* tests/test_stage3_2_10_lifecycle_acceptance_regression_gate.py
+* tests/test_stage3_2_1_mission_lifecycle_command_contract.py
+* tests/test_stage3_2_2_lifecycle_transition_guard_matrix.py
+* tests/test_stage3_2_3_mission_pip_activation.py
+* tests/test_stage3_2_4_planning_run_activation.py
+* tests/test_stage3_2_5_waiting_dependency_control.py
+* tests/test_stage3_2_6_pause_resume_replanning_control.py
+* tests/test_stage3_2_7_abort_failure_expiration_semantics.py
+* tests/test_stage3_2_8_cleanup_verified_completion_gate.py
+* tests/test_stage3_2_9_event_driven_lifecycle_automation_reliability.py
+* tests/test_stage3_3_10_planning_acceptance_regression_gate.py
+* tests/test_stage3_3_1_canonical_plan_contract_identity.py
+* tests/test_stage3_3_2_planner_input_snapshot_context_binding.py
+* tests/test_stage3_3_3_canonical_task_decomposition_contract.py
+* tests/test_stage3_3_4_task_dependency_graph_structural_validation.py
+* tests/test_stage3_3_5_planner_invocation_plan_generation.py
+* tests/test_stage3_3_6_plan_validation_feasibility_gate.py
+* tests/test_stage3_3_7_plan_versioning_replanning_supersession.py
+* tests/test_stage3_3_8_task_readiness_scheduling_projection.py
+* tests/test_stage3_3_9_planning_event_lineage_replay_recovery.py
+* tests/test_stage3_4_10_routing_delegation_acceptance_regression_gate.py
+* tests/test_stage3_4_1_canonical_subsystem_registry_capability_contract.py
+* tests/test_stage3_4_2_task_routing_intent_candidate_resolution.py
+* tests/test_stage3_4_3_routing_eligibility_compatibility_gate.py
+* tests/test_stage3_4_4_deterministic_route_selection_decision_record.py
+* tests/test_stage3_4_5_governance_bound_delegation_authorization.py
+* tests/test_stage3_4_6_canonical_delegation_contract_handoff_envelope.py
+* tests/test_stage3_4_7_delegation_delivery_acknowledgement_ownership.py
+* tests/test_stage3_4_8_retry_fallback_reassignment_conflict_control.py
+* tests/test_stage3_4_9_routing_delegation_event_lineage_replay_recovery.py
+* tests/test_stage3_5_10_execution_dispatch_acceptance_regression_gate.py
+* tests/test_stage3_5_1_canonical_execution_dispatch_contract_identity.py
+* tests/test_stage3_5_2_dispatch_eligibility_execution_preconditions.py
+* tests/test_stage3_5_3_authoritative_pre_dispatch_governance_revalidation.py
+* tests/test_stage3_5_4_idempotent_dispatch_execution_attempt_identity.py
+* tests/test_stage3_5_5_dispatch_delivery_execution_acknowledgement.py
+* tests/test_stage3_5_6_running_execution_state_heartbeat_projection.py
+* tests/test_stage3_5_7_execution_result_evidence_artifact_capture.py
+* tests/test_stage3_5_8_timeout_cancellation_abort_failure_propagation.py
+* tests/test_stage3_5_9_execution_event_lineage_replay_recovery.py
+* tests/test_stage3_6_1_canonical_task_outcome_contract_identity.py
+* tests/test_stage3_6_2_task_terminality_completion_eligibility.py
+* tests/test_stage3_6_3_evidence_binding_verification.py
+
+CHANGE CLASSIFICATION
+---------------------
+- task_completion.py: immutable tcomp-* contract, request normalization, active-Plan dependency derivation, same-Plan prerequisite verification, deterministic dependency binding, and contract hash verification.
+- migration 039: durable mission_task_completion_commits store with completion identity, idempotency, Stage-3.6.3 source, and one-completion-per-Plan-task uniqueness constraints.
+- service.py: activates Stage 3.6.4; performs fail-closed completion commit; extends repository reconstruction/integrity, manifest, record counts, events, definitions, and health metadata.
+- repository.py / repository_model.py: Stage-3.6.4 persistence schema, reads, locking/source revalidation, counts, reconstruction, and manifest support.
+- api_service.py: server identity 3.6.4 plus Stage-3.6.4 POST/GET/history/definition routes and error mappings.
+- mission_events.py: MISSION_TASK_COMPLETION_COMMITTED event type.
+- errors.py: Stage-3.6.4 conflict/not-found/guard exceptions.
+- focused Stage-3.6.4 tests: 20 completion/dependency/idempotency/restart/integrity/boundary proofs.
+- historical tests: current-head, supported-control slicing/position, server identity, repository migration, and migration-inventory assertions rebased for Stage 3.6.4.
+
+AUTHORITY BOUNDARY
+------------------
+Stage 3.6.4 accepts a VERIFIED terminal outcome and commits one immutable dependency-consistent task completion. It may evaluate prerequisites from the active Plan and create the canonical completion/event record. It does NOT transition task lifecycle state, release dependencies, recalculate readiness, progress the Plan, complete the Mission, query Governance/runtime, redispatch, create a new execution attempt, dispatch a new target action, perform external network I/O, actuate a target, or transition Mission state.
+
+INSTALLATION MODEL
+------------------
+Apply over an accepted Stage-3.6.3 D:\mission_orchestrator tree. Preserve the live data/mission_orchestrator.db and operator-managed configuration. Apply migration 039 according to the deployment database procedure, restart runtime, then run STAGE3_6_4_ACCEPTANCE.ps1.

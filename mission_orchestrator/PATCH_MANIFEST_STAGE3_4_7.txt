@@ -1,0 +1,74 @@
+Stage 3.4.7 — Delegation Delivery, Acknowledgement & Ownership
+Patch manifest
+
+Core implementation
+-------------------
+mission_orchestrator/delegation_delivery.py                NEW
+mission_orchestrator/errors.py                             MODIFIED
+mission_orchestrator/repository.py                         MODIFIED
+mission_orchestrator/repository_model.py                   MODIFIED
+mission_orchestrator/service.py                            MODIFIED
+mission_orchestrator/mission_events.py                     MODIFIED
+mission_orchestrator/api_service.py                        MODIFIED
+
+Persistence
+-----------
+migrations/024_stage3_4_7_delegation_delivery_acknowledgement_ownership.sql  NEW
+
+Tests
+-----
+tests/test_stage3_4_7_delegation_delivery_acknowledgement_ownership.py       NEW
+Historical tests under tests/ are minimally rebased where they assert current runtime control,
+repository migration inventory, supported-control ordering, or aggregate current-runtime routing state.
+Historical stage-local semantic boundaries remain unchanged.
+
+Release / acceptance documentation
+----------------------------------
+README_STAGE3_4_7.md                                       NEW
+PATCH_NOTES_STAGE3_4_7.md                                  NEW
+INSTALL_STAGE3_4_7.txt                                     NEW
+STAGE3_4_7_ACCEPTANCE.ps1                                  NEW
+PATCH_MANIFEST_STAGE3_4_7.txt                              NEW
+SHA256_STAGE3_4_7.txt                                      NEW
+
+Control identity
+----------------
+control_version = stage3.4.7-delegation-delivery-acknowledgement-ownership
+server_version  = APTSMissionOrchestrator/3.4.7
+repository_migration_level = 24
+new_store = mission_delegation_deliveries
+new_event = MISSION_TASK_DELEGATION_OWNERSHIP_ACCEPTED
+
+Canonical boundary
+------------------
+handoff_transmitted = true
+handoff_acknowledged = true
+ownership_accepted = true
+runtime_endpoint_resolution_performed = false
+runtime_health_probe_performed = false
+resource_assignment_performed = false
+external_network_io_performed = false
+dispatch_performed = false
+execution_authorized = false
+target_actuation = false
+governance_query_performed = false
+pre_dispatch_governance_revalidation_required = true
+
+Validation recorded in build environment
+----------------------------------------
+Python compile: PASS
+Exhaustive partitioned regression: 717 passed
+Focused Stage 3.4.7: 19 passed
+
+Cumulative checkpoints
+----------------------
+Stage 3.1 closure       = 111
+Stage 3.2 cumulative   = 267
+Stage 3.3 cumulative   = 506
+Stage 3.4.1 cumulative = 525
+Stage 3.4.2 cumulative = 551
+Stage 3.4.3 cumulative = 586
+Stage 3.4.4 cumulative = 636
+Stage 3.4.5 cumulative = 666
+Stage 3.4.6 cumulative = 698
+Stage 3.4.7 cumulative = 717

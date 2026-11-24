@@ -1,0 +1,31 @@
+{
+  "contract": {
+    "mission_id": "mission-gmo-f3ef7325-c13a-4a46-b9b6-d97b505b1433",
+    "name": "Pentest pada http://127.0.0.1:80//dvwa/",
+    "policy_set_id": "default-policy",
+    "valid_from": "2026-11-09T02:57:35.581910",
+    "valid_until": "2026-11-30T09:57:00",
+    "created_by": "local-test-operator",
+    "approved_by": "local-test-operator",
+    "metadata": {
+      "revision_reason": "http://127.0.0.1:80//dvwa/",
+      "revision_actor": "local-test-operator"
+    },
+    "targets": [
+      {
+        "target_type": "URL",
+        "target_value": "http://127.0.0.1:80//dvwa/",
+        "environment": "LAB",
+        "allowed": 1,
+        "notes": null
+      }
+    ],
+    "sources": [],
+    "action_constraints": []
+  },
+  "previous_id": "scope-eb6d4055-fce5-4bd6-8bed-adbb3831d17a",
+  "expected_version": 1,
+  "apply_auto_recon_task_delegation_profile": false,
+  "workflow_profile": "WPT_FINGERPRINT_AUTONOMOUS_V1",
+  "reason": "User requested autonomous fingerprinting on 2026-11-09. Apply the bounded WPT-only profile to the existing exact LAB target: six GET requests, no state changes; normal fresh Stage 6 authorization remains required."
+}

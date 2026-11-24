@@ -1,0 +1,38 @@
+Stage 4.10 installation / verification
+
+1. Stop the Pentest Subsystem currently listening on 127.0.0.1:8790.
+2. Keep the Mission Orchestrator Stage 3.9.10 service running on 127.0.0.1:8780.
+3. Back up data\pentest_subsystem.db.
+4. Replace the project tree with this package.
+5. No new Pentest database migration is introduced; the expected migration level remains 7.
+6. From D:\mission_orchestrator start the Pentest Subsystem:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   python -m run.pentest_subsystem --host 127.0.0.1 --port 8790
+
+7. In another PowerShell run the authoritative acceptance harness:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE4_10_ACCEPTANCE.ps1
+
+Expected active Pentest control:
+  stage4.10-pentest-foundation-acceptance-gate
+
+Expected server header:
+  APTSPentestSubsystem/4.10
+
+Expected Pentest migration:
+  7
+
+Expected canonical inventory:
+  1799 tests
+
+A PASS closes Stage 4 and yields:
+  PENTEST_SUBSYSTEM_PLATFORM
+
+Next stage:
+  5.1 — Full Agentic Pentest Workflow Orchestrator
+
+Stage 4.10 is an acceptance gate only. It does not mint authorization, invoke pentest tools,
+perform external network I/O, or actuate targets. Controlled execution remains Stage 6 authority.

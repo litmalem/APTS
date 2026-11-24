@@ -1,0 +1,61 @@
+Stage 3.3.10 — Planning Acceptance & Regression Gate patch manifest
+====================================================================
+
+New runtime source:
+  mission_orchestrator/planning_acceptance_gate.py
+
+Changed runtime source:
+  mission_orchestrator/service.py
+  mission_orchestrator/api_service.py
+  mission_orchestrator/__init__.py
+
+New focused regression test:
+  tests/test_stage3_3_10_planning_acceptance_regression_gate.py
+
+Updated regression tests tracking active control / supported-control tail:
+  tests/test_stage3_1_6_mission_versioning_concurrency.py
+  tests/test_stage3_1_7_mission_persistence_repository_model.py
+  tests/test_stage3_1_8_canonical_mission_api_validation_layer.py
+  tests/test_stage3_1_9_mission_event_lineage_foundation.py
+  tests/test_stage3_1_10_acceptance_regression_gate.py
+  tests/test_stage3_2_1_mission_lifecycle_command_contract.py
+  tests/test_stage3_2_2_lifecycle_transition_guard_matrix.py
+  tests/test_stage3_2_3_mission_pip_activation.py
+  tests/test_stage3_2_4_planning_run_activation.py
+  tests/test_stage3_2_5_waiting_dependency_control.py
+  tests/test_stage3_2_6_pause_resume_replanning_control.py
+  tests/test_stage3_2_7_abort_failure_expiration_semantics.py
+  tests/test_stage3_2_8_cleanup_verified_completion_gate.py
+  tests/test_stage3_2_9_event_driven_lifecycle_automation_reliability.py
+  tests/test_stage3_2_10_lifecycle_acceptance_regression_gate.py
+  tests/test_stage3_3_1_canonical_plan_contract_identity.py
+  tests/test_stage3_3_2_planner_input_snapshot_context_binding.py
+  tests/test_stage3_3_3_canonical_task_decomposition_contract.py
+  tests/test_stage3_3_4_task_dependency_graph_structural_validation.py
+  tests/test_stage3_3_5_planner_invocation_plan_generation.py
+  tests/test_stage3_3_6_plan_validation_feasibility_gate.py
+  tests/test_stage3_3_7_plan_versioning_replanning_supersession.py
+  tests/test_stage3_3_8_task_readiness_scheduling_projection.py
+  tests/test_stage3_3_9_planning_event_lineage_replay_recovery.py
+
+Acceptance/release artifacts:
+  STAGE3_3_10_ACCEPTANCE.ps1
+  README_STAGE3_3_10.md
+  PATCH_NOTES_STAGE3_3_10.md
+  INSTALL_STAGE3_3_10.txt
+  PATCH_MANIFEST_STAGE3_3_10.txt
+  SHA256_STAGE3_3_10.txt
+
+Database migration:
+  NONE. Repository migration level remains 17.
+
+Regression baseline:
+  Stage 3.1         : 111 passed
+  Stage 3.2         : 156 passed
+  Stage 3.3.1-3.3.4 : 77 passed
+  Stage 3.3.5-3.3.6 : 57 passed
+  Stage 3.3.7       : 27 passed
+  Stage 3.3.8       : 28 passed
+  Stage 3.3.9       : 38 passed
+  Stage 3.3.10      : 12 passed
+  Total             : 506 tests

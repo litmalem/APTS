@@ -1,0 +1,87 @@
+Stage 3.3.3 - Canonical Task Decomposition Contract
+Patch Manifest
+==================================================
+
+NEW
+---
+mission_orchestrator/task_decomposition.py
+migrations/011_stage3_3_3_canonical_task_decomposition_contract.sql
+tests/test_stage3_3_3_canonical_task_decomposition_contract.py
+README_STAGE3_3_3.md
+PATCH_NOTES_STAGE3_3_3.md
+INSTALL_STAGE3_3_3.txt
+PATCH_MANIFEST_STAGE3_3_3.txt
+STAGE3_3_3_ACCEPTANCE.ps1
+SHA256_STAGE3_3_3.txt
+
+MODIFIED
+--------
+mission_orchestrator/__init__.py
+mission_orchestrator/api_service.py
+mission_orchestrator/errors.py
+mission_orchestrator/mission_events.py
+mission_orchestrator/mission_versioning.py
+mission_orchestrator/repository.py
+mission_orchestrator/repository_model.py
+mission_orchestrator/service.py
+
+Historical regression tests advanced to the Stage-3.3.3 current-control, migration,
+and version-vector baseline:
+  tests/test_stage3_1_10_acceptance_regression_gate.py
+  tests/test_stage3_1_6_mission_versioning_concurrency.py
+  tests/test_stage3_1_7_mission_persistence_repository_model.py
+  tests/test_stage3_1_8_canonical_mission_api_validation_layer.py
+  tests/test_stage3_1_9_mission_event_lineage_foundation.py
+  tests/test_stage3_2_1_mission_lifecycle_command_contract.py
+  tests/test_stage3_2_2_lifecycle_transition_guard_matrix.py
+  tests/test_stage3_2_3_mission_pip_activation.py
+  tests/test_stage3_2_4_planning_run_activation.py
+  tests/test_stage3_2_5_waiting_dependency_control.py
+  tests/test_stage3_2_6_pause_resume_replanning_control.py
+  tests/test_stage3_2_7_abort_failure_expiration_semantics.py
+  tests/test_stage3_2_8_cleanup_verified_completion_gate.py
+  tests/test_stage3_2_9_event_driven_lifecycle_automation_reliability.py
+  tests/test_stage3_2_10_lifecycle_acceptance_regression_gate.py
+  tests/test_stage3_3_1_canonical_plan_contract_identity.py
+  tests/test_stage3_3_2_planner_input_snapshot_context_binding.py
+
+DATABASE
+--------
+Repository migration level: 10 -> 11
+New stores:
+  mission_task_decompositions
+  mission_planned_tasks
+
+API
+---
+GET  /api/missions/{mission_id}/task-decomposition-definition
+POST /api/missions/{mission_id}/task-decomposition
+GET  /api/missions/{mission_id}/task-decomposition
+GET  /api/missions/{mission_id}/planned-tasks
+GET  /api/missions/{mission_id}/planned-tasks/{planned_task_id}
+
+EVENT
+-----
+MISSION_TASK_DECOMPOSITION_REGISTERED
+
+VERSION VECTOR
+--------------
+Adds task_decomposition_version (0 before decomposition, 1 after Stage-3.3.3 commit).
+
+CONTROL
+-------
+stage3.3.3-canonical-task-decomposition-contract
+
+BOUNDARY
+--------
+Planner invocation: false
+Dependency graph materialized: false
+DAG validation: false
+Governance authorization query: false
+Target action dispatch: false
+Target actuation: false
+
+VALIDATION BASELINE
+-------------------
+Focused Stage-3.3.3 tests: 19 passed
+Full regression: 315 passed

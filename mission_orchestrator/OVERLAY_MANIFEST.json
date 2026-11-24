@@ -1,0 +1,46 @@
+{
+  "artifact": "APTS Autonomous PIP Planning and Recon Scope Target Overlay",
+  "base": "Mission(20261020-074100).zip",
+  "files": [
+    {
+      "path": "README_AUTONOMOUS_PIP_PLANNING.md",
+      "sha256": "7b258e46a87669082609053f9eb729cd8b02a64add1b315ab668e7d3d57ee87a",
+      "size_bytes": 2023
+    },
+    {
+      "path": "mission_orchestrator/automatic_pip.py",
+      "sha256": "d70ec00e4b7bf9e2419b415a4618bedcc9ce27473f98d37c449e671da803267b",
+      "size_bytes": 5582
+    },
+    {
+      "path": "mission_orchestrator/mission_planning_automation.py",
+      "sha256": "4ed6568aa1dff7d9af0861ecbd15ab605bf16d3623df626a859d8e9822c5391d",
+      "size_bytes": 15550
+    },
+    {
+      "path": "pentest_subsystem/reconnaissance.py",
+      "sha256": "ad8634809b0282f6bdbbe865f855abc98dc4b79f738e9ac38685f5e1e33418a2",
+      "size_bytes": 153519
+    },
+    {
+      "path": "pentest_subsystem/web_ui.py",
+      "sha256": "dece2fb92803a78102db4e13d92fed824999e6f0a857dbcb9681403da72dbf37",
+      "size_bytes": 16095
+    },
+    {
+      "path": "pentest_web/app.js",
+      "sha256": "a58b00c62a6a1a9b319f345026fd68b1c60e8dc5050e0c96821d2d4f55524ef0",
+      "size_bytes": 22659
+    },
+    {
+      "path": "tests/test_automatic_pip.py",
+      "sha256": "53ca407bfac427032b05a69df5a9f3880b86e80a2bf9fd8f25072d3e35766abe",
+      "size_bytes": 2360
+    },
+    {
+      "path": "tests/test_autonomous_planning_handoff.py",
+      "sha256": "13102babc1811d9b649c25175a37f8965faf1d166904fbdbb9b634ce36b6ca6f",
+      "size_bytes": 3259
+    }
+  ]
+}

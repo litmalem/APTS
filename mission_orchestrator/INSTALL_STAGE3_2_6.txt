@@ -1,0 +1,38 @@
+Stage 3.2.6 installation
+========================
+
+Baseline required: Stage 3.2.5 — Waiting States: Evidence & Approval Dependency Control (accepted)
+
+1. Stop Mission Orchestrator.
+2. Back up the Mission Orchestrator database.
+3. Extract STAGE3_2_6_PAUSE_RESUME_REPLANNING_CONTROL_PATCH.zip directly into D:\mission_orchestrator with overwrite enabled.
+4. Do NOT create migration 009. Repository migration level remains 8.
+5. Run:
+
+   cd D:\mission_orchestrator
+   python -m compileall -q mission_orchestrator tests
+   python -m pytest -q
+
+   Expected: 199 passed
+
+6. Start Mission Orchestrator and verify /health reports:
+
+   control_version = stage3.2.6-pause-resume-replanning-control
+   mission_pause_resume_replan_schema_version = apts-mission-pause-resume-replan-control-v1
+   mission_pause_resume_replan_mode = DURABLE_PAUSE_CONTEXT_MATCHED_RESUME_AND_REPLAN_READINESS_FAIL_CLOSED
+   mission_pause_command = PAUSE
+   mission_resume_command = RESUME
+   mission_replan_command = REPLAN
+   mission_replan_return_command = START
+   mission_replan_readiness_status = READY
+   mission_pause_resume_replan_planner_invocation_performed = False
+   mission_pause_resume_replan_governance_query_performed = False
+   mission_lifecycle_stage3_2_6_pause_resume_replan_enabled = True
+   mission_lifecycle_stage3_2_7_terminal_semantics_enabled = False
+   mission_lifecycle_stage3_2_8_completion_gate_enabled = False
+   mission_repository_migration_level = 8
+   governance_authorization_authority = EXTERNAL_APTS_GSS
+   target_action_dispatch_enabled = False
+   target_actuation = False
+
+7. Run STAGE3_2_6_ACCEPTANCE.ps1.

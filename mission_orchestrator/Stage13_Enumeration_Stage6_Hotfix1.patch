@@ -1,0 +1,36 @@
+--- a/tests/test_stage5_3_enumeration_agent.py
++++ b/tests/test_stage5_3_enumeration_agent.py
+@@ -335,7 +335,10 @@
+ 
+ def test_13_in_scope_enumeration_proposal_is_governed_and_not_executed(tmp_path: Path):
+     repo, boundary, task, orch, recon, _, _ = _start_repo(tmp_path, "proposal53")
+-    run, _ = repo.run_enumeration(orch["orchestration_id"], enumeration_request(boundary, task, recon, "proposal53"))
++    payload = enumeration_request(boundary, task, recon, "proposal53")
++    # The test boundary explicitly permits the fixed Stage-6 enumeration adapter.
++    payload["enumeration_proposals"][0]["technique"] = "TCP_BANNER_READ"
++    run, _ = repo.run_enumeration(orch["orchestration_id"], payload)
+     gov = run["output"]["governance"][0]
+     proposal = run["output"]["action_proposals"][0]
+     assert gov["status"] == "ELIGIBLE" and gov["scope_roe_eligible"] is True
+@@ -377,6 +380,8 @@
+ def test_16_exact_replay_is_idempotent_and_does_not_duplicate_lineage_or_progress(tmp_path: Path):
+     repo, boundary, task, orch, recon, _, _ = _start_repo(tmp_path, "replay53")
+     payload = enumeration_request(boundary, task, recon, "replay53")
++    # Keep the proposal eligible under the fixture's explicit technique allowlist.
++    payload["enumeration_proposals"][0]["technique"] = "TCP_BANNER_READ"
+     first, c1 = repo.run_enumeration(orch["orchestration_id"], payload)
+     second, c2 = repo.run_enumeration(orch["orchestration_id"], payload)
+     assert c1 is True and c2 is False
+--- a/tests/test_stage13_enumeration_stage6_e2e.py
++++ b/tests/test_stage13_enumeration_stage6_e2e.py
+@@ -52,7 +52,9 @@
+         boundary = original()
+         boundary["scope"]["targets"][0] = {"target_type": "URL", "target_value": target_url}
+         boundary["roe"]["allowed_action_classes"] = ["TARGET_RECON"]
+-        boundary["roe"]["allowed_techniques"] = ["TCP_CONNECT_SCAN", "TCP_BANNER_READ"]
++        # Permit the semantic proposal to be persisted for the negative intake check;
++        # Stage 6 must still reject it because no exact adapter is registered.
++        boundary["roe"]["allowed_techniques"] = ["TCP_CONNECT_SCAN", "TCP_BANNER_READ", "SERVICE_ENUMERATION"]
+         boundary["roe"]["maximum_concurrency"] = 1
+         boundary["constraints"]["resource_budget"] = {"max_network_requests": 1}
+         return boundary

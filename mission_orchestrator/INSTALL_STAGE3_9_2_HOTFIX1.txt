@@ -1,0 +1,34 @@
+Stage 3.9.2 Hotfix 1 — Installation
+
+Prerequisite
+------------
+Stage 3.9.2 overlay has already been installed and the runtime is currently:
+  stage3.9.2-intake-lifecycle-e2e-segment-qualification
+
+Install
+-------
+1. Extract the hotfix ZIP into:
+     D:\mission_orchestrator
+2. Allow overwrite of the three test files.
+3. No database migration is required.
+4. No runtime restart is required because this hotfix changes tests only.
+
+Verify
+------
+cd D:\mission_orchestrator
+
+Set-ExecutionPolicy `
+    -Scope Process `
+    -ExecutionPolicy Bypass `
+    -Force
+
+.\STAGE3_9_2_HOTFIX1_VERIFY.ps1
+
+Then rerun authoritative acceptance:
+.\STAGE3_9_2_ACCEPTANCE.ps1
+
+Expected hotfix verification:
+STAGE 3.9.2 HOTFIX 1 REGRESSION REBASE: PASS
+
+Expected authoritative closure:
+STAGE 3.9.2 ACCEPTANCE: PASS

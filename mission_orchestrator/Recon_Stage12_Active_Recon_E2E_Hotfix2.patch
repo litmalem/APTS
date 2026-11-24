@@ -1,0 +1,120 @@
+diff --git a/tests/test_stage12_recon_active_e2e_acceptance.py b/tests/test_stage12_recon_active_e2e_acceptance.py
+index 03ce4db..b6e8510 100644
+--- a/tests/test_stage12_recon_active_e2e_acceptance.py
++++ b/tests/test_stage12_recon_active_e2e_acceptance.py
+@@ -8,6 +8,8 @@ import pytest
+ from execution_subsystem.authorization_source import ExecutionAuthorizationProposalSource, MissionAuthorizationSource
+ from execution_subsystem.evidence_repository import ExecutionEvidenceRepository
+ from execution_subsystem.evidence_service import ExecutionEvidenceService
++from execution_subsystem.gateway_repository import ExecutionGatewayRepository
++from execution_subsystem.gateway_service import ExecutionGatewayService
+ from execution_subsystem.execution_result_contract import build_recon_execution_result, verify_recon_execution_result
+ from execution_subsystem.gateway_contract import GATEWAY_INTAKE_SCHEMA
+ from execution_subsystem.runtime_contract import START_SCHEMA
+@@ -72,6 +74,10 @@ def test_stage12_active_recon_acceptance_through_stage66_and_iteration(tmp_path,
+     mission_db = tmp_path / "mission.db"
+     seed_mission(mission_db, boundary)
+     authority = UniqueAuthority()
++    gateway = ExecutionGatewayService(
++        ExecutionGatewayRepository(tmp_path / "execution.db"),
++        ExecutionAuthorizationProposalSource(pentest_repo.sqlite_path),
++        MissionAuthorizationSource(mission_db), authority, clock=lambda: NOW)
+     service = ExecutionEvidenceService(
+         ExecutionEvidenceRepository(tmp_path / "execution.db"),
+         ExecutionAuthorizationProposalSource(pentest_repo.sqlite_path),
+@@ -98,7 +104,7 @@ def test_stage12_active_recon_acceptance_through_stage66_and_iteration(tmp_path,
+         "requested_by": "stage12-acceptance-test",
+     }
+     try:
+-        gateway_receipt = service.submit_execution({
++        gateway_receipt = gateway.submit_execution({
+             "schema_version": GATEWAY_INTAKE_SCHEMA,
+             "submission_id": "gwreq-stage12-e2e",
+             "idempotency_key": "idem-gateway-stage12-e2e",
+diff --git a/tests/test_stage4_4_pentest_lifecycle_state.py b/tests/test_stage4_4_pentest_lifecycle_state.py
+index c43928c..5f466b0 100644
+--- a/tests/test_stage4_4_pentest_lifecycle_state.py
++++ b/tests/test_stage4_4_pentest_lifecycle_state.py
+@@ -90,11 +90,14 @@ def sample_boundary() -> dict:
+             "max_actions": 10,
+             "risk_threshold": "MODERATE",
+             "data_handling_policy": {"retain_sensitive_output": False},
+-            "resource_budget": {"max_network_requests": 1},
++            "resource_budget": {"max_network_requests": 100},
+         },
+         "roe": {
+             "allowed_action_classes": ["TARGET_RECON", "VULNERABILITY_VALIDATION"],
+-            "allowed_techniques": ["TCP_CONNECT_SCAN"],
++            "allowed_techniques": [
++                "TCP_CONNECT_SCAN", "TCP_BANNER_READ", "HTTP_HEADER_INSPECTION",
++                "SAFE_VERSION_CONFIGURATION_CONFIRMATION", "HTTP_RESPONSE_METADATA",
++            ],
+             "prohibited_action_classes": ["DESTRUCTIVE_ACTION"],
+             "maximum_concurrency": 1,
+             "destructive_actions_allowed": False,
+diff --git a/tests/test_stage5_2_reconnaissance_agent.py b/tests/test_stage5_2_reconnaissance_agent.py
+index 1fae58f..63be967 100644
+--- a/tests/test_stage5_2_reconnaissance_agent.py
++++ b/tests/test_stage5_2_reconnaissance_agent.py
+@@ -44,6 +44,7 @@ from pentest_subsystem.reconnaissance import (
+     verify_reconnaissance_output,
+ )
+ from tests.test_stage4_6_pentest_workflow_orchestrator_skeleton import materialize
++from tests.test_stage4_4_pentest_lifecycle_state import sample_boundary
+ from tests.test_stage5_1_full_agentic_pentest_workflow_orchestrator import start_payload
+ 
+ CONTROL = "stage5.2-reconnaissance-agent"
+@@ -139,9 +140,18 @@ def recon_request(boundary: dict, task: dict, suffix: str = "stage52", *, propos
+     return result
+ 
+ 
+-def _start_repo(tmp_path: Path, suffix: str = "stage52"):
++def _start_repo(tmp_path: Path, suffix: str = "stage52", boundary: dict | None = None):
+     repo = ReconnaissanceAgentRepository(tmp_path / "pentest.db")
+-    boundary, _, task, _, _ = materialize(repo)
++    if boundary is None:
++        boundary, _, task, _, _ = materialize(repo)
++    else:
++        from tests import test_stage4_6_pentest_workflow_orchestrator_skeleton as materialize_module
++        original_boundary = materialize_module.sample_boundary
++        materialize_module.sample_boundary = lambda: deepcopy(boundary)
++        try:
++            boundary, _, task, _, _ = materialize(repo)
++        finally:
++            materialize_module.sample_boundary = original_boundary
+     orch, lifecycle, transitions, created = repo.start_orchestration(task["pentest_task_id"], start_payload(suffix))
+     assert created is True
+     return repo, boundary, task, orch, lifecycle, transitions
+@@ -411,13 +421,15 @@ def test_11b_recon_derives_proposals_from_missing_stale_and_low_confidence_cover
+ 
+ @pytest.mark.parametrize("missing_grant", ["technique", "concurrency", "budget"])
+ def test_active_recon_requires_explicit_technique_and_single_request_budget(tmp_path: Path, missing_grant: str):
+-    repo, boundary, task, orch, _, _ = _start_repo(tmp_path, "explicit-active-roe-" + missing_grant)
++    boundary = sample_boundary()
+     if missing_grant == "technique":
+         boundary["roe"].pop("allowed_techniques", None)
+     elif missing_grant == "concurrency":
+         boundary["roe"].pop("maximum_concurrency", None)
+     else:
+         boundary["constraints"].pop("resource_budget", None)
++    repo, boundary, task, orch, _, _ = _start_repo(
++        tmp_path, "explicit-active-roe-" + missing_grant, boundary)
+     payload = recon_request(boundary, task, "explicit-active-roe-" + missing_grant)
+     run, _ = repo.run_reconnaissance(orch["orchestration_id"], payload)
+     assert run["output"]["governance"][0]["status"] == "INELIGIBLE"
+diff --git a/tests/test_stage6_2_recon_action_request_authorization.py b/tests/test_stage6_2_recon_action_request_authorization.py
+index a667e9e..fbd716a 100644
+--- a/tests/test_stage6_2_recon_action_request_authorization.py
++++ b/tests/test_stage6_2_recon_action_request_authorization.py
+@@ -60,7 +60,10 @@ def test_recon_action_request_gets_fresh_action_bound_gss_decision(recon_authori
+     assert result["governance_query_performed"] is True
+     assert evaluated["context"]["execution_authorization_evaluation"]["execution_request"] == request["envelope"]["execution_request"]
+     assert evaluated["action_class"] == "TARGET_RECON"
+-    assert evaluated["technique"] == "TCP_CONNECT_SCAN"
++    assert evaluated["context"]["execution_authorization_evaluation"]["execution_request"]["action"] == {
++        "action_class": "TARGET_RECON", "capability_id": "reconnaissance",
++        "technique": "TCP_CONNECT_SCAN",
++    }
+     assert evaluated["resource_value"] == request["envelope"]["execution_request"]["target"]["target_value"]
+     assert record["decision"] == "ALLOW"
+     assert record["checks"] == {key: "PASS" for key in record["checks"]}

@@ -1,0 +1,56 @@
+STAGE 6.10 HOTFIX 1 — BUILD VALIDATION
+
+Reported incident: live read-only preflight and native sandbox probe succeeded;
+GSS collection then failed. Its original traceback has not been supplied.
+The actual Windows cause and local deployment acceptance remain unverified.
+
+Hotfix scope: Mission acceptance harness, PowerShell interpreter selection,
+collection regression tests and the locked inventory. No GSS/VulnDesk runtime
+source, authorization boundary, database, migration or SQL has been changed.
+
+Validation environment: 3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]
+Platform: Linux-6.18.44-x86_64-with-glibc2.39
+Scope: BUILD_ISOLATED; sandbox: SECCOMP_RLIMIT
+Live user mission execution proven: false; independent signature: false.
+Windows/Job Object execution was not exercised by these Linux build checks.
+
+Focused Stage 6.10 tests: 90 passed, 0 failed/error/skipped, 42.55 seconds.
+The 11 new cases cover native GSS imports with the complete Mission roots,
+ancestor pytest config/conftest and environment-plugin isolation, requested
+component cwd, retained missing-dependency traceback, Windows node filenames,
+nonzero/partial/empty/duplicate/timeout rejection and Unicode parameter IDs.
+
+Full locked Stage 1–6 regression: 3,221 tests passed in 71 verified batches.
+  Mission: 2,955; GSS: 130; VulnDesk: 136.
+  Failures: 0; errors: 0; skips: 0.
+  All 14 required roadmap gates passed.
+  Batch-run wall time: 405.296 seconds with 4 workers.
+  Compile checks: {'mission': 344, 'gss': 52, 'vulndesk': 102}.
+  Source snapshots unchanged throughout regression and final verification.
+  Connected trajectory: VERIFIED_CONNECTED_INTERNAL_LINEAGE.
+  Native CTI/PIP assembly, GSS service and execution use isolated repositories,
+  controlled intelligence fixtures and loopback targets.
+
+Reproduction: an unrelated ancestor pytest.ini option caused collection to
+fail before this hotfix and was isolated afterwards. A real missing-module
+error still fails the gate and now preserves/displays the underlying traceback.
+These controlled reproductions do not establish the original Windows cause.
+
+Baseline preservation: all 83 Mission, 7 GSS and 23 VulnDesk original SQL/DB
+files match the supplied archives. All 252 GSS and 235 VulnDesk original files
+outside cache/virtual-environment folders also match byte-for-byte.
+
+Contract SHA-256: 2becc9a5152cbb2ebaa96884354d90615b39bb524908284427a0e37093dd4b7b
+Canonical inventory SHA-256: 174855fc7913184d530c07268f70bbaa85a6c95fccc231c36e117f73461a51a2
+Regression report SHA-256: cefafe7188d2bc37650b4a453266991b14d31480d17e2036fe7c74f4be8fd936
+
+Evidence: evidence/stage6_10/hotfix1-build-linux-20261004/
+The immutable regression directory contains all JUnit XML, logs, source hashes,
+collection interpreter/dependency contexts, joined trajectory exports and audit.
+Auxiliary focused/reproduction checks are outside that regression directory.
+
+APTS_Stage6_10_Hotfix1.zip is an overlay applied after APTS_Stage6_10_Patch.zip.
+Packaging verifies every payload hash and reconstructs the Mission source from
+the original archive followed by those two overlays, then verifies the complete
+regression evidence again against that reconstructed source.
+Run acceptance on the Windows deployment as shown in INSTALL_STAGE6_10_HOTFIX1.txt.

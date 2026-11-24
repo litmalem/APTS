@@ -1,0 +1,1351 @@
+PERANCANGANAUTONOMOUS PENETRATION TESTINGAGENTIC SUBSYSTEM (APTS-PENTEST)
+Arsitektur Terintegrasi Non-LLM-Driven untuk Autonomous Penetration Testing
+Dokumen Rancangan sebagai Bagian dari Penelitian Disertasi
+
+Revisi Arsitektur Final - Architectural Harmonization dengan CTI Subsystem
+Agustus 2026
+
+Pernyataan Lingkup dan Penggunaan
+Lingkup penelitian — Rancangan ini ditujukan untuk pengujian penetrasi yang sah, terotorisasi, dan dilakukan pada laboratorium, simulasi, atau lingkungan target yang secara eksplisit tercakup dalam Rules of Engagement (RoE). Dokumen sengaja mempertahankan tindakan berisiko pada tingkat abstraksi arsitektural: agent memilih kelas tindakan validasi, sedangkan rincian eksekusi berada di Controlled Execution Gateway, policy gate, sandbox, dan capability yang telah diotorisasi.
+
+Dokumen ini merancang Autonomous Penetration Testing Agentic Subsystem (selanjutnya disebut APTS-Pentest) sebagai bagian dari APTS yang lebih luas. APTS-Pentest menerima Pentest Intelligence Package (PIP) dari CTI Subsystem sebagai data artifact read-only dan mengubah intelligence tersebut menjadi rangkaian pengujian yang terencana, adaptif, evidence-driven, dan dapat diaudit. Seluruh keputusan yang dapat menyebabkan perubahan pada target dipisahkan dari execution plane sehingga tidak ada agent yang memiliki akses langsung dan tidak terkendali ke target.
+Secara epistemik, dokumen membedakan dua jenis pernyataan. Pertama, pernyataan yang berasal dari literatur: misalnya konsep agentic AI non-LLM, komponen perception-state-planning-execution-memory-reflection, arsitektur hybrid reactive-deliberative, layered neuro-symbolic, hierarchical control, reinforcement learning, simulation-based evaluation, dan kebutuhan governance. Kedua, kontribusi rancangan penelitian: komposisi tujuh agent internal APTS-Pentest, pemisahan decision/execution/knowledge/governance plane, Attack-Path Planning Agent, kontrak event, PIP-to-evidence lineage, serta bounded autonomy. Kontribusi rancangan tersebut adalah sintesis arsitektural penelitian, bukan klaim bahwa konfigurasi yang sama telah dipublikasikan oleh sumber yang dirujuk.
+Abstrak
+Autonomous penetration testing menuntut sistem yang tidak sekadar menjalankan pipeline tool secara berurutan, melainkan mampu mempertahankan tujuan, memahami state target, memilih tindakan berdasarkan evidence, menanggapi perubahan lingkungan, melakukan replanning, dan tetap berada dalam batas otorisasi. Dokumen ini mengusulkan APTS-Pentest sebagai subsystem agentic non-LLM-driven yang menggabungkan tujuh agent internal: Pentest Workflow Orchestrator, Reconnaissance Agent, Enumeration Agent, Vulnerability Hypothesis Agent, Attack-Path Planning Agent, Exploitation Agent, dan Post-Exploitation & Impact Agent. Fungsi yang bersifat deterministik seperti state management, evidence capture, finding correlation, cleanup, credential isolation, tool execution, authorization, policy enforcement, logging, dan artifact storage secara eksplisit diklasifikasikan sebagai non-agent.
+Arsitektur memisahkan empat plane: Decision Plane yang agentic; Execution Plane yang non-agentic dan terkendali; Knowledge/Evidence Plane yang menyediakan state, memory, provenance, dan observability; serta Governance & Safety Plane yang memiliki otoritas eksternal terhadap agent. CTI Subsystem memasok PIP yang immutable dan versioned. APTS-Pentest menghasilkan Pentest Result/Evidence Package yang juga immutable dan memiliki lineage ke PIP, mission, action, observation, dan evidence. Adaptasi online dibatasi pada state update dan replanning; perubahan policy pembelajaran dilakukan secara offline, dievaluasi, di-versioning, dan membutuhkan persetujuan. Desain ini ditujukan untuk mendukung evaluasi ilmiah terhadap efektivitas, efisiensi, adaptivitas, explainability, reproducibility, dan safety autonomous pentesting.
+Kata kunci: Agentic AI; Autonomous Penetration Testing; Non-LLM Agent; Reactive-Acting-Observing; Hybrid Reactive-Deliberative; Neuro-Symbolic; Attack Graph; Reinforcement Learning; Cyber Threat Intelligence; Governance; Evidence Provenance.
+
+Daftar Isi
+1. Pendahuluan
+2. Landasan Konseptual dan Dasar Literatur
+3. Metodologi Perancangan Arsitektur
+4. Arsitektur Final dan Prinsip Harmonisasi
+5. Klasifikasi Agent dan Non-Agent
+6. Pentest Workflow Orchestrator
+7. Reconnaissance Agent
+8. Enumeration Agent
+9. Vulnerability Hypothesis Agent
+10. Attack-Path Planning Agent
+11. Exploitation Agent
+12. Post-Exploitation & Impact Agent
+13. Non-Agent Reasoning/Processing Services
+14. Shared Knowledge, Memory & Observability Layer
+15. Tooling & Controlled Execution Layer
+16. Governance & Safety Plane
+17. Data Artifact, State, dan Kontrak Data
+18. Event-Driven Interaction dan Trigger Antar-Agent
+19. Strategi Adaptasi dan Pembelajaran
+20. Metodologi Evaluasi dan Eksperimen
+21. Blueprint Implementasi
+22. Risiko, Mitigasi, dan Threats to Validity
+23. Kesimpulan
+Lampiran A. Kontrak Agent
+Lampiran B. Katalog Event
+Lampiran C. Skema Data Inti
+Lampiran D. Kamus Metrik
+Daftar Pustaka
+
+1. Pendahuluan
+1.1 Latar Belakang
+Penetration testing tradisional lazim direpresentasikan sebagai urutan aktivitas: reconnaissance, enumeration, vulnerability analysis, validation/exploitation, post-exploitation, dan pelaporan. Representasi linear tersebut berguna untuk dokumentasi proses, tetapi tidak cukup untuk menggambarkan perilaku sistem otonom. Dalam lingkungan nyata maupun laboratorium yang kompleks, hasil suatu tindakan dapat membatalkan asumsi sebelumnya, membuka surface baru, mengubah privilege context, mengubah reachability, atau menunjukkan bahwa evidence belum memadai. Karena itu, autonomous pentesting lebih tepat dimodelkan sebagai closed-loop sequential decision process yang berulang: sense/observe, model state, reason/plan, request action, execute under control, evaluate result, update evidence, dan replan.
+Literatur Agentic AI menekankan bahwa agency muncul dari orkestrasi komponen perception/state, planning/reasoning, memory, execution/tool use, evaluation/reflection, dan orchestration yang beroperasi secara berulang, bukan dari penamaan suatu modul sebagai "agent" semata [1]. Literatur yang sama juga membahas non-LLM-driven agentic systems, di mana autonomy dapat dibangun melalui rules, planning, reinforcement learning, dan reactive behavior [1]. Dengan demikian, penggunaan non-LLM sebagai landasan APTS-Pentest tetap konsisten secara konseptual selama sistem memiliki goal-directed behavior, bounded autonomy, persistent state, feedback, dan adaptive decision-making.
+Konteks cybersecurity memperkuat relevansi pendekatan tersebut. Penelitian Autonomous Cyber Defence menunjukkan penggunaan cyber gym, state/action spaces, reward, DRL, knowledge graph, dan agent-environment interaction untuk melatih autonomous cyber agents [4]. Studi yang sama mencatat CybORG sebagai gym untuk autonomous cyber agents dan menyebut NASim sebagai lingkungan yang digunakan untuk training/evaluation autonomous penetration testing agents; evaluasi RL untuk autonomous penetration testing dengan A3C, Q-learning, dan DQN juga dirujuk secara eksplisit [6], [7]. Walaupun fokus pertahanan dan pentesting berbeda, keduanya berbagi kebutuhan mendasar: state representation, action abstraction, feedback, policy evaluation, dan safe execution.
+1.2 Permasalahan Penelitian
+P1. Batas agent vs non-agent belum eksplisit. Tool, scanner, service, policy checker, dan data store sering diberi label agent walaupun tidak memiliki goal ownership dan decision loop.
+P2. Pipeline linear tidak merepresentasikan adaptivitas. Hasil reconnaissance, enumeration, hypothesis validation, dan state transition harus dapat memicu backtracking dan replanning.
+P3. Hipotesis vulnerability dan keputusan attack-path merupakan fungsi berbeda. Candidate vulnerability tidak otomatis menjadi aksi eksekusi; diperlukan reasoning terhadap prerequisite, reachability, risk, expected evidence gain, dan authorization.
+P4. Autonomy tanpa authority boundary menimbulkan risiko. Agent tidak boleh menjadi penentu tunggal atas apakah suatu aksi boleh dilakukan.
+P5. Evidence lineage harus first-class. Setiap finding harus dapat ditelusuri ke PIP, mission, state, action, observation, dan evidence.
+P6. Learning tidak boleh menyebabkan uncontrolled policy drift. Adaptasi operasional dan pembaruan policy harus dipisahkan.
+1.3 Tujuan Rancangan
+Menyusun arsitektur APTS-Pentest non-LLM-driven yang konsisten dengan arsitektur CTI subsystem dan Global Mission Orchestrator.
+Menetapkan klasifikasi agent dan non-agent berdasarkan kriteria autonomy, goal ownership, state awareness, action selection, feedback, dan replanning.
+Merancang tujuh agent internal dengan decision architecture yang sesuai terhadap karakter tugas masing-masing.
+Merancang service, infrastructure, governance, memory, evidence, dan data artifact yang mendukung agent tanpa mengaburkan boundary tanggung jawab.
+Mendefinisikan event, trigger, kontrak data, state machine, safety gate, dan execution boundary agar sistem dapat diimplementasikan dan diuji secara reproducible.
+Menyusun metodologi evaluasi yang mengukur efektivitas, efisiensi, adaptivitas, explainability, safety, dan reproducibility.
+1.4 Pertanyaan Penelitian
+Tabel 1. Pertanyaan penelitian yang diturunkan dari rancangan
+Kode
+Pertanyaan Penelitian
+RQ1
+Bagaimana membedakan komponen agent dan non-agent dalam autonomous penetration testing tanpa over-agentification?
+RQ2
+Bagaimana PIP dari CTI dapat digunakan sebagai evidence-bounded prior untuk mempercepat dan meningkatkan relevansi adaptive pentest planning?
+RQ3
+Bagaimana kombinasi RAO, layered neuro-symbolic, hybrid reactive-deliberative, dan graph planning memengaruhi kemampuan adaptive decision-making?
+RQ4
+Bagaimana governance gate, controlled execution, dan HITL menjaga bounded autonomy tanpa menghilangkan manfaat otomatisasi?
+RQ5
+Bagaimana efektivitas dan agenticness APTS-Pentest dapat diukur secara objektif dan direproduksi pada cyber range/lab?
+
+1.5 Cakupan
+Cakupan rancangan meliputi layer decision, knowledge/evidence, execution, governance, integrasi CTI-PIP, data artifacts, event-driven coordination, observability, dan metodologi evaluasi. Rancangan tidak menetapkan tool tertentu sebagai bagian wajib; tool diperlakukan sebagai capability yang diregistrasi. Rancangan juga tidak mengasumsikan bahwa model neural harus selalu digunakan. Pada setiap agent yang diberi label neuro-symbolic, symbolic baseline tetap dapat dijalankan secara penuh; komponen neural bersifat opsional dan harus dapat dievaluasi melalui ablation.
+2. Landasan Konseptual dan Dasar Literatur
+2.1 Agentic AI Non-LLM
+Bandi dkk. mengelompokkan non-LLM-driven agentic systems ke dalam sistem berbasis rules, reinforcement learning, planning, dan reactive behavior. Mereka juga mengidentifikasi komponen agentic berupa perception, world/state, memory, planning, execution/tooling, reflection/evaluation, orchestration, dan interaction [1]. Kerangka ini menjadi dasar bahwa APTS-Pentest tidak membutuhkan LLM sebagai controller. Yang dibutuhkan adalah mekanisme eksplisit untuk goal pursuit, state update, selection among alternatives, feedback, dan bounded autonomy.
+Abou Ali dkk. mengingatkan adanya conceptual retrofitting: kerangka simbolik klasik dan sistem neural/generative memiliki mekanisme operasional yang berbeda dan tidak boleh dicampur hanya karena terminologi luarnya serupa [2]. Implikasinya bagi APTS-Pentest adalah RAO tidak didefinisikan sebagai ReAct tanpa LLM. RAO adalah konstruk rancangan penelitian tersendiri, Reactive-Acting-Observing, yang menggunakan rule/utility/policy non-generatif dan observation feedback. Dengan demikian, nomenklatur mengikuti mekanisme aktual, bukan analogi prompt-driven.
+2.2 Arsitektur yang Dipilih
+Tabel 2. Pemetaan karakter tugas ke decision architecture
+Arsitektur
+Karakter Utama
+Penggunaan pada APTS-Pentest
+Alasan
+RAO
+Reactive trigger, bounded action, observation feedback, local state
+Reconnaissance; Enumeration
+Tugas eksplorasi lokal membutuhkan iterasi cepat dan coverage adaptation tanpa long-horizon planner kompleks.
+Hybrid Reactive-Deliberative
+Fast reaction + deliberative planning + arbitration
+Workflow Orchestrator; Exploitation; Post-Exploitation & Impact
+Perlu menggabungkan long-horizon mission reasoning dengan interrupt, timeout, state change, dan safety events.
+Layered Neuro-Symbolic
+Learned inference/scoring + symbolic rules/verification
+Vulnerability Hypothesis
+Evidence ambigu, candidate ranking, tetapi prerequisite dan consistency harus dapat dilacak.
+Hybrid Neuro-Symbolic / Graph Planning
+Graph model + symbolic constraints + optional learned scoring
+Attack-Path Planning
+Attack path adalah masalah state-transition, prerequisite, reachability, utility, dan replanning.
+
+Survei Agentic AI menunjukkan trade-off yang konsisten: hybrid reactive-deliberative menyeimbangkan respons real-time dengan long-horizon planning; layered neuro-symbolic menggabungkan inference dan symbolic reasoning untuk uncertainty dan traceability; hierarchical architecture mendukung goal decomposition, namun berpotensi menciptakan supervisor bottleneck [1], [3]. Desain APTS-Pentest karena itu menggunakan satu supervisor subsystem (Pentest Workflow Orchestrator) dengan specialist agents, tetapi state, execution, evidence, dan governance didelegasikan ke service/infrastructure agar orchestrator tidak menjadi monolit.
+2.3 Autonomous Pentesting sebagai Sequential Decision Problem
+Secara konseptual, mission dapat dimodelkan sebagai proses keputusan dengan state S, action class A, transition T, observation O, policy π, dan utility/reward R. Namun model penelitian tidak mewajibkan satu formulasi MDP/POMDP untuk semua agent. Reconnaissance dan Enumeration dapat menggunakan policy rule/utility sederhana; Attack-Path Planning dapat menggunakan graph search; sedangkan learning experiments dapat menggunakan contextual bandit, DQN/DRQN, HRL, atau PPO pada tahap yang berbeda. Pendekatan modular tersebut mempertahankan interpretability dan memungkinkan perbandingan baseline.
+Cyber gym seperti CybORG memodelkan interaksi agent dan environment serta digunakan untuk pengembangan autonomous cyber agents [6]. Becker dkk. mengevaluasi A3C, Q-learning, dan DQN untuk autonomous penetration testing [7]. Hal tersebut mendukung penggunaan simulation-based evaluation sebelum policy atau capability diterapkan pada target lab yang benar-benar aktif.
+2.4 Prinsip Governance dan Bounded Autonomy
+Literatur menempatkan evaluator/policy guard pada ingress/egress node berisiko tinggi, termasuk external tools [1]. Acharya dkk. menekankan goal safety protocols, fail-safe mechanisms, risk evaluation, HITL/HOTL, override, monitoring, dan accountability untuk autonomous systems [3]. Oleh karena itu APTS-Pentest menggunakan authority plane terpisah. Agent dapat mengusulkan tindakan, tetapi tidak dapat mengesahkan sendiri tindakan tersebut. Otorisasi adalah keputusan governance yang dapat deny, require approval, reduce scope, atau mengaktifkan kill switch.
+3. Metodologi Perancangan Arsitektur
+3.1 Architectural Harmonization
+Metodologi perancangan menggunakan architectural harmonization: nomenklatur, warna komponen, flow semantics, data artifact model, governance boundary, dan shared infrastructure APTS-Pentest dibuat kompatibel dengan CTI subsystem. Harmonisasi tidak berarti semua subsystem harus memiliki agent yang sama. Harmonisasi berarti boundary dan contracts konsisten: agent adalah decision owner; service adalah deterministic/probabilistic processor; data artifact immutable/versioned; infrastructure menyediakan execution/communication; governance mempunyai authority; dan manusia merupakan external authority/oversight.
+3.2 Kriteria Agent
+Tabel 3. Kriteria klasifikasi komponen sebagai agent
+Kriteria
+Pertanyaan Uji
+Konsekuensi
+Goal ownership
+Apakah komponen mempertahankan objective operasional sendiri?
+Tanpa objective, komponen cenderung service.
+State/context awareness
+Apakah keputusan berubah karena state/observation?
+State harus memengaruhi decision.
+Action selection
+Apakah ada pilihan di antara beberapa tindakan?
+Executor tunggal bukan agent.
+Autonomy
+Apakah komponen dapat menentukan langkah berikutnya dalam batas authority?
+Harus bounded, bukan unlimited.
+Feedback adaptation
+Apakah hasil tindakan mengubah keputusan berikutnya?
+Membentuk closed-loop behavior.
+Planning/replanning
+Apakah komponen dapat mengubah strategi?
+Kuat untuk orchestrator/planner.
+Traceable decision
+Apakah alasan/feature/constraint keputusan dapat direkam?
+Wajib untuk dissertation evaluation dan governance.
+
+3.3 Kriteria Non-Agent
+Komponen diklasifikasikan sebagai non-agent jika fungsi utamanya adalah deterministic transformation, validation, storage, execution, retrieval, hashing, normalization, lifecycle management, logging, enforcement, credential isolation, sandboxing, atau API/tool wrapping. Non-agent dapat menggunakan algoritma kompleks, machine learning, graph queries, atau probabilistic scoring. Kompleksitas algoritma tidak otomatis menciptakan agency; yang menentukan adalah ownership terhadap goal dan decision loop.
+3.4 Prinsip Safety-by-Architecture
+Agent tidak memiliki direct target access.
+Semua side effect menuju target harus melewati Authorization & Approval Gate dan Controlled Execution Gateway.
+Credential dan secret berada di vault; agent menerima reference/token terikat mission, bukan secret mentah.
+Execution dilakukan dalam sandbox/isolated worker jika memungkinkan.
+Setiap action request memiliki mission_id, target_id, capability_id, policy_class, expected_evidence, timeout, dan idempotency key.
+Setiap hasil memiliki provenance dan immutable evidence record.
+Learning tidak memperbarui production policy secara langsung.
+4. Arsitektur Final dan Prinsip Harmonisasi
+
+Gambar 1. Arsitektur final APTS-Pentest yang harmonis dengan CTI subsystem.
+Gambar 1 menempatkan APTS-Pentest di bawah Global Mission Orchestrator dan menggunakan PIP sebagai input read-only dari CTI Subsystem. Di dalam decision plane terdapat Pentest Workflow Orchestrator dan enam specialist agents. Di bawahnya terdapat non-agent services untuk state/evidence/cleanup/learning, shared knowledge-memory-observability layer, tooling & controlled execution layer, dan authorized target environment. Governance & Safety Plane berada secara orthogonal terhadap decision/execution agar authority tidak dimiliki agent.
+4.1 Empat Plane Logis
+
+Gambar 2. Pemisahan decision, knowledge/evidence, execution, dan governance plane.
+Tabel 4. Makna empat plane
+Plane
+Status Agentic
+Tanggung Jawab
+Prinsip Boundary
+Decision Plane
+Agentic
+Goal decomposition, state-aware selection, hypothesis, planning, validation decisions, replanning.
+Boleh memilih tindakan, tidak boleh mengeksekusi target secara langsung.
+Knowledge/Evidence Plane
+Non-agent
+State, memory, evidence, artifact, lineage, observability.
+Menyimpan kebenaran operasional dan bukti; tidak memiliki mission goal.
+Execution Plane
+Non-agent
+Capability registry, adapters, sandbox, gateway, secret handling, access control.
+Menjalankan hanya authorized action request.
+Governance Plane
+Authority / non-agent
+Scope, RoE, approval, safety policy, audit, HITL, kill switch.
+Dapat membatasi/menolak agent; authority eksternal terhadap decision plane.
+
+4.2 Integrasi dengan CTI Subsystem
+Integrasi menggunakan data contract, bukan direct mutable database coupling. CTI menghasilkan PIP versi tertentu. APTS-Pentest membuat mission snapshot yang mereferensikan pip_version dan tidak mengubah PIP. Jika CTI memperbarui intelligence, versi PIP baru dapat memicu mission.replan_candidate, tetapi perubahan hanya diadopsi setelah orchestrator mengevaluasi dampaknya terhadap mission state dan governance constraints. Hasil pengujian kemudian dikemas sebagai Pentest Result/Evidence Package yang dapat dikonsumsi subsystem lain atau menjadi feedback ke knowledge/CTI melalui jalur yang dikelola.
+
+Gambar 3. Lifecycle PIP, mission, observation, evidence, finding, dan Pentest Result/Evidence Package.
+5. Klasifikasi Agent dan Non-Agent
+5.1 Agent Internal APTS-Pentest
+Tabel 5. Klasifikasi tujuh agent internal APTS-Pentest
+ID
+Komponen
+Tipe
+Decision Architecture
+Fungsi
+A1
+Pentest Workflow Orchestrator
+Agent
+Hybrid Reactive-Deliberative
+Mission-level coordination, dependency, priority, progress, replanning.
+A2
+Reconnaissance Agent
+Agent
+RAO
+Target observation dan coverage adaptation.
+A3
+Enumeration Agent
+Agent
+RAO
+Surface deepening pada service, endpoint, identity, input, dan context.
+A4
+Vulnerability Hypothesis Agent
+Agent
+Layered Neuro-Symbolic
+Evidence fusion, hypothesis generation, confidence/uncertainty update.
+A5
+Attack-Path Planning Agent
+Agent
+Hybrid Neuro-Symbolic / Graph Planning
+Prerequisite, reachability, utility, constrained path selection.
+A6
+Exploitation Agent
+Agent
+Hybrid Reactive-Deliberative, bounded
+Authorized validation strategy dan result interpretation.
+A7
+Post-Exploitation & Impact Agent
+Agent
+Hybrid Reactive-Deliberative, strongly bounded
+State-transition/impact assessment, stop/continue/cleanup/escalate.
+
+5.2 External Agent dan External Subsystem
+Tabel 6. Komponen eksternal yang berinteraksi dengan APTS-Pentest
+Komponen
+Klasifikasi
+Peran
+Global Mission Orchestrator
+Agent - di luar APTS-Pentest
+Mendecomposisi misi global, sinkronisasi antar-subsystem, constraints global, escalation.
+CTI Subsystem
+External agentic subsystem
+Menghasilkan intelligence dan PIP; menerima evidence feedback melalui integration contract.
+Human Authority
+External authority
+Persetujuan high-risk action, perubahan RoE, emergency override, review hasil.
+
+5.3 Non-Agent Modules
+Tabel 7. Klasifikasi non-agent modules
+ID
+Komponen
+Tipe
+Tanggung Jawab
+S1
+Target State Service
+Service
+World/target state dan evidence-linked state updates.
+S2
+Session & Access State Manager
+Service
+Lifecycle session/credential reference/access context.
+S3
+Evidence Collection Service
+Service
+Capture, hashing, timestamping, provenance.
+S4
+Finding Correlation Service
+Service
+Consolidasi observation menjadi validated finding.
+S5
+Cleanup & Recovery Service
+Service
+Rollback, cleanup, session termination, compensation.
+S6
+Reflection & Learning Service (Bounded)
+Service
+Offline trajectory evaluation dan candidate policy improvement.
+K1
+Pentest Knowledge & State Store
+Knowledge Service
+State graph, mission records, hypotheses, path proposals.
+K2
+Episodic & Semantic Memory Service
+Memory Service
+Episode trace dan reusable semantic knowledge.
+K3
+Evidence & Artifact Store
+Artifact Service
+Immutable evidence blobs, hashes, reports, snapshots.
+K4
+Observability & Evaluation Service
+Observability Service
+Metrics, traces, event lineage, SLA/SLO, experiment telemetry.
+I1
+Event Bus & Dispatcher
+Infrastructure
+Publish/subscribe, routing, idempotency, retries, dead-letter, correlation.
+I2
+Capability Registry
+Infrastructure
+Katalog capability, prerequisites, schemas, risk class, executor.
+I3
+Tool Adapters / Connectors
+Infrastructure
+Normalisasi tool-specific interface ke action/result contracts.
+I4
+Controlled Execution Gateway
+Infrastructure
+Satu-satunya jalur execution side effect terhadap target.
+I5
+Credential & Secret Vault
+Infrastructure
+Secret isolation, mission-scoped access reference, rotation.
+I6
+Isolated Execution Sandbox
+Infrastructure
+Isolasi worker/process/network untuk execution.
+I7
+Network & Infrastructure Access Controls
+Infrastructure
+Egress/ingress boundary, target allowlist, segmentation.
+G1
+Scope & RoE Validation
+Governance
+Validasi target, time window, action class, impact ceiling.
+G2
+Authorization & Approval Gate
+Governance
+Permit/deny/require-human-approval.
+G3
+Safety Policy Enforcement / Kill Switch
+Governance
+Policy guard, emergency abort, fail-safe.
+G4
+Audit, Oversight & HITL
+Governance
+Accountability, approval history, review, operator intervention.
+D1
+Pentest Intelligence Package
+Data Artifact
+Input CTI immutable/versioned.
+D2
+Pentest Result / Evidence Package
+Data Artifact
+Output immutable/versioned/evidence-bound.
+
+5.4 Kontrak Umum Agent
+Tabel 8. Kontrak minimum untuk semua agent
+Aspek
+Kontrak
+Identity
+agent_id, agent_type, architecture_version, policy_version.
+Mission binding
+mission_id, task_id, scope_snapshot_id, pip_version.
+State input
+state_snapshot_id dan event context; agent tidak mengubah store secara langsung tanpa event/command contract.
+Decision output
+decision_id, proposed_action/task, rationale features/constraints, confidence/utility, expected_evidence, timeout.
+Safety
+risk_class, required_approval, preconditions, stop_conditions.
+Traceability
+correlation_id, causation_id, input evidence references, policy version.
+Replanning
+reason_code, affected dependencies, requested next state/task.
+Termination
+success, partial, failed, blocked, escalated, aborted.
+
+6. Pentest Workflow Orchestrator
+6.1 Peran dan Alasan sebagai Agent
+Pentest Workflow Orchestrator adalah supervisory agent internal yang memiliki goal ownership pada level mission. Ia tidak menggantikan Global Mission Orchestrator; scope-nya hanya pentest subsystem. Ia layak disebut agent karena mempertahankan mission state, mengelola dependency, memilih specialist agent berikutnya, memantau progress, menilai termination criteria, dan melakukan replanning ketika hasil aktual berbeda dari expected state.
+
+Gambar 4. Arsitektur internal Hybrid Reactive-Deliberative pada Pentest Workflow Orchestrator.
+6.2 State Internal
+Tabel 9. Mission state yang dikelola orchestrator
+Kelompok
+Field/Informasi
+Identity
+mission_id, mission_version, created_at, status.
+Objectives
+primary_goal, sub_goals, success_criteria, priority.
+Scope
+target sets, exclusions, time window, impact ceiling, RoE snapshot.
+Dependency
+task DAG, prerequisites, blocked_by, produces/consumes artifacts.
+Progress
+completed, running, pending, failed, skipped, retried tasks.
+Budget
+time_budget, action_budget, risk_budget, resource_budget.
+Evidence
+evidence coverage, unresolved uncertainty, validated findings.
+Planning
+active plan, alternatives, replan_count, last_replan_reason.
+Policy
+orchestrator_policy_version, specialist policy versions.
+
+6.3 Decision Loop
+on event E:
+  load mission_state and governance_snapshot
+  if E is critical policy/safety interrupt:
+      transition mission -> PAUSED or ABORTING
+      dispatch compensation/cleanup
+  else:
+      update task graph from E and new evidence
+      evaluate objective progress and unresolved dependencies
+      choose next eligible task(s) using priority + expected evidence gain + budgets
+      delegate task contract to specialist agent(s)
+      if deviation/contradiction/timeout detected:
+          generate replan request and version new task graph
+      if success criteria satisfied:
+          initiate evidence packaging and cleanup
+      persist decision trace and publish mission.state_changed
+6.4 Reactive vs Deliberative Arbitration
+Reactive layer menangani safety interrupt, scope revocation, high-priority target change, timeout, worker failure, credential revocation, dan kill switch. Deliberative layer melakukan task graph reasoning, dependency scheduling, budget allocation, serta long-horizon progression. Arbitration rule bersifat safety-dominant: critical governance/safety event selalu dapat menginterupsi deliberative plan.
+6.5 Metrik
+Mission completion rate.
+Task graph efficiency (executed vs necessary tasks).
+Replan precision: proporsi replanning yang menghasilkan progress/evidence gain.
+Mean time to recover dari failure/contradiction.
+Supervisor bottleneck: queue latency dan throughput delegation.
+Trace completeness dan deterministic replay rate.
+7. Reconnaissance Agent
+7.1 Decision Architecture: RAO
+RAO pada penelitian ini berarti Reactive-Acting-Observing dan merupakan desain non-LLM. Agent menerima trigger berupa mission task, stale observation, coverage gap, atau contradiction. Ia memilih kelas observation action yang diizinkan, mengeksekusikannya melalui execution plane, membaca structured result, menghitung coverage delta, memperbarui state melalui service, kemudian menentukan stop/continue/escalate. Tidak ada chain-of-thought atau prompt loop.
+
+Gambar 5. Loop RAO untuk Reconnaissance Agent.
+7.2 Input, Output, dan State
+Tabel 10. Kontrak Reconnaissance Agent
+Kategori
+Isi
+Input
+mission task; target scope; PIP asset context; current target state; coverage requirements; RoE.
+Local state
+observed targets, observation freshness, coverage map, uncertainty, prior actions.
+Decision
+selected observation capability class, target subset, expected evidence gain, stop condition.
+Output
+ReconObservation events, updated coverage, discovered asset/service hints, evidence references, next recommendation.
+Stop
+coverage threshold reached; budget exhausted; no legal capability; scope/time closed; safety interrupt.
+
+7.3 Policy Baseline dan Learning Option
+Baseline policy dapat menggunakan deterministic priority/utility rule sehingga hasil mudah direproduksi. Pada tahap eksperimen, capability selection dapat dievaluasi menggunakan contextual bandit karena keputusan bersifat lokal: pilih satu capability berdasarkan context dan observasi reward seperti evidence gain per unit cost. Bandit dipilih sebelum DQN untuk menguji manfaat adaptasi tanpa memperkenalkan long-horizon complexity terlalu dini.
+7.4 Safety
+Reconnaissance Agent tidak mengeksekusi capability secara langsung. Action request selalu membawa risk_class dan expected_evidence. Scope validator memastikan target berada dalam allowlist dan time window. Rate/budget control dilakukan execution layer untuk mencegah aktivitas berlebihan.
+8. Enumeration Agent
+8.1 Peran
+Enumeration Agent memperdalam attack surface yang telah ditemukan. Perbedaannya dengan Reconnaissance adalah unit keputusan. Reconnaissance mencari "apa yang ada dan layak diamati"; Enumeration mencari "informasi apa yang masih kurang agar suatu service/endpoint/identity/input surface dapat dimodelkan dengan confidence yang memadai". Pemisahan ini membuat coverage metric dan failure mode lebih jelas.
+
+Gambar 6. Loop RAO untuk Enumeration Agent.
+8.2 State Model
+Tabel 11. Surface state Enumeration Agent
+Entity
+Contoh atribut konseptual
+Asset
+identity, reachability, freshness, confidence.
+Service
+service family, protocol context, exposure, evidence refs.
+Endpoint
+path/function class, method/interface type, auth requirement, input surface.
+Identity/Access
+principal class, observed role, authentication state, session reference.
+Input surface
+input class, validation evidence, sensitivity, source.
+Coverage
+observed vs expected dimensions, uncertainty, stale fields.
+
+8.3 Decision Function
+Agent memilih next depth target berdasarkan weighted utility: information gap, relevance terhadap mission objective, dependency terhadap vulnerability hypothesis, cost, risk, freshness, dan expected evidence gain. Jika enumeration menghasilkan contradiction terhadap asset/CPE/vulnerability prior dari PIP, agent menerbitkan state.contradiction_detected sehingga Vulnerability Hypothesis Agent dan Workflow Orchestrator dapat menilai ulang asumsi.
+9. Vulnerability Hypothesis Agent
+9.1 Layered Neuro-Symbolic Rationale
+Fungsi hypothesis formation berbeda dari deterministic CPE/CVE lookup. Lookup hanya menghasilkan candidate berdasarkan identifier atau matching. Agent harus menggabungkan PIP, runtime observations, configuration evidence, endpoint evidence, asset context, threat context, dan hasil test sebelumnya; kemudian memilih hipotesis yang layak divalidasi serta menentukan evidence apa yang masih kurang. Karena itu arsitektur layered neuro-symbolic digunakan: learned model opsional untuk ranking/inference, symbolic layer untuk rules dan constraint consistency, lalu fusion untuk confidence/uncertainty.
+
+Gambar 7. Layered Neuro-Symbolic Vulnerability Hypothesis Agent.
+9.2 Representasi Hipotesis
+VulnerabilityHypothesis = {
+  hypothesis_id,
+  mission_id,
+  target_state_ref,
+  vulnerability_candidate_ref,
+  supporting_evidence_refs[],
+  contradicting_evidence_refs[],
+  prerequisites[],
+  confidence,
+  uncertainty,
+  expected_validation_evidence,
+  risk_class,
+  status: proposed|needs_evidence|rejected|validated|invalidated
+}
+9.3 Confidence dan Evidence Sufficiency
+Confidence bukan probability absolut kecuali model dikalibrasi. Baseline dapat memakai weighted evidence score yang transparan. Learned scorer, jika digunakan, wajib mengeluarkan calibrated score atau minimal rank. Symbolic layer dapat menurunkan confidence ketika prerequisite tidak terpenuhi, product/version mismatch, evidence stale, atau terdapat contradiction. Agent dapat memutuskan needs_evidence alih-alih mendorong kandidat ke exploitation.
+9.4 Output
+Output utama adalah ranked hypothesis set dan evidence request. Hanya hypothesis dengan minimum evidence sufficiency yang diteruskan ke Attack-Path Planning Agent. Pemisahan ini mencegah "candidate equals exploit" dan memperkuat scientific traceability.
+10. Attack-Path Planning Agent
+10.1 Alasan Penambahan Agent
+Attack-Path Planning Agent merupakan perubahan kunci terhadap pipeline awal. Vulnerability Hypothesis Agent menjawab "apa yang mungkin valid"; Attack-Path Planning Agent menjawab "urutan state transition mana yang paling rasional, feasible, dan permitted untuk mencapai objective". Dua pertanyaan tersebut membutuhkan state dan optimization criteria yang berbeda, sehingga dipisahkan menjadi agent tersendiri.
+
+Gambar 8. Hybrid Neuro-Symbolic / Graph Planning untuk Attack-Path Planning Agent.
+10.2 Attack-State Graph
+Graph tidak harus identik dengan ATT&CK graph. Dalam APTS-Pentest, node merepresentasikan security/knowledge state yang relevan terhadap mission, sedangkan edge merepresentasikan authorized action class yang berpotensi menghasilkan state transition atau evidence. Setiap edge membawa prerequisite, expected result, confidence, cost, risk, evidence gain, dan authorization class. ATT&CK mapping dari PIP dapat digunakan sebagai context/semantic annotation, bukan sebagai satu-satunya transition model.
+10.3 Utility Function
+U(path) = w1 * ExpectedGoalProgress
+        + w2 * ExpectedEvidenceGain
+        + w3 * Confidence
+        - w4 * OperationalCost
+        - w5 * Risk
+        - w6 * Uncertainty
+        - w7 * AuthorizationPenalty
+Bobot tidak diperlakukan sebagai konstanta universal. Pada eksperimen, bobot dapat ditetapkan melalui expert-defined baseline, sensitivity analysis, atau dipelajari pada simulation environment. Constraint yang bersifat mandatory—scope, deny policy, prerequisite hard constraint—tidak boleh "dikompensasi" oleh utility tinggi; constraint tersebut memfilter path sebelum ranking.
+10.4 Baseline dan Varian Eksperimen
+Baseline symbolic: constrained graph search (A*, Dijkstra, atau k-shortest paths) dengan deterministic edge weights.
+Hybrid variant: learned node/edge scoring (misalnya GNN/MLP) untuk rank prior, kemudian symbolic constraint verification.
+Sequential-decision variant: MDP/POMDP untuk state uncertainty.
+HRL variant: high-level subgoal selection dan low-level specialist policy.
+11. Exploitation Agent
+11.1 Definisi Aman: Adaptive Validation Agent
+Dalam rancangan ini Exploitation Agent bukan "autonomous exploit launcher". Ia adalah decision agent yang memilih strategi validasi untuk hypothesis/path step yang sudah diprioritaskan dan permitted. Side effect hanya terjadi melalui governance dan execution plane. Rincian tool/command tidak menjadi bagian dari agent policy; agent bekerja pada capability abstraction.
+
+Gambar 9. Hybrid Reactive-Deliberative Exploitation Agent dengan bounded execution.
+11.2 State dan Decision
+Tabel 12. Kontrak Exploitation Agent
+Aspek
+Isi
+Input
+authorized path step candidate, vulnerability hypothesis, target state, evidence requirements, risk budget.
+Deliberative state
+candidate validation strategy classes, prerequisites, expected evidence, retry alternatives.
+Reactive inputs
+target state change, timeout, execution error, safety interrupt, authorization revoke.
+Output
+ActionAuthorizationRequest; interpretation of ExecutionResult; recommendation stop/retry/alternate/replan.
+Non-goal
+Tidak menyimpan atau memilih raw credential; tidak bypass governance; tidak menjalankan tool langsung.
+
+11.3 Result Interpretation
+Execution result dinormalisasi menjadi success, failed, partial, blocked, uncertain, atau policy-denied. Agent tidak boleh menganggap tool exit status sebagai validated finding secara otomatis. Evidence Collection Service merekam bukti; Finding Correlation Service menilai konsistensi dengan hypothesis dan state. Agent kemudian menentukan apakah evidence sudah cukup atau perlu alternate validation/replan.
+12. Post-Exploitation & Impact Agent
+12.1 Strongly Bounded Autonomy
+Tahap pasca-validasi memiliki risiko tertinggi karena state target dapat berubah. Karena itu agent ini memiliki action envelope paling sempit. Tujuan utamanya adalah menilai state transition, impact evidence, privilege/context change, mission success criteria, dan kebutuhan cleanup. Ia tidak memiliki mandat untuk memperluas aktivitas di luar objective atau scope snapshot.
+
+Gambar 10. Post-Exploitation & Impact Agent dengan stop/continue/cleanup/escalate decision.
+12.2 Decision Hierarchy
+Apakah state transition tervalidasi oleh evidence yang cukup?
+Apakah objective mission sudah tercapai?
+Apakah tindakan lanjutan benar-benar diperlukan untuk mengurangi uncertainty atau memenuhi evidence requirement?
+Apakah risk budget dan RoE mengizinkan kelas tindakan tersebut?
+Apakah human approval diperlukan?
+Apakah cleanup/recovery harus dilakukan segera?
+Default policy adalah stop-on-sufficiency: jika success criteria dan evidence sufficiency telah terpenuhi, agent menghentikan pengujian tambahan. Prinsip ini mengurangi aktivitas yang tidak perlu dan dapat menjadi safety metric yang objektif.
+13. Non-Agent Reasoning/Processing Services
+13.1 Target State Service
+Menyediakan canonical world/target state berbasis evidence. Service menerima observation/state-update command, melakukan schema validation, deduplication, temporal ordering, conflict marking, dan menghasilkan immutable state revision. Ia bukan agent karena tidak mempunyai mission objective atau action selection.
+13.2 Session & Access State Manager
+Mengelola lifecycle session dan access context sebagai reference. Service mengikat session ke mission/target/scope, expiration, owner task, dan cleanup policy. Secret tidak dikirim sebagai data biasa; integration menggunakan vault reference.
+13.3 Evidence Collection Service
+Merekam hasil observation/execution sebagai evidence record dengan source, timestamp, hash, provenance, mission/action linkage, dan storage reference. Service dapat melakukan normalization/redaction, tetapi tidak memutuskan langkah pentest berikutnya.
+13.4 Finding Correlation Service
+Menggabungkan hypothesis, execution result, observation, target state, dan evidence menjadi finding state: unconfirmed, supported, validated, invalidated, atau inconclusive. Rule korelasi harus versioned dan dapat direplay.
+13.5 Cleanup & Recovery Service
+Menjalankan compensation plan yang didefinisikan oleh capability/mission contract. Ia mendukung idempotent cleanup, session termination, artifact removal jika diizinkan, resource release, dan verification. Keputusan "perlu cleanup" datang dari agent/governance; prosedur cleanup dieksekusi service.
+13.6 Reflection & Learning Service (Bounded)
+Mengolah trajectory setelah atau di luar critical execution loop. Output-nya berupa evaluation report, candidate reward model, candidate policy, atau tuning suggestion. Service tidak men-deploy policy otomatis ke production runtime.
+Tabel 13. Guarantee utama non-agent services
+Service
+Guarantee yang Diharapkan
+Target State
+Revisioned, evidence-linked, temporal consistency, conflict visible.
+Session & Access
+Mission-scoped, least privilege, expiration, cleanup binding.
+Evidence Collection
+Immutable record, hash, provenance, source/causation chain.
+Finding Correlation
+Rule/model version recorded, evidence support explicit.
+Cleanup & Recovery
+Idempotent/compensating, observable completion.
+Reflection & Learning
+Offline/bounded, no direct production policy mutation.
+
+14. Shared Knowledge, Memory & Observability Layer
+14.1 Pentest Knowledge & State Store
+Store ini menyimpan mission state, target state revisions, task graph, hypothesis graph, attack-path proposals, authorization decisions, dan finding state. Physical storage dapat relational, graph, document, atau kombinasi; arsitektur tidak mengikat teknologi tertentu. Yang wajib adalah stable identifiers, versioning, correlation, dan query by mission/target/evidence.
+14.2 Episodic & Semantic Memory Service
+Episodic memory menyimpan trajectory terstruktur: state-action-observation-result dalam konteks mission. Semantic memory menyimpan knowledge yang telah dipromosikan melalui proses validasi, misalnya reusable capability performance profile, target archetype rules, atau learned priors. Promotion dari episodic ke semantic tidak dilakukan oleh agent secara bebas; diperlukan quality filter dan versioning.
+14.3 Evidence & Artifact Store
+Artifact store menyimpan evidence blob, structured observation, screenshot/log artifact jika relevan, report fragment, state snapshot, policy snapshot, dan package. Metadata utama berada pada database/query layer, sedangkan blob dapat berada pada object/file store. Hash dan content address membantu integrity verification.
+14.4 Observability & Evaluation Service
+Observability mencakup logs, metrics, traces, event timeline, decision lineage, queue latency, worker state, policy deny counts, replan reasons, action budget, evidence coverage, dan experiment tags. Karena penelitian menilai agentic behavior, observability tidak boleh hanya mengukur system uptime; ia juga harus menangkap decision quality dan traceability.
+14.5 Event Bus & Dispatcher
+Walaupun tidak digambar sebagai kotak tersendiri pada Gambar 1, implementasi event-driven membutuhkan Event Bus & Dispatcher sebagai logical infrastructure. Komponen ini menangani publish/subscribe, schema enforcement, correlation_id/causation_id, retry, backoff, deduplication, dead-letter queue, ordering key per mission, dan consumer idempotency. Agent tidak saling memanggil secara tight synchronous chain kecuali operasi lokal yang benar-benar membutuhkan request-response.
+15. Tooling & Controlled Execution Layer
+15.1 Capability Registry
+Katalog abstraksi capability. Setiap capability memiliki capability_id, category, version, input_schema, output_schema, prerequisites, expected_evidence, risk_class, authorization_class, timeout, idempotency behavior, executor type, dan cleanup contract.
+15.2 Tool Adapters / Connectors
+Adapter mengubah tool-specific CLI/API/protocol ke ActionRequest dan ExecutionResult standar. Adapter tidak membuat keputusan mission; ia menormalisasi parameter, result, error, timeout, dan artifact references.
+15.3 Controlled Execution Gateway
+Satu-satunya jalur side effect menuju target. Gateway memverifikasi authorization token/decision, capability allowlist, parameter schema, target scope, timeout, concurrency, idempotency key, resource limits, audit context, dan sandbox routing.
+15.4 Credential & Secret Vault
+Menyimpan secret secara terisolasi. Agent dan database state hanya menyimpan secret_ref. Access policy mempertimbangkan mission, target, capability, time window, dan revocation.
+15.5 Isolated Execution Sandbox
+Menjalankan tool pada worker terisolasi untuk mengurangi blast radius, memudahkan reproducibility, membatasi file/network access, dan menghasilkan artifact terkontrol.
+15.6 Network & Infrastructure Access Controls
+Menerapkan target allowlist, segmentation, egress controls, rate limits, dan network policy yang tidak dapat diubah oleh agent.
+Tabel 14. Capability contract minimal
+Field
+Makna
+capability_id
+Identifier stabil capability, bukan nama tool.
+version
+Versi adapter/executor.
+category
+Observation, enumeration, validation, assessment, cleanup, dsb.
+input_schema / output_schema
+Kontrak data terstruktur.
+prerequisites
+State/evidence yang harus ada.
+risk_class
+Low/medium/high/critical atau taksonomi penelitian.
+authorization_class
+Auto-permit candidate / explicit approval / prohibited.
+expected_evidence
+Jenis bukti yang diharapkan.
+timeout / resource limits
+Batas operasional.
+cleanup_contract
+Compensation/rollback behavior jika ada.
+
+16. Governance & Safety Plane
+
+Gambar 11. Governance gating sebelum execution side effect.
+16.1 Scope & Rules of Engagement Validation
+Validator memastikan target, target class, time window, action class, impact ceiling, credential use, dan exclusions sesuai RoE snapshot. Validation harus deterministic dan deny-by-default untuk field yang ambigu. Perubahan RoE membuat snapshot versi baru; action request lama tidak otomatis diwariskan.
+16.2 Authorization & Approval Gate
+Gate menerima proposed action dan menghasilkan permit, deny, require_human_approval, atau permit_with_constraints. High-risk action memerlukan explicit approval. Authorization decision memiliki expiration dan action fingerprint agar keputusan tidak dapat digunakan untuk action berbeda.
+16.3 Safety Policy Enforcement dan Kill Switch
+Safety policy dapat memblokir action berdasarkan risk, anomaly, target instability, cumulative budget, repeated failure, forbidden side effect, atau operator command. Kill switch harus memutus new execution dan menginstruksikan worker yang berjalan untuk berhenti sesuai fail-safe semantics serta memicu cleanup bila aman.
+16.4 Audit, Oversight, dan Human-in-the-Loop
+Audit trail harus mampu menjawab: siapa/agent apa mengusulkan action, berdasarkan evidence mana, policy versi berapa, siapa mengesahkan, capability apa yang dieksekusi, apa hasilnya, dan bagaimana hasil tersebut memengaruhi plan. HITL bukan pengganti observability; keputusan manusia juga menjadi audit event dengan rationale/identity/timestamp.
+17. Data Artifact, State, dan Kontrak Data
+17.1 PIP sebagai Read-Only Prior
+Tabel 15. Isi konseptual PIP yang relevan untuk APTS-Pentest
+Kategori
+Contoh isi
+Asset context
+asset identity, technology/CPE candidates, exposure, provenance.
+Vulnerability context
+CVE/candidate, evidence, confidence, applicability.
+ATT&CK / attack context
+technique mapping, prerequisites, threat context.
+Risk context
+prioritization, mission relevance, uncertainty.
+Provenance
+source, timestamps, version, validity/freshness.
+Constraints
+scope-relevant metadata yang disetujui oleh integrasi.
+
+17.2 Mission Snapshot
+MissionSnapshot = {
+  mission_id, mission_version,
+  pip_version,
+  scope_snapshot_id, roe_version,
+  objectives[], success_criteria[],
+  budgets: {time, action, risk, resource},
+  created_at, created_by
+}
+17.3 Action Request dan Authorization Decision
+ActionRequest = {
+  action_id, mission_id, task_id, agent_id,
+  target_ref, capability_id, capability_version,
+  input_ref, expected_evidence[],
+  prerequisites[], risk_class, authorization_class,
+  timeout, idempotency_key,
+  correlation_id, causation_id,
+  policy_version
+}
+
+AuthorizationDecision = {
+  decision_id, action_fingerprint,
+  result: permit|deny|require_human|permit_with_constraints,
+  constraints[], approver_ref,
+  valid_until, reason_code, policy_version
+}
+17.4 Evidence Record dan Finding
+EvidenceRecord = {
+  evidence_id, mission_id, action_id,
+  source_type, source_ref,
+  observed_at, ingested_at,
+  content_hash, artifact_ref,
+  target_state_ref,
+  provenance_chain[],
+  quality_flags[], confidence
+}
+
+Finding = {
+  finding_id, mission_id, target_ref,
+  hypothesis_ref,
+  status: unconfirmed|supported|validated|invalidated|inconclusive,
+  supporting_evidence_refs[],
+  contradicting_evidence_refs[],
+  impact_assessment,
+  rule_model_version,
+  created_at, updated_at
+}
+17.5 Pentest Result / Evidence Package
+Package akhir bersifat immutable, versioned, scope-bound, dan evidence-bound. Minimum content: mission summary, PIP lineage, scope/RoE snapshot reference, findings, evidence manifest, action timeline, authorization/audit summary, state-transition summary, cleanup status, policy/model versions, experiment metadata, dan cryptographic/content hashes sesuai storage capability.
+18. Event-Driven Interaction dan Trigger Antar-Agent
+
+Gambar 12. Model event-driven interaction APTS-Pentest dengan Event Bus & Dispatcher.
+18.1 Prinsip Event-Driven
+Agent tidak diasumsikan aktif terus-menerus. Trigger berasal dari event. Event membawa fact/state change; command/task membawa permintaan pekerjaan. Pemisahan tersebut mencegah event bus berubah menjadi RPC tersembunyi. Orchestrator memutuskan task assignment, sedangkan specialist agent menerbitkan result/observation event. Feedback/replanning terjadi ketika event menunjukkan deviation, contradiction, new evidence, policy change, atau failure.
+18.2 Katalog Event Utama
+Tabel 16. Katalog event utama APTS-Pentest
+Event
+Publisher
+Payload Ringkas
+Subscriber/Effect
+mission.created
+Global/Pentest Orchestrator
+mission_id, scope, objectives, pip_version
+Mulai subsystem mission.
+pip.available
+CTI Integration
+pip_version, validity
+Evaluasi apakah PIP diterima/adopted.
+task.assigned
+Pentest Orchestrator
+task_id, agent_type, contract
+Trigger specialist agent.
+recon.observed
+Recon Agent
+observation/evidence refs, coverage delta
+Update state; mungkin trigger enumeration.
+enumeration.updated
+Enumeration Agent
+surface delta, contradictions
+Trigger hypothesis update/replan.
+hypothesis.proposed
+Vulnerability Hypothesis Agent
+ranked hypotheses
+Trigger attack-path planning.
+hypothesis.needs_evidence
+Vulnerability Hypothesis Agent
+evidence gap
+Backtrack ke enumeration/recon.
+attack_path.proposed
+Attack-Path Agent
+ranked paths, utility, constraints
+Review/select next path step.
+action.authorization.requested
+Decision Agent
+ActionRequest
+Governance check.
+action.authorized / action.denied
+Authorization Gate
+decision_id, constraints
+Permit execution atau replan.
+execution.completed / execution.failed
+Execution Gateway
+ExecutionResult
+Evidence capture dan result interpretation.
+evidence.recorded
+Evidence Service
+evidence_id
+Update state/finding.
+finding.validated
+Finding Correlation
+finding_id
+Progress mission / stop-on-sufficiency.
+state.contradiction_detected
+State Service
+conflict refs
+Replan/hypothesis revision.
+replan.requested
+Any agent/service rule
+reason, affected refs
+Orchestrator creates new plan version.
+policy.updated / scope.revoked
+Governance
+policy/scope version
+Pause/revalidate pending actions.
+kill_switch.activated
+Governance/Human
+reason
+Abort execution; cleanup.
+cleanup.completed
+Cleanup Service
+cleanup result
+Allow mission finalization.
+mission.completed / mission.aborted
+Orchestrator
+summary, result package ref
+Terminal state.
+
+18.3 Trigger Matrix Agent
+Tabel 17. Trigger dan publish event per agent
+Agent
+Trigger Utama
+Publish Utama
+Workflow Orchestrator
+mission.*, pip.available, specialist results, replan.requested, policy/scope events
+task.assigned, plan.versioned, mission.state_changed, mission.completed/aborted.
+Reconnaissance
+task.assigned(recon), stale_observation, coverage_gap
+recon.observed, evidence.requested, replan.requested.
+Enumeration
+task.assigned(enum), recon.observed, hypothesis.needs_evidence
+enumeration.updated, state.contradiction_detected, evidence.requested.
+Vulnerability Hypothesis
+task.assigned(hypothesis), enumeration.updated, evidence.recorded
+hypothesis.proposed/needs_evidence/rejected.
+Attack-Path Planning
+task.assigned(path), hypothesis.proposed, state.updated, action failed
+attack_path.proposed, replan.requested.
+Exploitation
+task.assigned(validate), action.authorized, execution result
+action.authorization.requested, validation.result_interpreted, replan.requested.
+Post-Exploitation & Impact
+validated state transition, task.assigned(impact), governance approval
+impact.assessed, cleanup.requested, mission.objective_satisfied, replan.requested.
+
+19. Strategi Adaptasi dan Pembelajaran
+19.1 Dua Tingkat Adaptasi
+Adaptasi operasional terjadi online melalui state update, confidence update, path replanning, retry/alternate selection, dan budget-aware decisions. Adaptasi ini tidak mengubah parameter policy secara permanen. Pembelajaran policy terjadi offline melalui trajectory analysis, simulation/replay, evaluation, candidate generation, validation, dan controlled deployment.
+19.2 Roadmap Algoritmik
+Tabel 18. Roadmap eksperimen learning dari sederhana ke kompleks
+Tahap
+Algoritma/Metode
+Lokasi Penggunaan
+Tujuan
+L0
+Deterministic rules + graph search
+Semua agent sebagai baseline
+Reproducible reference dan safety baseline.
+L1
+Contextual Bandit
+Recon/Enumeration capability selection
+Adaptive local action selection.
+L2
+DQN
+Sequential decision pada discrete action/state abstraction
+Mengukur manfaat long-horizon reward.
+L3
+DRQN
+Partial observability
+Menggunakan history saat state tidak fully observable.
+L4
+Hierarchical RL
+Orchestrator/subgoal vs specialist policies
+Goal decomposition dan temporal abstraction.
+L5
+PPO / constrained PPO
+Selected policy components
+Stabil policy optimization pada simulation.
+L6
+Safe Active Validation
+Governed runtime adaptation
+Research-only; policy harus tunduk pada constraint shield dan offline validation.
+
+Roadmap tersebut bukan kewajiban bahwa semua agent harus menggunakan RL. Justru baseline non-learning diperlukan agar kontribusi learning dapat diukur. Attack-Path Planning dapat tetap graph-based ketika graph search sudah cukup; neural/RL hanya ditambahkan jika experiment menunjukkan benefit yang signifikan dan dapat dijelaskan.
+19.3 Policy Promotion Pipeline
+Kumpulkan trajectory yang sudah dinormalisasi dan diberi experiment tag.
+Bangun candidate policy/model secara offline.
+Evaluasi pada replay dan simulation/cyber range.
+Jalankan safety regression dan negative tests.
+Bandingkan dengan baseline menggunakan predefined metrics.
+Review oleh peneliti/human authority.
+Version dan deploy sebagai policy candidate dengan canary/limited scope jika diimplementasikan.
+Mendukung rollback ke policy sebelumnya.
+20. Metodologi Evaluasi dan Eksperimen
+
+Gambar 13. Kerangka evaluasi APTS-Pentest pada lab/simulation dengan baseline dan keluarga metrik.
+20.1 Lingkungan Evaluasi
+Evaluasi disarankan menggunakan kombinasi simulation/cyber gym dan controlled lab. CybORG menyediakan cyber gym untuk autonomous cyber agents [6], sedangkan literatur yang dirujuk oleh Loevenich dkk. menggunakan NASim/related setups untuk autonomous pentesting and RL [4], [7]. Controlled web labs dapat digunakan untuk memvalidasi integrasi end-to-end selama target secara eksplisit diotorisasi. Tidak ada eksperimen yang diarahkan ke sistem di luar scope.
+20.2 Baseline Eksperimen
+Tabel 19. Baseline yang direkomendasikan
+Baseline
+Deskripsi
+Tujuan Perbandingan
+B0 Deterministic Pipeline
+Recon -> Enum -> Hypothesis -> Validation tanpa backtracking adaptif.
+Mengukur nilai feedback/replanning.
+B1 Rule-Only Agentic
+Arsitektur agentic tetapi semua policy deterministic.
+Baseline utama untuk learning.
+B2 No-PIP
+APTS berjalan tanpa CTI/PIP prior.
+Mengukur kontribusi actionable CTI.
+B3 No Attack-Path Agent
+Hypothesis langsung ke validation.
+Mengukur kontribusi pemisahan path reasoning.
+B4 No Shared Memory
+Hanya current local state.
+Mengukur kontribusi memory/state reuse.
+B5 Reduced Governance
+Simulation-only tanpa approval delay tetapi policy constraints tetap.
+Mengukur overhead governance secara terkontrol; bukan untuk real target.
+
+20.3 Keluarga Metrik
+Tabel 20. Kamus metrik inti
+Keluarga
+Metrik
+Definisi Operasional
+Interpretasi
+Effectiveness
+Mission task success rate
+mission success / total missions
+Apakah objective tercapai.
+Effectiveness
+Validated finding precision
+validated true findings / produced findings
+Menghindari false claims.
+Effectiveness
+Evidence coverage
+required evidence dimensions satisfied / total
+Kecukupan bukti.
+Efficiency
+Time-to-first-validated-finding
+elapsed time
+Kecepatan memperoleh bukti valid.
+Efficiency
+Action efficiency
+useful actions / total actions
+Redundansi tindakan.
+Efficiency
+Tool/capability cost
+calls, CPU, network/time budget
+Resource use.
+Adaptivity
+Replan success rate
+replans that improve progress / replans
+Kualitas replanning.
+Adaptivity
+Contradiction recovery
+resolved contradictions / detected
+Respons state inconsistency.
+Planning
+Path feasibility rate
+proposed path steps with satisfied hard prerequisites
+Kualitas graph planning.
+Planning
+Path utility regret
+best-known utility - selected utility
+Jika ground truth tersedia.
+Safety
+Policy violation rate
+executed violations / actions
+Target ideal = 0.
+Safety
+Denied-action correctness
+correctly denied risky/out-of-scope / deny cases
+Guard quality.
+Safety
+Stop-on-sufficiency rate
+missions stopped after criteria met without unnecessary actions
+Bounded behavior.
+Governance
+HITL rate
+human approvals / action requests
+Operational burden.
+Explainability
+Decision trace completeness
+decisions with full lineage / total
+Auditability.
+Reproducibility
+Replay consistency
+replayed decisions/results consistent under same snapshot
+Scientific reproducibility.
+Robustness
+Recovery success
+recoveries completed / recoverable failures
+Fault tolerance.
+Observability
+Event lineage completeness
+events with correlation+causation / total
+Debuggability.
+
+20.4 Desain Ablation
+Ablation harus mempertahankan target set, mission objectives, initial PIP snapshot, policy/scope, seed/randomization, dan resource budget sebanyak mungkin. Setiap eksperimen menyimpan experiment_id dan configuration manifest. Perbandingan learning policy dengan baseline dilakukan pada episode/target yang sama atau stratified equivalents. Safety violations diperlakukan sebagai constraint metric, bukan sekadar komponen reward yang dapat dikompensasi oleh keberhasilan mission.
+20.5 Hipotesis Eksperimental
+Tabel 21. Hipotesis yang dapat diuji
+Kode
+Hipotesis
+H1
+Adaptive event-driven agentic workflow meningkatkan evidence coverage dan menurunkan redundant action dibanding pipeline deterministik.
+H2
+PIP-informed planning menurunkan time-to-first-validated-finding dan meningkatkan action relevance dibanding No-PIP baseline.
+H3
+Attack-Path Planning Agent meningkatkan prerequisite satisfaction dan path feasibility dibanding direct hypothesis-to-validation.
+H4
+Bounded governance mempertahankan policy violation rate pada nol atau mendekati nol tanpa penurunan mission success yang tidak dapat diterima.
+H5
+Offline learned policy meningkatkan action efficiency/replan quality dibanding rule-only baseline tanpa menurunkan traceability dan safety.
+
+21. Blueprint Implementasi
+21.1 Logical Deployment Units
+Tabel 22. Unit implementasi logis
+Unit
+Komponen
+Catatan
+Decision Runtime
+Workflow Orchestrator + specialist agent runtimes
+Stateless worker sedapat mungkin; policy/state reference external.
+Event Runtime
+Event Bus, Dispatcher, schema registry, DLQ
+Ordering key per mission/task; idempotent consumers.
+State/Knowledge Runtime
+Target state, mission DB, graph, memory
+Versioned records dan query APIs.
+Evidence Runtime
+Evidence collector, artifact store, correlation
+Immutable storage dan hashing.
+Governance Runtime
+Scope/RoE, authorization, policy, audit/HITL
+Independent trust boundary.
+Execution Runtime
+Registry, adapters, gateway, sandbox, vault
+Separate worker/network boundary.
+Evaluation Runtime
+Observability, experiment service, offline learner
+Tidak berada pada critical target execution path kecuali telemetry.
+
+21.2 State Machine Mission
+CREATED
+  -> PIP_BOUND
+  -> PLANNING
+  -> RUNNING
+      -> WAITING_EVIDENCE
+      -> WAITING_APPROVAL
+      -> REPLANNING
+      -> PAUSED
+  -> CLEANING_UP
+  -> COMPLETED
+
+Terminal alternatives:
+  ABORTED | FAILED | EXPIRED
+21.3 Idempotency dan Reliability
+Setiap command/action memiliki idempotency_key.
+Event consumer menyimpan processed_event_id atau menggunakan exactly-once effect pattern pada database transaction boundary.
+Retry hanya dilakukan untuk transient failure; policy deny tidak di-retry otomatis.
+Dead-letter event memicu alert/observability dan dapat memicu orchestrator pause.
+Execution result selalu membawa executor version dan capability version.
+State update menggunakan optimistic version/check untuk menghindari lost update.
+21.4 Versioning
+Minimal versioned items: PIP, mission snapshot, RoE, agent policy, capability, adapter, correlation rule/model, target state revision, attack-path proposal, authorization decision, evidence package, dan experiment config. Versioning memungkinkan deterministic reconstruction terhadap keputusan tertentu.
+22. Risiko, Mitigasi, dan Threats to Validity
+22.1 Risiko Teknis dan Arsitektural
+Tabel 23. Risiko rancangan dan mitigasi
+Risiko
+Dampak
+Mitigasi
+Supervisor bottleneck
+Task queue latency, reduced throughput
+Async event bus, delegated local autonomy, backpressure, observability.
+State inconsistency
+Wrong planning and duplicated actions
+Revisioned state, event ordering keys, conflict flags, optimistic concurrency.
+Policy drift
+Unpredictable behavior
+Offline learning, versioned promotion, regression/safety tests, rollback.
+Over-agentification
+Complexity tanpa manfaat
+Agent criteria; deterministic modules remain services.
+Under-agentification
+Pipeline tidak adaptif
+Feedback loops, state-aware specialist agents, replanning.
+Evidence loss/weak lineage
+Findings tidak auditable
+Immutable evidence records, hashes, correlation/causation IDs.
+Execution bypass
+Safety compromise
+Gateway as only route; network policy; no agent direct target access.
+Credential exposure
+Security/privacy risk
+Vault references, least privilege, expiry, audit.
+Graph/planner mismatch
+Infeasible paths
+Hard constraints + runtime validation + state update/replanning.
+Model opacity
+Difficult explanation
+Symbolic baseline, calibrated outputs, feature/constraint trace, ablation.
+
+22.2 Threats to Internal Validity
+Perubahan target/lab state dapat mengacaukan perbandingan; gunakan resettable snapshots atau controlled seeds.
+Reward shaping dapat bias terhadap metric tertentu; laporkan raw metrics selain reward.
+Tool variability dapat memengaruhi result; version capability dan adapter.
+Human approval latency dapat mencampur safety dan efficiency; ukur terpisah queue time vs approval time.
+22.3 Threats to External Validity
+Hasil cyber range/lab tidak otomatis generalizable ke enterprise network karena topology, services, defense controls, latency, dan uncertainty berbeda. Penelitian harus menyatakan domain target dan tidak mengklaim generalisasi di luar environment yang diuji tanpa tambahan evidence.
+22.4 Threats to Construct Validity
+"Autonomy" dan "agenticness" tidak boleh diukur hanya dari mission completion. Sistem pipeline dapat menyelesaikan misi tanpa benar-benar adaptif. Karena itu evaluasi harus memasukkan replanning behavior, state responsiveness, independent action selection within bounds, decision lineage, dan adaptation under controlled perturbations.
+23. Kesimpulan
+Rancangan APTS-Pentest menetapkan batas yang tegas antara intelligence/decision dan execution. Tujuh agent internal memiliki goal-directed decision loops, sedangkan service/infrastructure/governance menjalankan fungsi deterministik, stateful processing, execution, authority, dan evidence management. Pemisahan ini mencegah dua kegagalan desain: semua tool diberi label agent, atau sebaliknya sistem hanya menjadi workflow engine linear tanpa adaptasi.
+Kontribusi arsitektural utama adalah: (1) harmonisasi dengan CTI melalui PIP immutable/versioned; (2) Pentest Workflow Orchestrator Hybrid Reactive-Deliberative; (3) RAO non-LLM untuk Reconnaissance dan Enumeration; (4) Layered Neuro-Symbolic Vulnerability Hypothesis Agent; (5) Attack-Path Planning Agent yang memisahkan hypothesis dari action decision; (6) bounded Hybrid agents untuk validation dan impact assessment; (7) four-plane separation; (8) event-driven trigger dan explicit data contracts; (9) evidence/provenance sebagai first-class artifact; dan (10) offline bounded learning untuk mencegah uncontrolled policy drift.
+Dengan rancangan ini, implementasi dapat dimulai dari deterministic baseline dan ditingkatkan secara bertahap ke learned policies. Struktur modular juga memungkinkan setiap kontribusi diuji melalui ablation dan benchmark tanpa mengubah keseluruhan subsystem. Secara metodologis, desain tersebut memberi landasan yang lebih kuat untuk mengevaluasi autonomous penetration testing sebagai sistem agentic yang actionable, adaptive, explainable, reproducible, dan governed.
+
+Lampiran A. Ringkasan Kontrak Agent
+A1 - Pentest Workflow Orchestrator
+Tabel 24. Kontrak ringkas Pentest Workflow Orchestrator
+Elemen
+Spesifikasi
+Architecture
+Hybrid Reactive-Deliberative
+Goal
+Mission-level coordination, dependency, priority, progress, replanning.
+Mandatory Inputs
+mission/task contract; state snapshot; governance snapshot; PIP/evidence refs sesuai kebutuhan.
+Mandatory Outputs
+decision/result event; trace; confidence/utility jika relevan; evidence references; status.
+Forbidden Direct Access
+Direct mutable CTI/PIP; direct target execution; raw secret retrieval; governance bypass.
+Failure Handling
+Publish failed/blocked/inconclusive + reason; request replan/escalation bila perlu.
+Observability
+decision_id, policy_version, correlation_id, causation_id, latency, selected alternative.
+
+A2 - Reconnaissance Agent
+Tabel 25. Kontrak ringkas Reconnaissance Agent
+Elemen
+Spesifikasi
+Architecture
+RAO
+Goal
+Target observation dan coverage adaptation.
+Mandatory Inputs
+mission/task contract; state snapshot; governance snapshot; PIP/evidence refs sesuai kebutuhan.
+Mandatory Outputs
+decision/result event; trace; confidence/utility jika relevan; evidence references; status.
+Forbidden Direct Access
+Direct mutable CTI/PIP; direct target execution; raw secret retrieval; governance bypass.
+Failure Handling
+Publish failed/blocked/inconclusive + reason; request replan/escalation bila perlu.
+Observability
+decision_id, policy_version, correlation_id, causation_id, latency, selected alternative.
+
+A3 - Enumeration Agent
+Tabel 26. Kontrak ringkas Enumeration Agent
+Elemen
+Spesifikasi
+Architecture
+RAO
+Goal
+Surface deepening pada service, endpoint, identity, input, dan context.
+Mandatory Inputs
+mission/task contract; state snapshot; governance snapshot; PIP/evidence refs sesuai kebutuhan.
+Mandatory Outputs
+decision/result event; trace; confidence/utility jika relevan; evidence references; status.
+Forbidden Direct Access
+Direct mutable CTI/PIP; direct target execution; raw secret retrieval; governance bypass.
+Failure Handling
+Publish failed/blocked/inconclusive + reason; request replan/escalation bila perlu.
+Observability
+decision_id, policy_version, correlation_id, causation_id, latency, selected alternative.
+
+A4 - Vulnerability Hypothesis Agent
+Tabel 27. Kontrak ringkas Vulnerability Hypothesis Agent
+Elemen
+Spesifikasi
+Architecture
+Layered Neuro-Symbolic
+Goal
+Evidence fusion, hypothesis generation, confidence/uncertainty update.
+Mandatory Inputs
+mission/task contract; state snapshot; governance snapshot; PIP/evidence refs sesuai kebutuhan.
+Mandatory Outputs
+decision/result event; trace; confidence/utility jika relevan; evidence references; status.
+Forbidden Direct Access
+Direct mutable CTI/PIP; direct target execution; raw secret retrieval; governance bypass.
+Failure Handling
+Publish failed/blocked/inconclusive + reason; request replan/escalation bila perlu.
+Observability
+decision_id, policy_version, correlation_id, causation_id, latency, selected alternative.
+
+A5 - Attack-Path Planning Agent
+Tabel 28. Kontrak ringkas Attack-Path Planning Agent
+Elemen
+Spesifikasi
+Architecture
+Hybrid Neuro-Symbolic / Graph Planning
+Goal
+Prerequisite, reachability, utility, constrained path selection.
+Mandatory Inputs
+mission/task contract; state snapshot; governance snapshot; PIP/evidence refs sesuai kebutuhan.
+Mandatory Outputs
+decision/result event; trace; confidence/utility jika relevan; evidence references; status.
+Forbidden Direct Access
+Direct mutable CTI/PIP; direct target execution; raw secret retrieval; governance bypass.
+Failure Handling
+Publish failed/blocked/inconclusive + reason; request replan/escalation bila perlu.
+Observability
+decision_id, policy_version, correlation_id, causation_id, latency, selected alternative.
+
+A6 - Exploitation Agent
+Tabel 29. Kontrak ringkas Exploitation Agent
+Elemen
+Spesifikasi
+Architecture
+Hybrid Reactive-Deliberative, bounded
+Goal
+Authorized validation strategy dan result interpretation.
+Mandatory Inputs
+mission/task contract; state snapshot; governance snapshot; PIP/evidence refs sesuai kebutuhan.
+Mandatory Outputs
+decision/result event; trace; confidence/utility jika relevan; evidence references; status.
+Forbidden Direct Access
+Direct mutable CTI/PIP; direct target execution; raw secret retrieval; governance bypass.
+Failure Handling
+Publish failed/blocked/inconclusive + reason; request replan/escalation bila perlu.
+Observability
+decision_id, policy_version, correlation_id, causation_id, latency, selected alternative.
+
+A7 - Post-Exploitation & Impact Agent
+Tabel 30. Kontrak ringkas Post-Exploitation & Impact Agent
+Elemen
+Spesifikasi
+Architecture
+Hybrid Reactive-Deliberative, strongly bounded
+Goal
+State-transition/impact assessment, stop/continue/cleanup/escalate.
+Mandatory Inputs
+mission/task contract; state snapshot; governance snapshot; PIP/evidence refs sesuai kebutuhan.
+Mandatory Outputs
+decision/result event; trace; confidence/utility jika relevan; evidence references; status.
+Forbidden Direct Access
+Direct mutable CTI/PIP; direct target execution; raw secret retrieval; governance bypass.
+Failure Handling
+Publish failed/blocked/inconclusive + reason; request replan/escalation bila perlu.
+Observability
+decision_id, policy_version, correlation_id, causation_id, latency, selected alternative.
+
+
+Lampiran B. Katalog Event dan Reason Codes
+Reason code digunakan untuk membuat replanning dan audit dapat dianalisis secara kuantitatif. Daftar berikut adalah baseline; implementasi dapat menambah code secara versioned.
+Tabel 31. Reason code baseline
+Kelompok
+Reason Code
+Makna
+Replan
+NEW_EVIDENCE
+Evidence baru mengubah state/hypothesis/path.
+Replan
+CONTRADICTION
+State/evidence conflict.
+Replan
+PREREQUISITE_UNMET
+Prasyarat path/action tidak terpenuhi.
+Replan
+ACTION_FAILED
+Authorized execution gagal.
+Replan
+ACTION_INCONCLUSIVE
+Hasil tidak cukup untuk validasi.
+Budget
+TIME_BUDGET
+Waktu mission/task habis.
+Budget
+ACTION_BUDGET
+Batas jumlah action tercapai.
+Safety
+SCOPE_VIOLATION
+Target/action di luar scope.
+Safety
+POLICY_DENY
+Safety policy menolak action.
+Safety
+APPROVAL_REQUIRED
+Perlu human authority.
+Safety
+KILL_SWITCH
+Emergency termination.
+State
+STALE_STATE
+State terlalu lama/tidak fresh.
+State
+TARGET_CHANGED
+Target state berubah signifikan.
+System
+EXECUTOR_UNAVAILABLE
+Worker/capability tidak tersedia.
+System
+EVENT_DEAD_LETTER
+Event gagal diproses setelah retry.
+Complete
+EVIDENCE_SUFFICIENT
+Evidence dan success criteria terpenuhi.
+
+
+Lampiran C. Skema Data Inti
+CommonEnvelope = {
+  event_id,
+  event_type,
+  event_version,
+  occurred_at,
+  producer,
+  mission_id,
+  task_id?,
+  correlation_id,
+  causation_id?,
+  payload,
+  schema_version
+}
+Semua skema harus memiliki explicit schema_version. Breaking change memerlukan event_version baru atau compatibility adapter. Timestamp sebaiknya membedakan occurred_at dan ingested_at untuk analisis temporal.
+
+Lampiran D. Kamus Metrik Eksperimen
+Tabel 32. Template pencatatan metrik per eksperimen
+Field
+Keterangan
+experiment_id
+Identifier unik eksperimen.
+configuration_hash
+Hash config/policy/capability manifest.
+target_snapshot
+Snapshot/seed environment.
+pip_version
+Versi PIP.
+policy_versions
+Versi policy tiap agent.
+mission_success
+Boolean/graded.
+validated_findings
+Count dan references.
+action_count
+Total authorized/executed actions.
+denied_action_count
+Governance denies.
+replan_count
+Jumlah replans.
+time_to_first_validated_finding
+Durasi.
+total_runtime
+Durasi end-to-end.
+evidence_coverage
+Coverage metric.
+policy_violation_count
+Harus 0 pada executed actions.
+trace_completeness
+Persentase decision dengan lineage lengkap.
+cleanup_success
+Boolean/score.
+notes
+Failure/anomaly notes.
+
+
+Daftar Pustaka
+[1] A. Bandi, B. Kongari, R. Naguru, S. Pasnoor, and S. V. Vilipala, “The Rise of Agentic AI: A Review of Definitions, Frameworks, Architectures, Applications, Evaluation Metrics, and Challenges,” Future Internet, vol. 17, no. 9, art. 404, 2025, doi: 10.3390/fi17090404.
+[2] M. Abou Ali, F. Dornaika, and J. Charafeddine, “Agentic AI: a comprehensive survey of architectures, applications, and future directions,” Artificial Intelligence Review, vol. 59, art. 11, 2026, doi: 10.1007/s10462-025-11422-4.
+[3] D. B. Acharya, K. Kuppan, and B. Divya, “Agentic AI: Autonomous Intelligence for Complex Goals—A Comprehensive Survey,” IEEE Access, vol. 13, 2025, doi: 10.1109/ACCESS.2025.3532853.
+[4] J. Loevenich, E. Adler, T. Hürten, and R. R. F. Lopes, “Design and evaluation of an Autonomous Cyber Defence agent using DRL and an augmented LLM,” Computer Networks, vol. 262, art. 111162, 2025, doi: 10.1016/j.comnet.2025.111162.
+[5] L. Wang et al., “A survey on large language model based autonomous agents,” Frontiers of Computer Science, vol. 18, no. 6, art. 186345, 2024, doi: 10.1007/s11704-024-40231-1.
+[6] M. Standen, M. Lucas, D. Bowman, T. J. Richer, J. Kim, and D. Marriott, “CybORG: A gym for the development of autonomous cyber agents,” arXiv:2108.09118, 2021, doi: 10.48550/arXiv.2108.09118.
+[7] N. Becker, D. Reti, E. V. Ntagiou, M. Wallum, and H. D. Schotten, “Evaluation of reinforcement learning for autonomous penetration testing using A3C, Q-learning and DQN,” arXiv:2407.15656, 2024, doi: 10.48550/arXiv.2407.15656.
+[8] A. Kott et al., “Autonomous Intelligent Cyber-Defense Agent (AICA) Reference Architecture, Release 2.0,” CCDC Army Research Laboratory, Technical Report, 2019.
+Catatan metodologis — Referensi [1]–[5] adalah sumber yang diunggah pada proyek/percakapan dan digunakan untuk landasan Agentic AI, arsitektur, governance, serta autonomous cyber-agent evaluation. Referensi [6]–[8] disebut atau dirujuk di dalam sumber tersebut dan digunakan untuk memperjelas cyber gym, autonomous penetration testing RL, serta reference architecture. Struktur tujuh agent dan seluruh contracts pada dokumen ini adalah proposal rancangan penelitian yang disintesis dari kebutuhan APTS, bukan replikasi satu paper tertentu.

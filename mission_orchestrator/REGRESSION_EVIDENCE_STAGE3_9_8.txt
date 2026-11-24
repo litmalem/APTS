@@ -1,0 +1,25 @@
+Stage 3.9.8 local implementation evidence
+=========================================
+
+Environment: sandbox validation against uploaded Mission(20260929-000228).zip
+
+PASS - Python compilation:
+  python -m compileall -q mission_orchestrator tests
+
+PASS - Canonical pytest inventory:
+  1545 tests collected
+
+PASS - Focused Stage 3.9.8 suite:
+  14 passed in 14.67s
+
+PASS - Selected active-control / health compatibility checks:
+  13 passed in 15.03s
+
+PASS - Stage 3.5/3.6/3.7 supported-control tail compatibility checks after rebase:
+  Stage 3.5.10 cumulative tail: PASS
+  Stage 3.6.10 closure tail: PASS
+  Stage 3.7.10 closure tail: PASS
+
+Additional Stage 3.9.7 predecessor checks were exercised in batches; the long-running
+historical suite was not completed inside the sandbox time budget. Host acceptance must
+run STAGE3_9_8_ACCEPTANCE.ps1, including the full 1545-test historical regression.

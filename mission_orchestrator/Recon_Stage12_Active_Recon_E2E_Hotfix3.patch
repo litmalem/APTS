@@ -1,0 +1,57 @@
+--- a/tests/test_stage12_recon_active_e2e_acceptance.py
++++ b/tests/test_stage12_recon_active_e2e_acceptance.py
+@@ -78,10 +78,6 @@
+         ExecutionGatewayRepository(tmp_path / "execution.db"),
+         ExecutionAuthorizationProposalSource(pentest_repo.sqlite_path),
+         MissionAuthorizationSource(mission_db), authority, clock=lambda: NOW)
+-    service = ExecutionEvidenceService(
+-        ExecutionEvidenceRepository(tmp_path / "execution.db"),
+-        ExecutionAuthorizationProposalSource(pentest_repo.sqlite_path),
+-        MissionAuthorizationSource(mission_db), authority, clock=lambda: NOW)
+     intake_request = {
+         "schema_version": "apts-execution-request-intake-v2",
+         "source_type": "STAGE5_2_RECON_ACTION_REQUEST",
+@@ -90,7 +86,7 @@
+         "recon_action_id": action["action_id"],
+         "recon_request_sha256": action["integrity"]["canonical_sha256"],
+     }
+-    request = service.create_request(intake_request)
++    request = gateway.create_request(intake_request)
+     assert request["envelope"]["execution_request"]["action"] == {
+         "action_class": "TARGET_RECON", "capability_id": "reconnaissance",
+         "technique": "TCP_CONNECT_SCAN",
+@@ -103,18 +99,23 @@
+         "envelope_sha256": request["envelope"]["integrity"]["canonical_sha256"],
+         "requested_by": "stage12-acceptance-test",
+     }
++    gateway_receipt = gateway.submit_execution({
++        "schema_version": GATEWAY_INTAKE_SCHEMA,
++        "submission_id": "gwreq-stage12-e2e",
++        "idempotency_key": "idem-gateway-stage12-e2e",
++        "execution_id": request["execution_id"],
++        "envelope_sha256": request["envelope"]["integrity"]["canonical_sha256"],
++        "requested_by": "stage12-acceptance-test",
++    })
++    assert gateway_receipt["gateway_admitted"] is True
++    assert gateway_receipt["execution_authorized"] is False
++
++    # Stage 6.5/6.6 upgrades the existing repository after Stage 6.3 admission.
++    service = ExecutionEvidenceService(
++        ExecutionEvidenceRepository(tmp_path / "execution.db"),
++        ExecutionAuthorizationProposalSource(pentest_repo.sqlite_path),
++        MissionAuthorizationSource(mission_db), authority, clock=lambda: NOW)
+     try:
+-        gateway_receipt = gateway.submit_execution({
+-            "schema_version": GATEWAY_INTAKE_SCHEMA,
+-            "submission_id": "gwreq-stage12-e2e",
+-            "idempotency_key": "idem-gateway-stage12-e2e",
+-            "execution_id": request["execution_id"],
+-            "envelope_sha256": request["envelope"]["integrity"]["canonical_sha256"],
+-            "requested_by": "stage12-acceptance-test",
+-        })
+-        assert gateway_receipt["gateway_admitted"] is True
+-        assert gateway_receipt["execution_authorized"] is False
+-
+         attempt = service.start_execution(start)
+         item = wait_for(service, attempt["attempt_id"])
+         assert item["state"] == "SUCCEEDED", service._failures

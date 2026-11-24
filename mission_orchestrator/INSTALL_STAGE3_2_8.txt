@@ -1,0 +1,47 @@
+Stage 3.2.8 installation
+========================
+
+Baseline required: Stage 3.2.7 — Abort, Failure & Expiration Semantics (accepted)
+
+1. Stop Mission Orchestrator.
+2. Back up the Mission Orchestrator database.
+3. Extract STAGE3_2_8_CLEANUP_VERIFIED_COMPLETION_GATE_PATCH.zip directly into D:\mission_orchestrator with overwrite enabled.
+4. Do NOT create migration 009. Repository migration level remains 8.
+5. Run:
+
+   cd D:\mission_orchestrator
+   python -m compileall -q mission_orchestrator tests
+   python -m pytest -q
+
+   Expected: 234 passed
+
+6. Start Mission Orchestrator and verify /health reports:
+
+   control_version = stage3.2.8-cleanup-verified-completion-gate
+   mission_cleanup_completion_schema_version = apts-mission-cleanup-completion-gate-v1
+   mission_cleanup_completion_mode = DURABLE_CLEANUP_LINEAGE_AND_EVIDENCE_GATED_VERIFIED_COMPLETION_FAIL_CLOSED
+   mission_cleanup_command = BEGIN_CLEANUP
+   mission_cleanup_state = CLEANING_UP
+   mission_completion_command = COMPLETE
+   mission_completion_state = COMPLETED
+   mission_completion_verification_status = VERIFIED
+   mission_completion_objective_status_required = SATISFIED
+   mission_completion_success_criteria_status_required = SATISFIED
+   mission_completion_exact_success_criteria_coverage_required = True
+   mission_completion_cleanup_status_required = VERIFIED
+   mission_completion_cleanup_check_status_required = PASS
+   mission_completion_cleanup_checks_required = True
+   mission_completion_evidence_refs_required = True
+   mission_completion_nested_evidence_binding_required = True
+   mission_completion_outstanding_critical_dependencies_required = 0
+   mission_completion_requires_stage3_2_4_run_lineage = True
+   mission_completion_requires_stage3_2_8_cleanup_lineage = True
+   mission_completion_governance_query_performed = False
+   mission_cleanup_action_performed_by_orchestrator = False
+   mission_lifecycle_stage3_2_8_completion_gate_enabled = True
+   mission_repository_migration_level = 8
+   governance_authorization_authority = EXTERNAL_APTS_GSS
+   target_action_dispatch_enabled = False
+   target_actuation = False
+
+7. Run STAGE3_2_8_ACCEPTANCE.ps1.

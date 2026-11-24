@@ -1,0 +1,58 @@
+STAGE 3.6.10 BUILD REGRESSION EVIDENCE
+========================================================================
+Stage: Outcome Acceptance / Regression Gate
+Build source: user-supplied Stage-3.6.9 Mission Orchestrator snapshot
+
+STATIC / COLLECTION VALIDATION
+------------------------------
+python -m compileall -q mission_orchestrator tests
+RESULT: PASS
+
+python -m pytest --collect-only -q
+RESULT: 1156 tests collected in 0.42s
+
+FOCUSED STAGE-3.6.10 VALIDATION
+-------------------------------
+python -m pytest -q tests/test_stage3_6_10_outcome_acceptance_regression_gate.py
+RESULT: 12 passed in 4.07s
+
+HISTORICAL CLOSURE-TAIL VALIDATION
+----------------------------------
+python -m pytest -q \
+  tests/test_stage3_5_10_execution_dispatch_acceptance_regression_gate.py::test_12_stage35_supported_control_tail_is_complete_ordered_and_closed
+RESULT: 1 passed in 2.42s
+
+python -m pytest -q \
+  tests/test_stage3_4_10_routing_delegation_acceptance_regression_gate.py::test_stage3410_final_supported_control_tail_is_complete_and_ordered
+RESULT: 1 passed in 0.15s
+
+BROADER REGRESSION ATTEMPTS
+---------------------------
+A three-file closure run covering Stage 3.4.10, 3.5.10 and 3.6.10 emitted only
+passing progress markers before the sandbox command timeout. No failing test
+summary was emitted, but the run did not finish, so it is NOT counted as PASS.
+
+A Stage-3.6 chain/full-style run likewise exceeded the available sandbox
+execution window before a final pytest summary. It is NOT counted as PASS.
+
+AUTHORITATIVE HOST-SIDE ACCEPTANCE
+----------------------------------
+The following script performs the release gate on the activated target host:
+
+  STAGE3_6_10_ACCEPTANCE.ps1
+
+It requires:
+
+  control_version                  = stage3.6.10-outcome-acceptance-regression-gate
+  repository migration level       = 44
+  canonical pytest inventory       = 1156
+  Stage-3.6 chain                  = 193 passed
+  focused Stage-3.6.10             = 12 passed
+  full Stage 3.1-3.6.10 regression = PASS
+  migration 045                    = ABSENT
+  new Stage-3.6.10 durable store   = ABSENT
+
+No formal Stage-3.6 closure should be recorded until the target-host script
+ends with:
+
+  STAGE 3.6.10 ACCEPTANCE: PASS

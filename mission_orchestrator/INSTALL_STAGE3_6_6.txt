@@ -1,0 +1,17 @@
+STAGE 3.6.6 INSTALLATION — SUCCESS-CRITERIA SATISFACTION EVALUATION
+
+1. Stop the Mission Orchestrator runtime.
+2. Back up D:\mission_orchestrator\data\mission_orchestrator.db and operator configuration.
+3. Extract PATCH_STAGE3_6_6.zip over D:\mission_orchestrator, preserving the live data directory.
+4. For MySQL deployments, apply migrations\041_stage3_6_6_mission_success_criteria_evaluation.sql using the normal migration procedure. SQLite fresh/test repositories receive the schema from repository.py; existing SQLite production databases must be migrated using the deployment's SQLite migration mechanism before restart.
+5. Restart the runtime.
+6. Verify GET http://127.0.0.1:8780/health reports:
+   control_version = stage3.6.6-mission-success-criteria-evaluation
+   mission_repository_migration_level = 41
+7. Run from PowerShell:
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_6_6_ACCEPTANCE.ps1
+8. Acceptance is complete only when the script prints STAGE 3.6.6 ACCEPTANCE: PASS.
+
+Do not replace or delete the live data directory from the patch archive.

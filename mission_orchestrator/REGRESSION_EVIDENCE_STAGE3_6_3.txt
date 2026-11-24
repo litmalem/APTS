@@ -1,0 +1,128 @@
+STAGE 3.6.3 — EVIDENCE BINDING VERIFICATION
+PACKAGE-CONSTRUCTION VERIFICATION EVIDENCE
+======================================================================
+
+Runtime/control target
+----------------------
+control_version            : stage3.6.3-evidence-binding-verification
+server_version             : APTSMissionOrchestrator/3.6.3
+repository migration       : 38
+new durable store          : mission_task_evidence_binding_verifications
+identity prefix            : ebind-
+verification status        : VERIFIED
+
+Canonical test inventory
+------------------------
+Command:
+  PYTHONPATH=. pytest --collect-only -q
+
+Observed:
+  1022 tests collected in 0.79s
+
+Result:
+  PASS — exact expected inventory 1022
+
+Python compilation
+------------------
+Command:
+  python -m compileall -q mission_orchestrator tests
+
+Result:
+  PASS
+
+Focused Stage 3.6.1 + 3.6.2 + 3.6.3
+-----------------------------------
+Command:
+  PYTHONPATH=. pytest -q tests/test_stage3_6_1_canonical_task_outcome_contract_identity.py tests/test_stage3_6_2_task_terminality_completion_eligibility.py tests/test_stage3_6_3_evidence_binding_verification.py
+
+Observed:
+  59 passed in 18.77s
+
+Result:
+  PASS
+
+Focused Stage 3.6.3
+-------------------
+Command:
+  PYTHONPATH=. pytest -q tests/test_stage3_6_3_evidence_binding_verification.py
+
+Observed:
+  20 passed in 6.26s
+
+Result:
+  PASS
+
+Stage 3.5.10 closure regression
+-------------------------------
+Command:
+  PYTHONPATH=. pytest -q tests/test_stage3_5_10_execution_dispatch_acceptance_regression_gate.py
+
+Observed after Stage-3.6.3 rebase:
+  12 passed in 15.83s
+
+Result:
+  PASS
+
+Health/migration regression subsets
+-----------------------------------
+Commands:
+  PYTHONPATH=. pytest -q -k 'supported_control or migration' -x
+  PYTHONPATH=. pytest -q -k 'health' -x
+
+Observed:
+  47 passed, 975 deselected in 18.47s
+  58 passed, 964 deselected in 17.78s
+
+Result:
+  PASS
+
+Full regression in package-construction environment
+---------------------------------------------------
+A complete sequential 1022-test regression is NOT claimed by this package-construction run.
+The suite is long-running in the sandbox. After current-head, supported-control, and migration
+assertions were rebased, a sequential run progressed beyond 21 percent without a failure before
+the sandbox command timeout. The authoritative target-host acceptance command is:
+
+  .\STAGE3_6_3_ACCEPTANCE.ps1
+
+The harness prints STAGE 3.6.3 ACCEPTANCE: PASS only after the complete 1022-test regression,
+the focused 20-test Stage-3.6.3 proof, and runtime/migration/authority-boundary checks pass.
+
+Focused Stage-3.6.3 evidence
+----------------------------
+- immutable ebind-* contract and canonical SHA-256 self-verification;
+- exact cross-stage binding to pver-*, xresult-*, toutcome-* and telig-*;
+- requires VERIFIED_COMPLETED + TERMINAL_SUCCESS + completion_eligible=true;
+- evidence/artifact manifest item schema, reference counts, unique IDs and manifest hashes verified;
+- Stage-3.6.1 evidence/artifact manifest hash propagation verified;
+- reference-only semantics verified; no URI dereference and no external content hash recomputation;
+- stale Mission vector, stale Plan, stale outcome/gate/result hashes, and missing source fail closed;
+- caller-supplied evidence/manifest/acceptance/completion/side-effect fields rejected;
+- exact idempotent replay without duplicate verification/event;
+- one immutable verification per Stage-3.6.2 gate;
+- no Governance or runtime contact during verification/replay;
+- restart preserves the same durable ebind-* record;
+- exactly-once MISSION_TASK_EVIDENCE_BINDING_VERIFIED event;
+- repository manifest/integrity includes task_evidence_binding_verification_store;
+- persisted-column tampering is detected;
+- migration 038 and API routes are registered;
+- task acceptance, completion commit, task transition, dependency release, readiness recalculation,
+  Plan progression, Mission completion, redispatch, new execution attempts, external network I/O,
+  target actuation, and Mission state transition remain outside Stage 3.6.3.
+
+Clean patch-application verification
+------------------------------------
+Procedure:
+  1. copy the original supplied Stage-3.6.2 tree to a clean verification directory;
+  2. overlay Mission_STAGE3_6_3_EVIDENCE_BINDING_VERIFICATION_PATCH.zip;
+  3. compile mission_orchestrator + tests;
+  4. run Stage-3.6.1 + Stage-3.6.2 + Stage-3.6.3 focused tests;
+  5. collect the canonical pytest inventory.
+
+Observed:
+  Python compilation: PASS
+  Stage 3.6.1 + 3.6.2 + 3.6.3: 59 passed in 17.15s
+  Canonical inventory: 1022 tests collected in 0.83s
+
+Result:
+  PASS — the Stage-3.6.3 delta is self-contained relative to the supplied Stage-3.6.2 baseline.

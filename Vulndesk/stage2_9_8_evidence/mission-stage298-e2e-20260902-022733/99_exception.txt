@@ -1,0 +1,9 @@
+﻿System.Management.Automation.PropertyNotFoundException: The property 'mission_id' cannot be found on this object. Verify that the property exists.
+   at System.Management.Automation.ExceptionHandlingOps.CheckActionPreference(FunctionContext funcContext, Exception exception)
+   at System.Management.Automation.Interpreter.ActionCallInstruction`2.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)
+
+at Get-MissionSemanticView, D:\vulndesk\STAGE2_9_8_E2E_ACCEPTANCE.ps1: line 349
+at <ScriptBlock>, D:\vulndesk\STAGE2_9_8_E2E_ACCEPTANCE.ps1: line 767
+at <ScriptBlock>, <No file>: line 1

@@ -1,0 +1,20 @@
+﻿{
+    "status":  "completed",
+    "mission_id":  "mission-stage298-e2e-20260902-022733",
+    "diagnostics":  {
+                        "schema_version":  "cti-health-diagnostics-v1",
+                        "scope":  "MISSION",
+                        "mission_id":  "mission-stage298-e2e-20260902-022733",
+                        "status":  "HEALTHY",
+                        "projection_quality":  "CANONICAL_V2",
+                        "governance_correlation_status":  "CORRELATED",
+                        "integrity_status":  "PASS",
+                        "integrity_violation_count":  0,
+                        "integrity_verification_complete":  true,
+                        "task_count":  8,
+                        "issues":  [
+
+                                   ],
+                        "duration_ms":  703.0
+                    }
+}

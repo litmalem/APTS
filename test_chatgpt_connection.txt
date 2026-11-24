@@ -1,0 +1,8 @@
+APTS GitHub connection test
+Created: 2026-11-09
+Purpose: Verify ChatGPT can create a file in the APTS repository.
+No application code is changed.
+
+
+
+add from lokal

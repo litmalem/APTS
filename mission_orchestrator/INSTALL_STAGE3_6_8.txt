@@ -1,0 +1,28 @@
+STAGE 3.6.8 INSTALLATION — VERIFIED COMPLETION DECLARATION & LIFECYCLE HANDOFF
+
+1. Stop the Mission Orchestrator runtime.
+2. Back up D:\mission_orchestrator\data\mission_orchestrator.db and operator configuration.
+3. Extract the Stage-3.6.8 patch/full bundle over D:\mission_orchestrator, preserving the live data directory.
+4. Apply migrations\043_stage3_6_8_verified_completion_declaration_lifecycle_handoff.sql using the normal production migration procedure. Fresh/test SQLite repositories receive the schema from repository.py; existing production databases must be migrated before restart.
+5. Restart the runtime.
+6. Verify GET http://127.0.0.1:8780/health reports:
+   control_version = stage3.6.8-verified-completion-declaration-lifecycle-handoff
+   mission_repository_migration_level = 43
+   verified_completion_persistence_store = mission_verified_completion_declarations
+   verified_completion_lifecycle_handoff_commands = [BEGIN_CLEANUP, COMPLETE]
+   verified_completion_final_state = COMPLETED
+7. Run from PowerShell:
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_6_8_ACCEPTANCE.ps1
+8. Acceptance is complete only when the script prints STAGE 3.6.8 ACCEPTANCE: PASS.
+
+Operational semantics:
+- Stage 3.6.8 accepts only an exact, current Stage-3.6.7 READY decision with zero blockers.
+- It revalidates the bound Stage-3.6.6 success-criteria evaluation and Stage-3.6.5 all-task terminal/verified-complete aggregation.
+- The immutable mdecl-* declaration is persisted before lifecycle handoff.
+- Mission state changes are performed only through the canonical Stage-3.2 lifecycle command path: RUNNING -> CLEANING_UP -> COMPLETED.
+- Direct state-transition bypass, Governance/runtime queries, dispatch, external network I/O, and target actuation are forbidden in Stage 3.6.8.
+- Replaying the same idempotency key after a partial process crash resumes the durable handoff from RUNNING, CLEANING_UP, or COMPLETED without creating a second declaration.
+
+Do not replace or delete the live data directory from the bundle.

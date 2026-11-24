@@ -1,0 +1,115 @@
+{
+  "stage": "6.1",
+  "control_version": "stage6.1-canonical-execution-request-contract",
+  "source_snapshot": "Mission(20261002-070447).zip",
+  "source_snapshot_sha256": "4606950eadacf65ef4ed2c3b8133a4d8aeffea7bf4d56a074f0e3ed28be4d66c",
+  "baseline_test_inventory": 2045,
+  "new_tests": 73,
+  "test_inventory": 2118,
+  "historical_files_modified": [],
+  "pentest_migration": 16,
+  "execution_migration": 1,
+  "next_stage": "6.2",
+  "files": [
+    {
+      "path": "INSTALL_STAGE6_1.txt",
+      "sha256": "43b0ccd34890c1d7c288d46ae2c4bbc973a6e92aebf994acce73ecc3a81f6bc1"
+    },
+    {
+      "path": "PATCH_FILE_LIST_STAGE6_1.txt",
+      "sha256": "ddea27036fbd820b8315266df7216324a7cfd382881b9a235e3c18ea72942c76"
+    },
+    {
+      "path": "PATCH_NOTES_STAGE6_1.md",
+      "sha256": "619a138b474d1044847d0a2bd6cd9cc98c38594a6ad977e6f0c1c3c3090b0632"
+    },
+    {
+      "path": "README_STAGE6_1.md",
+      "sha256": "0d8f616ecf57cd74b7564ef1ed7611320ac04a66b0a8e413b7af34d618e8ba98"
+    },
+    {
+      "path": "REGRESSION_EVIDENCE_STAGE6_1.txt",
+      "sha256": "00c550038c7c92252b6d6f148efb2df3eefb00ff083710868768ef68331ef62b"
+    },
+    {
+      "path": "STAGE6_1_ACCEPTANCE.ps1",
+      "sha256": "56ca675fd115064f48e58e5449cad76ff57907bf91f00dc4ddaa3c9718cdee41"
+    },
+    {
+      "path": "START_STAGE6_1_EXECUTION.ps1",
+      "sha256": "15e6a6addb8459e05a8ce11607e510a88f706b673fca76afec032a38e040cdbb"
+    },
+    {
+      "path": "evidence/stage6_1/continuity.log",
+      "sha256": "e358969dc084c7b86d59163ec29bc9762a746a8a01c49c3cdb8980332748b6d6"
+    },
+    {
+      "path": "evidence/stage6_1/focused.log",
+      "sha256": "957ae54f021122e78978a573737ef53d45c9631b5d7539297a0e3fbec91c462f"
+    },
+    {
+      "path": "evidence/stage6_1/full_regression.log",
+      "sha256": "d461ec78b39c4ecd66bb42be1c234447fb4908d85f21253ce8e93fca0760ac29"
+    },
+    {
+      "path": "evidence/stage6_1/full_regression.xml",
+      "sha256": "94ff3ff418d112e769d8fed315335b33a992278c4275a16921981fccd252e4eb"
+    },
+    {
+      "path": "evidence/stage6_1/inventory.log",
+      "sha256": "ecaf65ff1da7bd8a68525dff69a8e4d1f0cd5519a054a0f8da792b37e072d48c"
+    },
+    {
+      "path": "evidence/stage6_1/schema_qa.txt",
+      "sha256": "934faba0ca6ef0f3d2520ffecfacbdeae582db729a8bb33f8e19a3b2c5f68107"
+    },
+    {
+      "path": "evidence/stage6_1/standalone_qa.txt",
+      "sha256": "cf054a8e70a61e1cead3d138487bf2302f0027cb24bd85c97e3e8ea93382bf8c"
+    },
+    {
+      "path": "execution_migrations/001_stage6_1_canonical_execution_request_contract.sql",
+      "sha256": "add8d476d0a69514f9cf81ca63cf8cc7794e918d48d466f8b89c828c4060f531"
+    },
+    {
+      "path": "execution_subsystem/__init__.py",
+      "sha256": "6cf501386f123b6659e1c6e7dcb9420f185b89a359bc303635325de01fea370d"
+    },
+    {
+      "path": "execution_subsystem/api_service.py",
+      "sha256": "a2888d249813550fbaa0523d5c73f85ef33019177d21d682b92545a4455b8b9d"
+    },
+    {
+      "path": "execution_subsystem/execution_contract.py",
+      "sha256": "b819d7799f230f8a6600fdf9c46b8f3ac9449d9238fd3471168264c598688645"
+    },
+    {
+      "path": "execution_subsystem/proposal_source.py",
+      "sha256": "f8d2f37c2ec6e295cb24a825771695ce08da11dc374ec9a929ceac840340b6af"
+    },
+    {
+      "path": "execution_subsystem/request_repository.py",
+      "sha256": "d983c62374fdcbbc6b01f7cffa458538fa2857cc7e8440eb2c5869016c9748eb"
+    },
+    {
+      "path": "execution_subsystem/request_service.py",
+      "sha256": "a0130289522c1e14d4d1d643b395cb3ec1c4e7d6016a7b649753464748f90599"
+    },
+    {
+      "path": "execution_subsystem/schemas/canonical_action_envelope_v1.schema.json",
+      "sha256": "13c38b694e109f081def7af31409c28c37bbbaa31515ea606f68e0f65ba49aa0"
+    },
+    {
+      "path": "execution_subsystem/schemas/execution_request_v1.schema.json",
+      "sha256": "a4b66f8670d2bb9d44129961c4b986c3387386fddca7b93ccaf693a516b68e63"
+    },
+    {
+      "path": "run/execution_subsystem.py",
+      "sha256": "640de3f2219b5c60f178065c1735ee930006caeb3d12e8fb30598ebebbce743a"
+    },
+    {
+      "path": "tests/test_stage6_1_canonical_execution_request_contract.py",
+      "sha256": "e48c4619ed8aa5b558c1e2d26a5fdf748bd0e967694108ee88b04e20693c27a1"
+    }
+  ]
+}

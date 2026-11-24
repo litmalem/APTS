@@ -1,0 +1,40 @@
+Stage 3.2.7 — Abort, Failure & Expiration Semantics patch manifest
+==================================================================
+
+Baseline required: Stage 3.2.6 — Pause, Resume & Replanning Control (accepted)
+Repository migration level: 8 (unchanged)
+
+Changed runtime files:
+- mission_orchestrator/__init__.py
+- mission_orchestrator/api_service.py
+- mission_orchestrator/mission_lifecycle.py
+- mission_orchestrator/service.py
+
+Changed regression files for current-control/Stage-3.2.7 semantic compatibility:
+- tests/test_stage3_1_6_mission_versioning_concurrency.py
+- tests/test_stage3_1_7_mission_persistence_repository_model.py
+- tests/test_stage3_1_8_canonical_mission_api_validation_layer.py
+- tests/test_stage3_1_9_mission_event_lineage_foundation.py
+- tests/test_stage3_1_10_acceptance_regression_gate.py
+- tests/test_stage3_2_1_mission_lifecycle_command_contract.py
+- tests/test_stage3_2_2_lifecycle_transition_guard_matrix.py
+- tests/test_stage3_2_3_mission_pip_activation.py
+- tests/test_stage3_2_4_planning_run_activation.py
+- tests/test_stage3_2_5_waiting_dependency_control.py
+- tests/test_stage3_2_6_pause_resume_replanning_control.py
+
+New files:
+- tests/test_stage3_2_7_abort_failure_expiration_semantics.py
+- STAGE3_2_7_ACCEPTANCE.ps1
+- README_STAGE3_2_7.md
+- PATCH_NOTES_STAGE3_2_7.md
+- INSTALL_STAGE3_2_7.txt
+- PATCH_MANIFEST_STAGE3_2_7.txt
+- SHA256_STAGE3_2_7.txt
+
+No changes required in:
+- aptsGSS
+- VulnDesk
+- database migrations
+
+Expected regression after installation: 216 passed

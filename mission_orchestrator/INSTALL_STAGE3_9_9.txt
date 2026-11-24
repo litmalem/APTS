@@ -1,0 +1,37 @@
+Stage 3.9.9 overlay installation and acceptance
+================================================
+
+1. Extract the Stage 3.9.9 overlay into D:\mission_orchestrator, preserving directories.
+2. Repository migration remains at level 53. No migration step is added.
+3. Restart Mission Orchestrator using the established host procedure.
+4. Confirm /health reports:
+     control_version = stage3.9.9-global-observation-reconstruction-forensic-equivalence
+     mission_repository_migration_level = 53
+5. Run from D:\mission_orchestrator:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_9_9_ACCEPTANCE.ps1
+
+Expected canonical Stage 3.9.9 semantics:
+  predecessor                  = Stage 3.9.8 QUALIFIED
+  mission state                = RUNNING(v4)
+  active plan                  = Plan v2
+  mission events               = 50
+  normalized events            = 50
+  timeline event entries       = 50
+  causal graph                 = 51 nodes / 50 edges
+  diagnostics                  = PASS
+  blocking diagnostics         = 0
+  observability health         = HEALTHY
+  forensic bundle              = VERIFIED
+  forensic reconstruction      = VERIFIED
+  forensic event query         = VERIFIED
+  forensic lineage query       = VERIFIED
+  forensic integrity query     = VERIFIED
+  global equivalence           = PASS
+  migration                    = 53
+  verifier                     = READ_ONLY
+  target actuation             = NONE
+  next stage                   = 3.9.10 Final Acceptance & Regression Gate
+
+Full historical regression remains a deployment-host acceptance gate.

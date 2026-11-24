@@ -1,0 +1,37 @@
+Stage 3.9.10 overlay installation and acceptance
+=================================================
+
+1. Extract the Stage 3.9.10 overlay into D:\mission_orchestrator, preserving directories.
+2. Repository migration remains at level 53. No migration step is added.
+3. Restart Mission Orchestrator using the established host procedure.
+4. Confirm /health reports:
+     control_version = stage3.9.10-global-mission-orchestrator-acceptance-regression-gate
+     mission_repository_migration_level = 53
+     stage3_9_10_declared_only = True
+     stage3_9_10_runtime_self_certification = False
+     stage3_9_10_external_acceptance_execution_required = True
+     stage3_9_10_full_historical_regression_required = True
+     stage3_9_10_stage_output = GLOBAL_MISSION_ORCHESTRATOR
+     stage3_9_10_next_stage = 4.1
+5. Run from D:\mission_orchestrator:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_9_10_ACCEPTANCE.ps1
+
+Expected closure semantics:
+  predecessor                  = Stage 3.9.9 QUALIFIED
+  Stage 3.9 prior controls     = 9 (3.9.1 through 3.9.9)
+  Stage 3.1-3.8 closure gates  = 8
+  repository migration         = 53
+  canonical pytest inventory   = 1575
+  runtime self-certification   = FORBIDDEN
+  final PASS/FAIL authority     = external acceptance harness
+  new durable persistence      = NONE
+  new runtime authority        = NONE
+  external network I/O         = NONE
+  target actuation             = NONE
+  Stage 3 output               = GLOBAL_MISSION_ORCHESTRATOR
+  next stage                   = 4.1
+
+The complete 1575-test historical suite is an explicit deployment-host acceptance gate.
+A final [PASS] from STAGE3_9_10_ACCEPTANCE.ps1 closes Stage 3.

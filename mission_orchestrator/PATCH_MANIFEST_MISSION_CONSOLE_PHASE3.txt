@@ -1,0 +1,47 @@
+PHASE 3 - ADVANCED OPERATIONS MISSION CONSOLE
+
+Baseline:
+- Mission(20261007-023620).zip
+
+Modified:
+- mission_orchestrator/api_service.py
+- mission_orchestrator/service.py
+- mission_web/index.html
+- mission_web/app.css
+- mission_web/app.js
+
+Added:
+- README_MISSION_CONSOLE_PHASE3.md
+- START_MISSION_CONSOLE_PHASE3.ps1
+- PATCH_MANIFEST_MISSION_CONSOLE_PHASE3.txt
+- BUILD_VALIDATION_MISSION_CONSOLE_PHASE3.txt
+- tests/test_mission_console_phase3_advanced_operations.py
+
+Advanced operations:
+- Live canonical mission events through Server-Sent Events
+- Immutable plan-version semantic diff
+- Interactive deterministic causal graph
+- Forensic evidence browser
+- Forensic reconstruction workspace
+- Side-by-side mission comparison
+- Prioritized operator attention queue
+
+Added read-side routes:
+- GET /api/missions/{mission_id}/events/stream
+- GET /api/missions/{mission_id}/plan-diff?from={n}&to={n}
+- GET /api/missions/{mission_id}/evidence-browser?limit={n}
+- GET /api/mission-comparison?left={mission_id}&right={mission_id}
+- GET /api/operator/attention/advanced?limit={n}
+
+Existing Stage-3.8 APIs reused:
+- GET /api/missions/{mission_id}/observability-causal-graph
+- GET /api/missions/{mission_id}/forensic-evidence-bundle
+- GET /api/missions/{mission_id}/forensic-reconstruction
+
+Preserved safety properties:
+- no direct Mission DB mutation from advanced read models
+- no new Governance authority
+- no approval/authorization mutation
+- no dispatch
+- no target actuation
+- Phase-2 guarded lifecycle mutations unchanged

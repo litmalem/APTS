@@ -1,0 +1,20 @@
+STAGE 4.6 HOTFIX1 INSTALL
+=========================
+
+Target root:
+  D:\mission_orchestrator
+
+1. Extract this ZIP.
+2. Copy its contents into D:\mission_orchestrator preserving relative paths.
+3. Allow overwrite of:
+     tests\test_stage4_6_pentest_workflow_orchestrator_skeleton.py
+4. The verification script is new:
+     STAGE4_6_HOTFIX1_VERIFY.ps1
+5. Run:
+     cd D:\mission_orchestrator
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE4_6_HOTFIX1_VERIFY.ps1
+     .\STAGE4_6_ACCEPTANCE.ps1
+
+No database migration is added. No runtime restart is required solely for this test-harness
+hotfix, because production code is unchanged.

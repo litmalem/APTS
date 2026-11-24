@@ -1,0 +1,176 @@
+--- a/mission_orchestrator/governance_binding.py
++++ b/mission_orchestrator/governance_binding.py
+@@ -431,11 +431,9 @@
+     }
+     allowed_delegation_resources: list[str] = []
+     for capability in binding_request["capabilities"]:
+-        # This coordinated patch intentionally opens only the low-risk
+-        # reconnaissance handoff requested for this workflow. Validation,
+-        # exploitation, and every other capability remain default-deny.
+-        if (capability["authorization_mode"] != "REQUIRED"
+-                or capability["action_class"] != "TARGET_RECON"):
++        # Only explicitly bound low-risk logical CTI reads or Pentest Recon
++        # may be delegated. Other target-interacting capabilities default-deny.
++        if capability["authorization_mode"] != "REQUIRED" or capability["requires_human_approval"]:
+             continue
+         registry_capability = capability_by_id.get(capability["capability_id"])
+         if registry_capability is None:
+@@ -445,7 +443,12 @@
+         component_prefix = (subsystem or {}).get("classification", {}).get("component_selector", {}).get("value")
+         if not component_prefix or not capability["subject_component"].startswith(component_prefix):
+             continue
+-        if subsystem_id == "PENTEST" and capability["capability_id"] == "pentest.recon":
++        is_recon = (subsystem_id == "PENTEST" and capability["capability_id"] == "pentest.recon"
++                    and capability["action_class"] == "TARGET_RECON")
++        is_cti_read = (subsystem_id == "CTI" and capability["capability_id"] == "cti.read.context"
++                       and capability["action_class"] == "CTI_SOURCE_READ"
++                       and registry_capability["classification"]["side_effect_class"] == "READ_ONLY_ANALYSIS")
++        if is_recon or is_cti_read:
+             allowed_delegation_resources.append(f"{subsystem_id}:{capability['capability_id']}")
+     allowed_delegation_resources = sorted(set(allowed_delegation_resources))
+     if allowed_delegation_resources:
+--- a/mission_orchestrator/service.py
++++ b/mission_orchestrator/service.py
+@@ -7085,10 +7085,26 @@
+                     or delegation_scope.get("execution_authorized") is not False
+                     or delegation_scope.get("target_actuation") is not False):
+                 raise MissionGovernanceProtocolError("Governance PolicyDecision delegation scope attestation is inconsistent with the selected route")
+-            if (decision["decision"] == "ALLOW"
+-                    and ((decision.get("constraints") or {}).get("allowed_capabilities") != ["PENTEST:pentest.recon"]
+-                         or expected_resource != "PENTEST:pentest.recon")):
+-                raise MissionGovernanceProtocolError("Governance PolicyDecision does not attest the exact reconnaissance-only delegation allowlist")
++            if decision["decision"] == "ALLOW":
++                # Match GSS attestation to its immutable source scope, not just
++                # to the resource requested by a route or caller.
++                delegation_policy = next(
++                    (item for item in external_scope.get("action_constraints", [])
++                     if item.get("action_class") == DELEGATION_ACTION_CLASS
++                     and item.get("action_name") == DELEGATION_ACTION_NAME
++                     and item.get("effect") == "ALLOW"), None,
++                )
++                scoped = ((delegation_policy or {}).get("constraints") or {}).get("allowed_capabilities")
++                attested = (decision.get("constraints") or {}).get("allowed_capabilities")
++                if (not isinstance(scoped, list) or not scoped
++                        or any(not isinstance(value, str) or not value for value in scoped)
++                        or len(set(scoped)) != len(scoped)
++                        or not isinstance(attested, list)
++                        or attested != scoped
++                        or expected_resource not in scoped):
++                    raise MissionGovernanceProtocolError(
++                        "Governance PolicyDecision delegation allowlist does not match authoritative scope and selected route"
++                    )
+             created_at = utcnow_iso()
+             contract = build_delegation_authorization_contract(
+                 authorization_id=new_delegation_authorization_id(), mission_id=mission_id,
+--- a/mission_orchestrator/delegation_authorization.py
++++ b/mission_orchestrator/delegation_authorization.py
+@@ -268,8 +268,8 @@
+             and delegation_scope.get("execution_authorized") is False
+             and delegation_scope.get("target_actuation") is False
+             and (decision != "ALLOW" or (
+-                expected_resource == "PENTEST:pentest.recon"
+-                and (gov.get("constraints") or {}).get("allowed_capabilities") == ["PENTEST:pentest.recon"]
++                isinstance((gov.get("constraints") or {}).get("allowed_capabilities"), list)
++                and expected_resource in (gov.get("constraints") or {}).get("allowed_capabilities")
+             ))
+             and sem.get("mode") == DELEGATION_AUTH_MODE
+             and sem.get("governance_query_performed") is True
+--- a/tests/test_stage3_1_4_governance_authorization_binding.py
++++ b/tests/test_stage3_1_4_governance_authorization_binding.py
+@@ -101,9 +101,23 @@
+         reasons = ["EMERGENCY_STOP_ACTIVE"] if self.emergency_stop else ["ACTION_CONSTRAINT_ALLOW", "IP_MATCH"]
+         constraints = {}
+         if payload["action_class"] == "TASK_DELEGATION":
+-            allowed = ["PENTEST:pentest.recon"]
++            rule = next((c for c in scope["action_constraints"]
++                         if c["action_class"] == "TASK_DELEGATION"
++                         and c["action_name"] == payload["action_name"]
++                         and c["effect"] == "ALLOW"), None)
++            allowed = ((rule or {}).get("constraints") or {}).get("allowed_capabilities", [])
++            resource_allowed = (
++                isinstance(allowed, list) and payload["resource_value"] in allowed
++                and payload["subject_component"] == "APTS-MO01"
++                and payload["resource_type"] == "SUBSYSTEM_CAPABILITY"
++                and payload.get("context", {}).get("authorization_purpose") == "PRE_DELEGATION_ONLY"
++                and payload.get("context", {}).get("target_action_authority_requested") is False
++            )
++            if not self.emergency_stop and not resource_allowed:
++                decision_value = "DENY"
++                reasons = ["SUBSYSTEM_CAPABILITY_NOT_ALLOWLISTED"]
+             constraints = {
+-                "allowed_capabilities": allowed,
++                "allowed_capabilities": allowed if isinstance(allowed, list) else [],
+                 "delegation_scope": {
+                     "action_class": "TASK_DELEGATION",
+                     "action_name": payload["action_name"],
+--- a/tests/test_stage3_4_5_governance_bound_delegation_authorization.py
++++ b/tests/test_stage3_4_5_governance_bound_delegation_authorization.py
+@@ -44,12 +44,23 @@
+     return CanonicalMissionService(MissionRepository(driver="sqlite", sqlite_path=str(path)), governance_client=gov), gov
+ 
+ 
+-def provision(service, key: str, *, bind_governance: bool = True):
++def provision(service, key: str, *, bind_governance: bool = True, allow_cti: bool = True):
+     vals = create_route_decision(service, key)
+     mission_id, active, route = vals[0], vals[1], vals[-1]
+     if bind_governance:
+-        service.put_mission_scope_contract(mission_id, scope_payload(f"scope-345-{key}"))
+-        service.put_mission_governance_binding(mission_id, binding_payload(f"bind-345-{key}"))
++        scope = scope_payload(f"scope-345-{key}")
++        binding = binding_payload(f"bind-345-{key}")
++        if allow_cti:
++            scope["roe"]["allowed_action_classes"].append("CTI_SOURCE_READ")
++            binding["capabilities"].append({
++                "capability_id": "cti.read.context", "subject_component": "CTI-A01",
++                "action_class": "CTI_SOURCE_READ", "action_name": "read_context",
++                "authorization_mode": "REQUIRED", "resource_types": ["CTI_SOURCE"],
++                "source_allowlist": ["cti-feed-test"], "max_risk_level": "LOW",
++                "requires_human_approval": False,
++            })
++        service.put_mission_scope_contract(mission_id, scope)
++        service.put_mission_governance_binding(mission_id, binding)
+     return mission_id, active, route
+ 
+ 
+@@ -195,15 +206,35 @@
+     assert gov.evaluate_calls == 0
+ 
+ 
+-def test_gss_allow_for_non_recon_capability_is_rejected_as_protocol_mismatch(tmp_path):
+-    service, gov = make_service(tmp_path / "m.db")
+-    mission_id, active, route = provision(service, "deny-non-recon")
++def test_unbound_cti_delegation_is_durably_denied(tmp_path):
++    service, gov = make_service(tmp_path / "m.db")
++    mission_id, active, route = provision(service, "deny-non-recon", allow_cti=False)
+     assert route["selected_subsystem"] == "CTI"
+-    with pytest.raises(MissionGovernanceProtocolError, match="reconnaissance-only delegation allowlist"):
++    result = service.authorize_task_delegation(
++        mission_id, auth_request(service, mission_id, active, route, "deny-non-recon")
++    )
++    assert result["authorization_status"] == AUTH_STATUS_DENIED
++    assert result["authorization_granted"] is False
++    assert gov.evaluate_calls == 1
++
++
++def test_unscoped_cti_fake_allow_is_rejected_even_with_matching_attestation(tmp_path):
++    service, gov = make_service(tmp_path / "m.db")
++    mission_id, active, route = provision(service, "fake-allow", allow_cti=False)
++    original = gov.evaluate_authorization
++
++    def forged_allow(payload):
++        response = original(payload)
++        response["decision"] = "ALLOW"
++        response["constraints"]["allowed_capabilities"] = ["CTI:cti.read.context"]
++        response["constraints"]["delegation_scope"]["delegation_authorized"] = True
++        return response
++
++    gov.evaluate_authorization = forged_allow
++    with pytest.raises(MissionGovernanceProtocolError, match="authoritative scope"):
+         service.authorize_task_delegation(
+-            mission_id, auth_request(service, mission_id, active, route, "deny-non-recon")
++            mission_id, auth_request(service, mission_id, active, route, "fake-allow")
+         )
+-    assert gov.evaluate_calls == 1
+     assert service.get_task_delegation_authorization_history(mission_id)["authorization_count"] == 0
+ 
+ 

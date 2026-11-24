@@ -1,0 +1,45 @@
+APTS Stage 6.2 - Authoritative Execution Authorization
+
+Baseline: Mission(20261002-091540).zip, Stage 6.1, 2118 tests.
+Control: stage6.2-authoritative-execution-authorization
+Execution migration: 2 (atomic upgrade from 1).
+Mission migration: 53. Pentest migration: 16. Both sources read-only.
+
+1. Ekstrak PATCH_STAGE6_2_AUTHORITATIVE_EXECUTION_AUTHORIZATION.zip ke
+   D:\mission_orchestrator. Patch hanya menambahkan file Stage 6.2.
+   Data/database tidak disertakan dan tidak ditimpa oleh paket.
+2. Hentikan proses Execution lama pada port 8791.
+3. Dari PowerShell:
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\START_STAGE6_2_EXECUTION.ps1
+4. Dari jendela PowerShell lain:
+   .\STAGE6_2_ACCEPTANCE.ps1
+
+Jika endpoint GSS berbeda:
+   .\START_STAGE6_2_EXECUTION.ps1 -GovernanceUrl http://127.0.0.1:8770
+   .\STAGE6_2_ACCEPTANCE.ps1 -GovernanceUrl http://127.0.0.1:8770
+
+ENTRYPPOINT BARU: python run\execution_authorization.py
+Runner Stage 6.1 dipertahankan; tidak digunakan setelah database upgrade v2.
+Gunakan --mission-db/--pentest-db/--execution-db untuk path nondefault.
+
+PENTING: Source aptsGSS tidak ada pada arsip. GSS harus mendukung
+policy_decision.execution_revalidation dengan schema
+apts-gss-execution-revalidation-v1. Lihat README_STAGE6_2.md.
+Respons lama/tidak lengkap -> HTTP 503, execution_authorized=false.
+Tidak ada local/default ALLOW, override keputusan, atau fallback cached ALLOW.
+
+ALLOW/DENY/REVIEW disimpan sebagai snapshot audit immutable.
+Replay/GET tidak mengotorisasi ulang. Untuk fresh revalidation gunakan
+revalidation_id dan idempotency_key baru.
+Dispatch/results/tool-invocations tetap HTTP 409.
+Stage berikutnya: 6.3 Controlled Execution Gateway.
+
+Local inventory: 2229 tests, focused Stage 6.2: 111 tests.
+PowerShell acceptance dan live GSS compatibility perlu verifikasi host Windows.
+Dengan captured live authorization ID:
+   .\STAGE6_2_ACCEPTANCE.ps1 -LiveAuthorizationId eauth-...
+
+Rollback: simpan backup execution DB sebelum aktivasi jika diperlukan.
+Jangan downgrade metadata v2 ke v1 secara manual. Data sumber tidak dimigrasi.

@@ -1,0 +1,10 @@
+Stage 3.9.2 Hotfix 1 Patch Manifest
+
+a993390b0acab62b54660480be51dff50c2093fc7c46c5b298c95b6a3fdc50d2       796  INSTALL_STAGE3_9_2_HOTFIX1.txt
+93edd59c2c99d0d31d984ff180606a09327fc783257aab99d0a0c009fc7c31db      1394  PATCH_NOTES_STAGE3_9_2_HOTFIX1_REGRESSION_REBASE.md
+b0dba4dacbe74b6f4b80e81130199c06b36382680faf542dea84d1019a6c2693      3506  README_STAGE3_9_2_HOTFIX1_REGRESSION_REBASE.md
+a4e600b0b0be32c72ad87a9dceb91b8a952ddd1c78277ef31f7a5b22b5f3f8cb      1531  REGRESSION_EVIDENCE_STAGE3_9_2_HOTFIX1.txt
+de1f6cdef614f4bd8264d189a019d207abcd4e83c0f98130fab4e7a85493e5c6      2667  STAGE3_9_2_HOTFIX1_VERIFY.ps1
+ef8b8904249171a9829151df6df4a813fe000de57e0902fffff8e4a359eb4459     19525  tests/test_stage3_4_10_routing_delegation_acceptance_regression_gate.py
+ee4aa83e8501c2d8e8c0d5879f306149e55484d57690d06fa62f19f3dbe203dc     24334  tests/test_stage3_5_10_execution_dispatch_acceptance_regression_gate.py
+28a298f1f4fe2314865fe4ba6fcf5cc092bd6be9c75927abd4bd86b66b845beb      9754  tests/test_stage3_8_1_canonical_observability_trace_identity_contract.py

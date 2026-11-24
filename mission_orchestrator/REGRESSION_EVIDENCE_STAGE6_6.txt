@@ -1,0 +1,36 @@
+STAGE 6.6 - ARTIFACT & EVIDENCE CAPTURE
+Verification recorded: 2026-10-03T13:03:42.946439+00:00
+Baseline: Mission(20261003-122229).zip, Stage 6.5.
+
+Focused Stage 6.6: 64 passed; zero failures/errors/skips.
+Stage 5.9 -> 6.6 continuity: 594 passed; zero failures/errors/skips.
+Full canonical regression: 2603 passed; zero failures/errors/skips.
+Canonical baseline 2539 + Stage 6.6 additions 64 = 2603.
+Exact per-test JUnit coverage: PASS.
+Full regression: 58 isolated groups, 4 pytest workers, 536.296 seconds.
+Frozen Python/SQL/JSON snapshot: 385 files, unchanged during full regression.
+
+Cold overlay from original upload: 13 core files; all 385 frozen sources match.
+Cold overlay compilation and 64 focused tests: PASS.
+Uploaded Execution database copy: migration 5 -> 6; all predecessor rows unchanged.
+Native Linux sandbox: SECCOMP_RLIMIT PASS; synthetic probe performs no target I/O.
+Standalone auditor: native capture + actual read API downloads VERIFIED (9 blobs).
+Tampered blob negative control: expected rejection PASS; labeled FAIL output is intentional.
+
+Mission migration 53 / Pentest migration 16 remain read-only.
+Execution migration 6, append-only capture sessions/artifacts/manifests.
+Terminal result/event/evidence atomicity, quotas, caller-upload rejection, exact lineage,
+blob/hash/index tampering, cancellation, manual retry, persistence failure, owner fencing,
+and real process-crash recovery are covered.
+
+Evidence contract SHA-256: 4692f5856c2f08ebc5a2c1e66f9412cc2b83c061ad77c6d79935e4aafe67ff2b
+Exact Stage 6.5 contract SHA-256: a5772800492241b92e7c8eef0398c3672a215ddae0429dd88436a3dabdea296a
+
+Proof scope: isolated Mission/Pentest/Execution stores, authority HTTP,
+native workers, loopback targets, and actual process termination/recovery.
+No live user mission or target action was exercised.
+Windows PowerShell/Job Object acceptance has not been executed in this build.
+Embedded Python and acceptance inventory/migration/startup constants were checked.
+Screenshots and target before/after state measurement are explicitly unavailable
+on the current fixed adapters; runtime state and observed response metadata are captured.
+VEP construction belongs to Stage 6.7. Next: VEP Construction & Integrity.

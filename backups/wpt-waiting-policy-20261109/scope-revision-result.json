@@ -1,0 +1,96 @@
+{
+  "scope_contract": {
+    "id": 180,
+    "scope_contract_id": "scope-75c27852-b2db-4f37-89cd-458b7d4b5254",
+    "mission_id": "mission-gmo-17a8fa8a-c6d9-4da5-aad2-0fc73113239c",
+    "name": "Pentest pada http://127.0.0.1:80//dvwa/",
+    "status": "ACTIVE",
+    "policy_set_id": "default-policy",
+    "version": 2,
+    "valid_from": "2026-11-09T02:16:01.764116",
+    "valid_until": "2026-11-30T09:15:00",
+    "created_by": "local-test-operator",
+    "approved_by": "local-test-operator",
+    "approved_at": "2026-11-09T02:25:10.821485",
+    "contract_hash": "32da35065bb91ce4977a9867feb346ec268dbb734c05cfc95155d4b5d1005b1b",
+    "created_at": "2026-11-09T02:25:10",
+    "updated_at": "2026-11-09T02:25:10",
+    "metadata": {
+      "supersedes_scope_id": "scope-1d53c50c-50a8-4c22-9b5b-9537afbd95d7",
+      "revision_reason": "User explicitly approved bounded LAB DVWA Recon and WPT fingerprinting in Codex chat on 2026-11-09; six GET requests, no state changes.",
+      "revision_actor": "local-test-operator"
+    },
+    "targets": [
+      {
+        "id": 162,
+        "scope_target_id": "stgt-eeb92cc7-5fbe-4a76-8492-563643f8cc71",
+        "scope_contract_id": "scope-75c27852-b2db-4f37-89cd-458b7d4b5254",
+        "target_type": "URL",
+        "target_value": "http://127.0.0.1:80//dvwa/",
+        "normalized_value": "http://127.0.0.1:80//dvwa/",
+        "environment": "LAB",
+        "allowed": 1,
+        "notes": null,
+        "created_at": "2026-11-09T02:25:10"
+      }
+    ],
+    "sources": [],
+    "action_constraints": [
+      {
+        "id": 467,
+        "constraint_id": "sact-fa7f840c-5c8f-4b69-94bd-a1cabf39e342",
+        "scope_contract_id": "scope-75c27852-b2db-4f37-89cd-458b7d4b5254",
+        "action_class": "TARGET_RECON",
+        "action_name": "recon",
+        "effect": "ALLOW",
+        "max_risk_level": "LOW",
+        "requires_approval": false,
+        "created_at": "2026-11-09T02:25:10",
+        "constraints": {
+          "max_network_requests": 6,
+          "allowed_methods": [
+            "GET"
+          ],
+          "state_changing_requests": false
+        }
+      },
+      {
+        "id": 468,
+        "constraint_id": "sact-1847e169-2fcf-4884-8abc-b0b28a955eb9",
+        "scope_contract_id": "scope-75c27852-b2db-4f37-89cd-458b7d4b5254",
+        "action_class": "TARGET_RECON",
+        "action_name": "web_technology_fingerprinting",
+        "effect": "ALLOW",
+        "max_risk_level": "LOW",
+        "requires_approval": false,
+        "created_at": "2026-11-09T02:25:10",
+        "constraints": {
+          "max_network_requests": 6,
+          "allowed_methods": [
+            "GET"
+          ],
+          "state_changing_requests": false
+        }
+      },
+      {
+        "id": 469,
+        "constraint_id": "sact-371cbe74-b7fe-4344-a298-d04dea3b6ddf",
+        "scope_contract_id": "scope-75c27852-b2db-4f37-89cd-458b7d4b5254",
+        "action_class": "TASK_DELEGATION",
+        "action_name": "delegate_planned_task",
+        "effect": "ALLOW",
+        "max_risk_level": "LOW",
+        "requires_approval": false,
+        "created_at": "2026-11-09T02:25:10",
+        "constraints": {
+          "allowed_capabilities": [
+            "PENTEST:pentest.recon"
+          ],
+          "execution_authorized": false,
+          "target_actuation": false,
+          "policy_profile": "GSS_AUTO_RECON_TASK_DELEGATION_V1"
+        }
+      }
+    ]
+  }
+}

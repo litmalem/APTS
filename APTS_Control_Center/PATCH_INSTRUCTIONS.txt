@@ -1,0 +1,25 @@
+APTS Control Center - Mission Web Patch
+
+Apply over the existing APTS_Control_Center directory.
+
+Files changed:
+- server.py
+- web/app.js
+- web/index.html
+- README.md
+- test_control_center.py
+
+Files added:
+- README_MISSION_WEB.md
+- test_mission_web.py
+
+config.json is intentionally NOT included in this patch, so local paths/interpreters/env are preserved.
+No config change is required: mission_web inherits modules.mission root and port (default 8780).
+
+After applying:
+  cd D:\APTS\APTS_Control_Center
+  python -m unittest -v test_gss_web test_mission_web test_control_center
+  python .\server.py
+
+Mission Web opens at:
+  http://127.0.0.1:8780/ui/

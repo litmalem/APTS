@@ -1,0 +1,48 @@
+Stage 2.6 — Pre-dispatch PolicyDecision Revalidation
+Build date: 2026-08-15
+
+VulnDesk control version:
+  hybrid-event-driven-2.4-pre-dispatch-policy-revalidation
+
+Validation performed in sandbox:
+  python -m compileall cti_services tests
+  PASS
+
+Targeted VulnDesk regression suite:
+  tests.test_pre_dispatch_revalidation_stage2_6
+  tests.test_pip_persistence_hardening_d3
+  tests.test_execution_hardening_stage2_d1_d2
+  tests.test_governance_client
+  tests.test_policydecision_taskcontract_stage2
+  tests.test_cti_event_driven_runtime
+  tests.test_stage1_closure_fixes
+  tests.test_cti_harmonized_architecture
+  tests.test_interface_catalog
+
+Result:
+  Ran 47 tests
+  OK
+
+aptsGSS regression suite:
+  tests/test_policydecision_revalidation_stage2_6.py
+  existing tests under tests/
+
+Result:
+  17 passed
+
+Note:
+  The sandbox does not include the application's PyMySQL package, so a lightweight
+  non-connecting PyMySQL import stub was used only to collect/run aptsGSS unit tests.
+  The actual project requirements already declare the database dependency for local runtime.
+
+Stage 2.6 safety behavior covered:
+  - exact decision/request/hash revalidation
+  - current decision lifecycle check
+  - decision TTL check
+  - ScopeContract mission/version/status check
+  - current source/action scope check
+  - current PolicySet version/status/effective-window check
+  - global emergency-stop check
+  - fail-closed Governance transport/protocol behavior
+  - TaskContract revalidation evidence persistence
+  - dispatch blocked on INVALID/ERROR

@@ -1,0 +1,89 @@
+======================================================================
+STAGE 3.7.10 PATCH MANIFEST
+Adapt/Replan Acceptance / Regression Gate
+======================================================================
+
+RUNTIME IDENTITY
+----------------
+control_version            = stage3.7.10-adapt-replan-acceptance-regression-gate
+server_version             = APTSMissionOrchestrator/3.7.10
+repository_migration_level = 53
+new migration              = NONE
+new durable store          = NONE
+closure schema             = apts-mission-stage3.7-adapt-replan-acceptance-gate-v1
+closure baseline           = STAGE_3_7_1_THROUGH_3_7_9
+expected test inventory    = 1356
+focused Stage-3.7.10       = 12
+Stage-3.7 chain            = 200
+
+VALIDATION EVIDENCE IN BUILD ENVIRONMENT
+----------------------------------------
+Python compile                         = PASS
+pytest collection                      = 1356 tests
+Stage-3.7 collection                   = 200 tests
+focused Stage-3.7.10                   = 12/12 PASS in 1.94s
+Stage-3.7.1 through Stage-3.7.9        = 188/188 PASS individually
+Stage-3.4.10 closure                   = 12/12 PASS in 9.76s
+Stage-3.5.10 closure                   = 12/12 PASS in 21.59s
+Stage-3.6.10 closure                   = 12/12 PASS in 3.76s
+full canonical regression              = NOT CLAIMED IN BUILD SANDBOX
+
+STAGE3_7_10_ACCEPTANCE.ps1 is the authoritative target-host gate and must PASS
+against the activated runtime before Stage 3.7 is formally closed.
+
+PRIMARY STAGE 3.7.10 CONTENTS
+-----------------------------
++ INSTALL_STAGE3_7_10.txt
++ PATCH_MANIFEST_STAGE3_7_10.txt
++ PATCH_NOTES_STAGE3_7_10.md
++ README_STAGE3_7_10.md
++ REGRESSION_EVIDENCE_STAGE3_7_10.txt
++ STAGE3_7_10_ACCEPTANCE.ps1
++ mission_orchestrator/adapt_replan_acceptance_gate.py
++ tests/test_stage3_7_10_adapt_replan_acceptance_regression_gate.py
++ PATCH_FILE_LIST_STAGE3_7_10.txt
+
+CORE INTEGRATION FILES
+----------------------
+* mission_orchestrator/service.py
+* mission_orchestrator/api_service.py
+
+REGRESSION HEAD REBASE
+----------------------
+Historical current-head assertions under Stage 3.1 through Stage 3.7.9 were
+rebased from:
+
+  stage3.7.9-adapt-replan-lineage-replay-recovery
+  APTSMissionOrchestrator/3.7.9
+
+to:
+
+  stage3.7.10-adapt-replan-acceptance-regression-gate
+  APTSMissionOrchestrator/3.7.10
+
+Positional supported_controls assertions were extended so Stage 3.7.9 remains
+the immediate predecessor and Stage 3.7.10 becomes the current head.
+Historical operational semantics are intentionally unchanged.
+
+PERSISTENCE CLOSURE
+-------------------
+Newest migration remains:
+  053_stage3_7_9_adapt_replan_lineage_replay_recovery.sql
+
+No migration 054 is introduced and no Stage-3.7.10 durable store is added.
+
+AUTHORITY CLOSURE
+-----------------
+Stage 3.7.7 remains successor-Plan commit/materialization authority.
+Stage 3.7.8 remains atomic supersession/handoff authority.
+Stage 3.7.9 remains read-only/non-actuating replay and durable reconstruction.
+Stage 3.7.10 is declaration/acceptance only and cannot self-certify PASS.
+
+PATCH FILE COUNT
+----------------
+new Stage-3.7.10 payload files (excluding SHA file) = 9
+changed existing files                              = 66
+total payload files (excluding SHA file)            = 75
+
+See PATCH_FILE_LIST_STAGE3_7_10.txt for the exact payload inventory and
+SHA256_STAGE3_7_10.txt for per-file digests.

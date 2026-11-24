@@ -1,0 +1,40 @@
+Stage 3.9.6 local source qualification (2026-09-28)
+==================================================
+
+Snapshot input: Mission.zip
+Snapshot SHA-256: 69f1bd93493d9f106cfd4878729e76ccc172f6924232f8db06da9a3e626f8637
+Control: stage3.9.6-task-completion-mission-outcome-closure
+Repository migration: 53 (unchanged)
+
+Local static / collection qualification:
+  python -m compileall -q mission_orchestrator run tests : PASS
+  pytest --collect-only                              : 1515 tests collected
+
+Focused Stage 3.9.6 qualification:
+  tests 01-07 : 7 passed in 22.38s
+  tests 08-15 : 8 passed in 29.44s
+  Result      : all 15 focused Stage 3.9.6 nodes individually PASS
+
+Runtime activation compatibility probe:
+  Stage 3.9.1 through Stage 3.9.6 health/control assertions: 6 passed in 2.20s
+
+Long aggregate commands in this sandbox are execution-time limited. An attempted
+combined Stage 3.5.8/3.5.9 + Stage 3.6 authority run and an attempted complete
+Stage 3.9.1-3.9.6 chain produced only passing nodes before the sandbox command
+ceiling was reached; no uninterrupted aggregate PASS is claimed here.
+
+A complete historical-suite PASS is therefore intentionally not claimed in this
+source package. STAGE3_9_6_ACCEPTANCE.ps1 enforces the exact 1515-test inventory,
+focused Stage 3.9.6 suite, Stage 3.9 chain, Stage 3.5.8/3.5.9 + Stage 3.6 authority
+regression, and full historical regression on the activated deployment host.
+
+Qualification boundaries exercised locally:
+  exact 40-event trajectory and exact nonzero repository footprint;
+  terminal SUCCEEDED propagation and execution recovery checkpoint;
+  canonical task outcome, terminality eligibility, evidence verification and
+  dependency-aware completion; mission outcome aggregation; success criteria;
+  BLOCKED completion readiness with two canonical blockers; read-only repeated
+  qualification; exact mutation replay idempotency; partial/stale/tamper
+  rejection; restart and HTTP reconstruction; no Stage 3.6.8 verified completion,
+  no Stage 3.6.9 outcome recovery checkpoint, no mission lifecycle transition,
+  and no target actuation.

@@ -1,0 +1,11 @@
+Stage 3.8.3 installation
+1. Stop Mission Orchestrator.
+2. Back up D:\mission_orchestrator.
+3. Extract/copy this package over D:\mission_orchestrator, preserving directories.
+4. No database migration is required; expected mission_repository_migration_level remains 53.
+5. Restart Mission Orchestrator on the normal port (8780).
+6. Run from PowerShell:
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_8_3_ACCEPTANCE.ps1
+7. Accept only if the script ends with: STAGE 3.8.3 ACCEPTANCE: PASS

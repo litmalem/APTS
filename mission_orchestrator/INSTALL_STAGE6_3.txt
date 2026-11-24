@@ -1,0 +1,47 @@
+APTS Stage 6.3 - Controlled Execution Gateway
+
+Baseline: Mission(20261002-154500).zip, Stage 6.2, 2229 tests.
+Control: stage6.3-controlled-execution-gateway
+Execution migration: 3 (atomic upgrade from 1 or 2).
+Mission migration: 53; Pentest migration: 16. Both sources read-only.
+
+1. Ekstrak PATCH_STAGE6_3_CONTROLLED_EXECUTION_GATEWAY.zip ke
+   D:\mission_orchestrator. Paket hanya menambahkan file Stage 6.3.
+   Database/data tidak disertakan dan tidak ditimpa.
+2. Hentikan proses Execution lama pada port 8791.
+3. Dari PowerShell:
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\START_STAGE6_3_EXECUTION.ps1
+4. Dari jendela PowerShell lain:
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE6_3_ACCEPTANCE.ps1
+
+Entry point: python run\execution_gateway.py
+Path nondefault: --execution-db, --pentest-db, --mission-db.
+Endpoint nondefault: starter/acceptance -GovernanceUrl URL.
+Environment konfigurasi mengikuti Stage 6.2.
+API hanya dapat di-bind ke loopback.
+
+POST /api/execution/gateway/submissions meminta fresh revalidation GSS
+dan menghasilkan immutable admission audit. Lihat README_STAGE6_3.md.
+ADMITTED_AWAITING_ADAPTER berarti budget admission direservasi,
+bukan target sudah dieksekusi atau receipt dapat dipakai sebagai permit.
+Execution dispatch/tool/results tetap HTTP 409 sampai Stage 6.4.
+Budget admission lifetime konservatif; tidak ada release/reset di 6.3.
+Replay/GET tidak melakukan query GSS, admission atau dispatch baru.
+
+GSS wajib mendukung apts-gss-execution-revalidation-v1 (Stage 6.2).
+Constraint GSS unsupported/malformed -> BLOCKED_CONSTRAINTS.
+Response GSS lama/tidak lengkap -> HTTP 503. Tidak ada fallback ALLOW.
+Runtime constraints sumber dipertahankan; adapter 6.4 wajib menerapkannya.
+
+Local focused Stage 6.3: 111 tests. Total inventory: 2340 tests.
+PowerShell acceptance dan live GSS perlu verifikasi pada host Windows.
+Captured live receipt dapat diperiksa read-only:
+   .\STAGE6_3_ACCEPTANCE.ps1 -LiveGatewayId egate-...
+
+Runner predecessor tetap sebagai baseline historis; tidak digunakan
+setelah database upgrade v3. Jangan downgrade metadata manual.
+Tahap berikutnya: 6.4 Authorized Tool Adapters & Sandboxing.

@@ -1,0 +1,67 @@
+STAGE 3.6.5 — MISSION OUTCOME AGGREGATION
+INSTALLATION / ACCEPTANCE
+======================================================================
+
+BASELINE
+--------
+Apply this patch only over an accepted Stage-3.6.4 Mission Orchestrator tree.
+Expected predecessor control:
+  stage3.6.4-dependency-aware-task-completion
+Expected predecessor repository migration level:
+  39
+
+TARGET
+------
+control_version:
+  stage3.6.5-mission-outcome-aggregation
+server_version:
+  APTSMissionOrchestrator/3.6.5
+repository migration level:
+  40
+new durable store:
+  mission_outcome_aggregations
+identity prefix:
+  moutcome-
+canonical test inventory:
+  1062
+focused Stage-3.6.5 tests:
+  20
+Stage-3.6 chain tests:
+  99
+
+IMPORTANT DATA RULE
+-------------------
+Do NOT replace or delete the live data/mission_orchestrator.db.
+Do NOT overwrite operator-managed secrets/configuration.
+The patch ZIP contains source/tests/docs/migration only; live repository data is intentionally excluded.
+
+INSTALL
+-------
+1. Stop/restart according to the existing Mission Orchestrator deployment procedure.
+2. Overlay the Stage-3.6.5 patch at D:\mission_orchestrator.
+3. Apply migration 040 using the same deployment migration procedure used for prior stages.
+4. Restart the Mission Orchestrator.
+5. Verify /health reports:
+     control_version = stage3.6.5-mission-outcome-aggregation
+     mission_repository_migration_level = 40
+6. Run:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_6_5_ACCEPTANCE.ps1
+
+ACCEPTANCE SUCCESS
+------------------
+The stage is accepted only when the script prints:
+
+  STAGE 3.6.5 ACCEPTANCE: PASS
+
+The script requires:
+- runtime control/version and migration 40 preflight PASS;
+- explicit Stage-3.6.5 aggregation/authority-boundary health fields PASS;
+- Python compile PASS;
+- exactly 1062 tests collected;
+- complete Stage-3.1 through Stage-3.6.5 regression PASS;
+- Stage-3.6.1..3.6.5 chain = exactly 99 passed;
+- focused Stage-3.6.5 suite = exactly 20 passed;
+- migration/module/API/event registration PASS.

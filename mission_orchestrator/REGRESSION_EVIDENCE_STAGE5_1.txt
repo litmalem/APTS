@@ -1,0 +1,51 @@
+Stage 5.1 implementation-environment regression evidence
+Date: 2026-10-01
+
+Control:
+  stage5.1-full-agentic-pentest-workflow-orchestrator
+
+Pentest migration:
+  8
+
+Python compilation:
+  PASS
+
+Canonical pytest inventory:
+  1823 tests collected
+
+Focused Stage 5.1:
+  24 passed in 2.47s
+
+Stage 4.1 -> Stage 5.1 Pentest qualification chain:
+  248 passed in 15.31s
+
+Critical Stage 3.9.10 -> Stage 4.10 -> Stage 5.1 regression:
+  54 passed in 9.36s
+
+Full historical suite:
+  not completed inside the packaging environment because the available execution window expired during the run.
+  The deployment-host STAGE5_1_ACCEPTANCE.ps1 remains the final PASS/FAIL authority and executes all 1823 tests.
+
+Implemented Stage 5.1 capabilities:
+  canonical-task understanding
+  deterministic task decomposition
+  versioned Agent Task Graph
+  logical specialist assignment
+  specialist-bound progress observation
+  progress aggregation
+  versioned replanning
+  bounded escalation / termination
+  durable restart state
+  idempotent start / progress / replan records
+
+Authority boundary:
+  Global Mission Orchestrator remains global mission authority
+  no specialist execution authority
+  no raw tool access
+  no external target network I/O
+  no target actuation
+  no PolicyDecision minting
+  Stage 6 remains controlled execution authority
+
+Next:
+  Stage 5.2 — Reconnaissance Agent

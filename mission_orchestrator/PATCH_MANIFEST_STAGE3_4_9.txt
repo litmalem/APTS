@@ -1,0 +1,79 @@
+Stage 3.4.9 — Routing/Delegation Event Lineage, Replay & Recovery
+Patch manifest
+
+Core implementation
+-------------------
+mission_orchestrator/routing_delegation_lineage.py          NEW
+mission_orchestrator/__init__.py                             MODIFIED
+mission_orchestrator/api_service.py                          MODIFIED
+mission_orchestrator/errors.py                               MODIFIED
+mission_orchestrator/mission_events.py                       MODIFIED
+mission_orchestrator/repository.py                           MODIFIED
+mission_orchestrator/repository_model.py                     MODIFIED
+mission_orchestrator/service.py                              MODIFIED
+
+Persistence
+-----------
+migrations/026_stage3_4_9_routing_delegation_event_lineage_replay_recovery.sql  NEW
+
+Tests
+-----
+tests/test_stage3_4_9_routing_delegation_event_lineage_replay_recovery.py       NEW
+Historical regression tests under tests/ are minimally rebased where they assert current
+runtime control, supported-control ordering, repository migration inventory, or aggregate
+current-runtime state. Stage-local semantic contracts remain unchanged.
+
+Release / acceptance documentation
+----------------------------------
+README_STAGE3_4_9.md                                         NEW
+PATCH_NOTES_STAGE3_4_9.md                                    NEW
+INSTALL_STAGE3_4_9.txt                                       NEW
+STAGE3_4_9_ACCEPTANCE.ps1                                    NEW
+PATCH_MANIFEST_STAGE3_4_9.txt                                NEW
+SHA256_STAGE3_4_9.txt                                        NEW
+
+Control identity
+----------------
+control_version = stage3.4.9-routing-delegation-event-lineage-replay-recovery
+server_version  = APTSMissionOrchestrator/3.4.9
+repository_migration_level = 26
+new_store = mission_routing_delegation_recovery_checkpoints
+new_event = MISSION_ROUTING_DELEGATION_RECOVERY_CHECKPOINTED
+
+Canonical boundary
+------------------
+replay_read_only = true
+replay_side_effects_performed = false
+replay_is_execution = false
+recovery_reconstructs_durable_artifacts_only = true
+recovery_is_authorization = false
+recovery_is_routing = false
+recovery_is_redelivery = false
+recovery_is_ownership_transfer = false
+external_network_io_performed = false
+governance_query_performed = false
+dispatch_performed = false
+execution_authorized = false
+target_action_dispatch_enabled = false
+target_actuation = false
+
+Validation recorded in build environment
+----------------------------------------
+Python compile: PASS
+Full Stage 3.1-3.4.9 regression: 767 passed in 430.18s
+Focused Stage 3.4.9: 22 passed in 29.77s
+
+Cumulative checkpoints
+----------------------
+Stage 3.1 closure       = 111
+Stage 3.2 cumulative   = 267
+Stage 3.3 cumulative   = 506
+Stage 3.4.1 cumulative = 525
+Stage 3.4.2 cumulative = 551
+Stage 3.4.3 cumulative = 586
+Stage 3.4.4 cumulative = 636
+Stage 3.4.5 cumulative = 666
+Stage 3.4.6 cumulative = 698
+Stage 3.4.7 cumulative = 717
+Stage 3.4.8 cumulative = 745
+Stage 3.4.9 cumulative = 767

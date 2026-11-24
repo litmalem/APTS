@@ -1,0 +1,12 @@
+Stage 3.8.2 installation (Windows PowerShell)
+
+1. Back up D:\mission_orchestrator and the database before replacing source files.
+2. Extract Mission-Stage3.8.2.zip into D:\mission_orchestrator, allowing overwrite.
+3. Restart the Mission Orchestrator service, then run:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_8_2_ACCEPTANCE.ps1
+
+Expected runtime control version: stage3.8.2-cross-subsystem-event-normalization-ingestion.
+Migration level remains 53. No new migration is required.

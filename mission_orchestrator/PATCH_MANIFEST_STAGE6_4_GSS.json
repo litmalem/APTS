@@ -1,0 +1,166 @@
+{
+  "schema_version": "apts-stage6.4-source-patch-manifest-v1",
+  "stage": "6.4",
+  "component": "gss",
+  "control": "stage6.4-authorized-tool-adapters-sandboxing",
+  "created_at": "2026-10-03T01:53:28.493549+00:00",
+  "baseline_archive": "aptsGSS(20261003-001708).zip",
+  "baseline_archive_sha256": "155a8a306ac8fa00371ee8c71b3aef628dd8bf279621251d92529323b9eb02dd",
+  "baseline_file_count": 64,
+  "baseline_modified_files": [
+    "app/governance_service.py",
+    "app/main.py"
+  ],
+  "baseline_missing_files": [],
+  "added_files": [
+    "INSTALL_STAGE6_4_GSS.txt",
+    "PATCH_FILES_STAGE6_4_GSS.txt",
+    "PATCH_MANIFEST_STAGE6_4_GSS.json",
+    "PATCH_NOTES_STAGE6_4_GSS.md",
+    "PATCH_SHA256_STAGE6_4_GSS.txt",
+    "README_STAGE6_4_GSS.md",
+    "REGRESSION_EVIDENCE_STAGE6_4_GSS.txt",
+    "STAGE6_4_GSS_ACCEPTANCE.ps1",
+    "app/execution_revalidation.py",
+    "evidence/stage6_4/cold_overlay.log",
+    "evidence/stage6_4/cold_overlay_tests.xml",
+    "evidence/stage6_4/cold_overlay_verification.json",
+    "evidence/stage6_4/full_regression.log",
+    "evidence/stage6_4/full_regression.xml",
+    "tests/test_execution_revalidation_stage6_4.py"
+  ],
+  "modified_file_baseline_sha256": {
+    "app/governance_service.py": "c62992140559ecdf6396af49454e638d2425a0dc9fdc09f3587766eb1afde6f0",
+    "app/main.py": "ced5cc2b13bb68c9004a188837e5329ba77e8a4c9301a19505facb4a8fcb8287"
+  },
+  "payload_sha256": {
+    "INSTALL_STAGE6_4_GSS.txt": "8907f84535716e4f288e16f19457b16c813634a0ace75e02a8156597695fd843",
+    "PATCH_FILES_STAGE6_4_GSS.txt": "fb17f123c753a1230396e1f75ef8e0f9716834990ae82d39c4864ce33df4dde8",
+    "PATCH_NOTES_STAGE6_4_GSS.md": "c871930189f3dbb3560d2cb012d00698970e6aee36c32815f4e92ea98b5825da",
+    "README_STAGE6_4_GSS.md": "2d4a5d45d5a5f2f2c6ec2221d960d7df1cb37af8cfd109736ed9e77889f3cfb1",
+    "REGRESSION_EVIDENCE_STAGE6_4_GSS.txt": "249a2ccb075d9a11a77fc44b9e65d7acb480af24218f24be1be57362f46e1814",
+    "STAGE6_4_GSS_ACCEPTANCE.ps1": "f918d2c19ad0e7edb7356103535cefb2b8da20445e0ae0e98e39b118d838ca4c",
+    "app/execution_revalidation.py": "4e6b97a7b123d6f0e1a29d1687e0f0c42bfee59d86b1d00ec0c5f56d4397752c",
+    "app/governance_service.py": "9ac0b4be14e62c3e401a7b662c73130ab05ec063f8baaf14a862bcee2142be68",
+    "app/main.py": "8390dce23738e3cb53d68ae9474bc52827c6263d083f873a0bab823455ca98f7",
+    "evidence/stage6_4/cold_overlay.log": "10dcbf0275eb672f9716e1164b8035caf2d1a9add9147b65539cb7a98b84b54c",
+    "evidence/stage6_4/cold_overlay_tests.xml": "33b272b7c8f3d97759c311bba243c7d927fe8bca04b54de9d67f449f92c9a0d3",
+    "evidence/stage6_4/cold_overlay_verification.json": "1fb9750e568be5e39fd3cbe2542e437dfdba935a7b5f88dc7e02844b9b47da63",
+    "evidence/stage6_4/full_regression.log": "ae2be82a26db084ef3acb2aee2e82621135a3c9ecae395f357296042003acc26",
+    "evidence/stage6_4/full_regression.xml": "d98f89ade0443f5630f1d9da5062044aba6170b07ed1a7640e15b5e0b1582876",
+    "tests/test_execution_revalidation_stage6_4.py": "c48bd5b55ea3151c833497fe1db4cfeb33afa6bb4c821894f263c142de78d6ad"
+  },
+  "checksum_file": "PATCH_SHA256_STAGE6_4_GSS.txt",
+  "checksum_exclusions": [
+    "PATCH_SHA256_STAGE6_4_GSS.txt"
+  ],
+  "payload_hash_exclusions": [
+    "PATCH_MANIFEST_STAGE6_4_GSS.json",
+    "PATCH_SHA256_STAGE6_4_GSS.txt"
+  ],
+  "migration_levels": {
+    "mission": 53,
+    "pentest": 16,
+    "execution": 4,
+    "gss_schema_change": false
+  },
+  "historical_mission_source_unchanged": true,
+  "historical_vulndesk_source_unchanged": true,
+  "mission_final_regression": {
+    "tests": 2469,
+    "baseline_tests": 2340,
+    "new_tests": 129,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "process_groups": 64,
+    "run_mode": "ALL_CANONICAL_TESTS_IN_ISOLATED_PROCESS_GROUPS",
+    "source_sha256_unchanged_during_final_run": true,
+    "log_recapture_groups": [
+      47
+    ]
+  },
+  "gss_final_regression": {
+    "tests": 58,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "baseline_tests": 26,
+    "new_tests": 32
+  },
+  "native_linux_sandbox": {
+    "status": "PASS",
+    "backend": "SECCOMP_RLIMIT",
+    "target_io_performed": false,
+    "arbitrary_code_supported": false
+  },
+  "cold_overlay_verification": {
+    "schema_version": "apts-stage6.4-cold-overlay-evidence-v1",
+    "component": "gss",
+    "status": "PASS",
+    "verified_at": "2026-10-03T01:51:41.687839+00:00",
+    "original_archive": "aptsGSS(20261003-001708).zip",
+    "original_archive_sha256": "155a8a306ac8fa00371ee8c71b3aef628dd8bf279621251d92529323b9eb02dd",
+    "overlay_from_zip": true,
+    "patched_source_matches_tested_source": true,
+    "baseline_files": 64,
+    "baseline_modified_files": [
+      "app/governance_service.py",
+      "app/main.py"
+    ],
+    "compilation": "PASS",
+    "inventory": 58,
+    "cold_overlay_tests": {
+      "tests": 58,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "source_sha256": {
+      "app/execution_revalidation.py": "4e6b97a7b123d6f0e1a29d1687e0f0c42bfee59d86b1d00ec0c5f56d4397752c",
+      "app/governance_service.py": "9ac0b4be14e62c3e401a7b662c73130ab05ec063f8baaf14a862bcee2142be68",
+      "app/main.py": "8390dce23738e3cb53d68ae9474bc52827c6263d083f873a0bab823455ca98f7",
+      "tests/test_execution_revalidation_stage6_4.py": "c48bd5b55ea3151c833497fe1db4cfeb33afa6bb4c821894f263c142de78d6ad"
+    },
+    "native_sandbox": null,
+    "windows_executed": false,
+    "production_mysql_verified": false,
+    "live_user_mission_authorized": false,
+    "scope": "Original ZIP + source patch overlay; isolated tests only."
+  },
+  "windows_powershell_executed": false,
+  "windows_job_object_verified": false,
+  "production_mysql_verified": false,
+  "live_user_mission_authorized": false,
+  "deployment_gates": [
+    "STAGE6_4_GSS_ACCEPTANCE.ps1",
+    "STAGE6_4_ACCEPTANCE.ps1"
+  ],
+  "defaults": {
+    "timeout_seconds": 5,
+    "worker_cpu_seconds": 2,
+    "worker_memory_mib": 128,
+    "max_output_bytes": 16384,
+    "max_application_network_bytes": 16384,
+    "network_reservations_per_mission": 10,
+    "concurrency": 1,
+    "rate_reservations_per_second": 1
+  },
+  "limitations": [
+    "Fixed server-owned primitives only; no untrusted code or arbitrary binary execution.",
+    "Current Stage 6.1 production intake is exploitation lineage from Stage 5.6.",
+    "Adapter success is an observation, not proof of a vulnerability.",
+    "Reserved claims after crash consume budgets and concurrency; no retry/refund/redispatch.",
+    "Windows Job Objects enforce resources for the fixed worker; untrusted-code containment is not claimed.",
+    "Full uninterrupted regression and native sandbox must pass on the Windows deployment host."
+  ],
+  "excluded_content": [
+    "databases",
+    "user SQL dumps",
+    "environment files",
+    "credential secrets",
+    "dependencies",
+    "Python caches"
+  ],
+  "next_stage": "6.5"
+}

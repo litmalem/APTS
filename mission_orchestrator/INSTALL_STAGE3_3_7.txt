@@ -1,0 +1,44 @@
+Stage 3.3.7 - Plan Versioning, Replanning & Supersession
+Installation / Regression Steps
+=======================================================
+
+Target repository:
+  D:\mission_orchestrator
+
+1. Stop the Mission Orchestrator before replacing files.
+2. Back up the repository and production database.
+3. Extract the Stage-3.3.7 patch over D:\mission_orchestrator preserving paths.
+4. Database migration:
+   - Existing required level: 14.
+   - Apply migrations\015_stage3_3_7_plan_versioning_replanning_supersession.sql
+     to the production MySQL database.
+   - Expected repository migration level after migration: 15.
+   - SQLite test/dev repositories create the equivalent Stage-3.3.7 tables automatically.
+5. Compile:
+     cd D:\mission_orchestrator
+     python -m compileall -q mission_orchestrator tests
+6. Full regression:
+     python -m pytest -q
+   Expected: 428 passed
+7. Start/restart Mission Orchestrator:
+     python .\run\run_mission_orchestrator.py
+8. Verify health in another PowerShell:
+     Invoke-RestMethod http://127.0.0.1:8780/health
+   Expected:
+     control_version = stage3.3.7-plan-versioning-replanning-supersession
+     mission_repository_migration_level = 15
+9. Run live Stage-3.3.7 acceptance:
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE3_3_7_ACCEPTANCE.ps1
+10. Expected final result:
+     STAGE 3.3.7 ACCEPTANCE: PASS
+
+Authority boundary after Stage 3.3.7:
+  PLAN      != AUTHORIZATION
+  TASK      != DISPATCH
+  READINESS != PERMISSION
+  PLANNER   != GOVERNANCE
+  Governance authority = EXTERNAL_APTS_GSS
+  scheduling = false
+  target-action dispatch = false
+  target actuation = false

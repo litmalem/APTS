@@ -1,0 +1,294 @@
+{
+  "mission_id": "mission-gmo-b4811cc9-7c67-4b38-b4e4-e3faff07f53c",
+  "target": "http://127.0.0.1:80//dvwa/",
+  "mission_create": {
+    "status": "registered",
+    "component_id": "APTS-MO01",
+    "architecture_version": "2026-09-global-orchestrator-v1",
+    "control_version": "stage3.9.10-global-mission-orchestrator-acceptance-regression-gate",
+    "idempotent_replay": true,
+    "canonical_identity": {
+      "mission_id": "mission-gmo-b4811cc9-7c67-4b38-b4e4-e3faff07f53c",
+      "envelope_id": "menv-a9b3d7a1-c3e5-41e7-9773-8787d769b739",
+      "envelope_version": 1,
+      "correlation_id": "corr-42eaf8a2-3425-4fea-8ebf-32c522a7ce99",
+      "parent_mission_id": null
+    },
+    "envelope": {
+      "bindings": {
+        "governance": {
+          "authority": "aptsGSS",
+          "authority_component": "GOV-PLANE",
+          "policy_version": null
+        },
+        "pip": {
+          "pip_id": null,
+          "pip_version": null
+        },
+        "scope": {
+          "roe_version": null,
+          "scope_contract_id": null,
+          "scope_snapshot_id": null,
+          "scope_version": null
+        }
+      },
+      "identity": {
+        "correlation_id": "corr-42eaf8a2-3425-4fea-8ebf-32c522a7ce99",
+        "envelope_id": "menv-a9b3d7a1-c3e5-41e7-9773-8787d769b739",
+        "envelope_version": 1,
+        "mission_id": "mission-gmo-b4811cc9-7c67-4b38-b4e4-e3faff07f53c",
+        "parent_mission_id": null
+      },
+      "integrity": {
+        "canonical_sha256": "863893fa4f254aa25a42be0d1c7c300bb736a892c7466fe5fdb28948f5912a81",
+        "canonicalization": "UTF8_SORTED_JSON_V1",
+        "hash_domain": "MISSION_ENVELOPE_CORE_V1"
+      },
+      "metadata": {
+        "human_interaction": {
+          "interface": "aptsGSS Web",
+          "principal_id": "local-test-operator",
+          "roles": [
+            "GOVERNANCE_ADMIN",
+            "OPERATOR",
+            "SECURITY_APPROVER"
+          ]
+        },
+        "purpose": "WPT_AUTONOMOUS_REPAIR_VALIDATION",
+        "related_mission_id": "mission-gmo-f3ef7325-c13a-4a46-b9b6-d97b505b1433"
+      },
+      "mission": {
+        "budgets": {
+          "max_actions": 20,
+          "max_duration_seconds": 1800
+        },
+        "mission_kind": "AUTHORIZED_PENTEST",
+        "objective": {
+          "goal": "Validate autonomous bounded WPT fingerprinting after runtime repair for http://127.0.0.1:80//dvwa/",
+          "type": "AUTHORIZED_PENTEST"
+        },
+        "required_subsystems": [
+          "CTI",
+          "PENTEST"
+        ],
+        "success_criteria": [
+          "Governed WPT fingerprint result sealed and delivered to Recon"
+        ]
+      },
+      "provenance": {
+        "client_mission_ref": null,
+        "client_request_id": "wpt-autonomous-repair-validation-20261109",
+        "created_at": "2026-11-09T04:01:14.131335Z",
+        "created_by": "local-test-operator",
+        "idempotency_key": "human-ui-wpt-autonomous-repair-validation-20261109",
+        "source_system": "HUMAN_LAYER"
+      },
+      "schema_version": "apts-global-mission-envelope-v1"
+    }
+  },
+  "scope": {
+    "scope_contract": {
+      "id": 187,
+      "scope_contract_id": "scope-2357a771-bf0e-4898-a1fe-caaa559b5e44",
+      "mission_id": "mission-gmo-b4811cc9-7c67-4b38-b4e4-e3faff07f53c",
+      "name": "Autonomous WPT repair validation \u2014 DVWA LAB",
+      "status": "ACTIVE",
+      "policy_set_id": "default-policy",
+      "version": 1,
+      "valid_from": "2026-11-09T04:01:24.881698",
+      "valid_until": null,
+      "created_by": "local-test-operator",
+      "approved_by": "local-test-operator",
+      "approved_at": "2026-11-09T04:01:24.881813",
+      "contract_hash": "43c04675bd5838b8955169dc8ea7ced0fb030a1480bd329984da03c2ae0bf65c",
+      "created_at": "2026-11-09T04:01:24",
+      "updated_at": "2026-11-09T04:01:24",
+      "metadata": {
+        "revision_reason": "User requested completion of autonomous WPT repair; one bounded six-GET validation on the same approved LAB target.",
+        "revision_actor": "local-test-operator",
+        "gss_workflow_profile": {
+          "profile_id": "WPT_FINGERPRINT_AUTONOMOUS_V1",
+          "profile_label": "Fingerprinting WPT otonom terbatas",
+          "version": 1,
+          "execution_authorized": false,
+          "target_actuation": false,
+          "delegation_capabilities": [
+            "PENTEST:pentest.recon"
+          ],
+          "recon_techniques": [
+            "WEB_TECHNOLOGY_FINGERPRINT"
+          ],
+          "max_network_requests": 6
+        }
+      },
+      "targets": [
+        {
+          "id": 169,
+          "scope_target_id": "stgt-3bd6e542-de4b-4c59-803a-b472d0b4b4e6",
+          "scope_contract_id": "scope-2357a771-bf0e-4898-a1fe-caaa559b5e44",
+          "target_type": "URL",
+          "target_value": "http://127.0.0.1:80//dvwa/",
+          "normalized_value": "http://127.0.0.1:80//dvwa/",
+          "environment": "LAB",
+          "allowed": 1,
+          "notes": null,
+          "created_at": "2026-11-09T04:01:24"
+        }
+      ],
+      "sources": [],
+      "action_constraints": [
+        {
+          "id": 489,
+          "constraint_id": "sact-b1a17823-b11c-4835-bf16-e6feaf68754a",
+          "scope_contract_id": "scope-2357a771-bf0e-4898-a1fe-caaa559b5e44",
+          "action_class": "TARGET_RECON",
+          "action_name": "recon",
+          "effect": "ALLOW",
+          "max_risk_level": "LOW",
+          "requires_approval": false,
+          "created_at": "2026-11-09T04:01:24",
+          "constraints": {
+            "max_network_requests": 6,
+            "max_requests": 6,
+            "allowed_methods": [
+              "GET"
+            ],
+            "allowed_techniques": [
+              "WEB_TECHNOLOGY_FINGERPRINT"
+            ],
+            "read_only": true,
+            "state_changing_requests": false,
+            "workflow_profile": "WPT_FINGERPRINT_AUTONOMOUS_V1"
+          }
+        },
+        {
+          "id": 490,
+          "constraint_id": "sact-921b9514-d876-4d64-b3ac-b25f65b49448",
+          "scope_contract_id": "scope-2357a771-bf0e-4898-a1fe-caaa559b5e44",
+          "action_class": "TARGET_RECON",
+          "action_name": "web_technology_fingerprinting",
+          "effect": "ALLOW",
+          "max_risk_level": "LOW",
+          "requires_approval": false,
+          "created_at": "2026-11-09T04:01:24",
+          "constraints": {
+            "max_network_requests": 6,
+            "max_requests": 6,
+            "allowed_methods": [
+              "GET"
+            ],
+            "allowed_techniques": [
+              "WEB_TECHNOLOGY_FINGERPRINT"
+            ],
+            "read_only": true,
+            "state_changing_requests": false,
+            "workflow_profile": "WPT_FINGERPRINT_AUTONOMOUS_V1"
+          }
+        },
+        {
+          "id": 491,
+          "constraint_id": "sact-39512e91-9649-4514-943d-9924abf91b69",
+          "scope_contract_id": "scope-2357a771-bf0e-4898-a1fe-caaa559b5e44",
+          "action_class": "TARGET_RECON",
+          "action_name": "AUTHORIZE_TARGET_EXECUTION",
+          "effect": "ALLOW",
+          "max_risk_level": "LOW",
+          "requires_approval": false,
+          "created_at": "2026-11-09T04:01:24",
+          "constraints": {
+            "max_network_requests": 6,
+            "max_requests": 6,
+            "allowed_methods": [
+              "GET"
+            ],
+            "allowed_techniques": [
+              "WEB_TECHNOLOGY_FINGERPRINT"
+            ],
+            "read_only": true,
+            "state_changing_requests": false,
+            "workflow_profile": "WPT_FINGERPRINT_AUTONOMOUS_V1"
+          }
+        },
+        {
+          "id": 492,
+          "constraint_id": "sact-1f9b502c-5afb-4f1c-bb13-6cecfb22e7b2",
+          "scope_contract_id": "scope-2357a771-bf0e-4898-a1fe-caaa559b5e44",
+          "action_class": "TASK_DELEGATION",
+          "action_name": "delegate_planned_task",
+          "effect": "ALLOW",
+          "max_risk_level": "LOW",
+          "requires_approval": false,
+          "created_at": "2026-11-09T04:01:24",
+          "constraints": {
+            "allowed_capabilities": [
+              "PENTEST:pentest.recon"
+            ],
+            "execution_authorized": false,
+            "target_actuation": false,
+            "authorized_subject_component": "APTS-MO01",
+            "authorization_purpose": "PRE_DELEGATION_ONLY",
+            "workflow_profile": "WPT_FINGERPRINT_AUTONOMOUS_V1"
+          }
+        }
+      ]
+    }
+  },
+  "verified": {
+    "mission_id": "mission-gmo-b4811cc9-7c67-4b38-b4e4-e3faff07f53c",
+    "job_id": "wpt-c5ac891459cd4a01bdc8d3052e2bb2aa",
+    "intake_id": "wptreq-auto-963b7ee2411fffefbfc61203e451c3838f8d2086",
+    "execution_id": "exec-37e7ccb866ec78a23448ba115ca01fdc",
+    "attempt_id": "xattempt-dbee279eaf65f3a369855809f8a07d87",
+    "runtime_state": "SUCCEEDED",
+    "wpt_status": "COMPLETED",
+    "recon_status": "DELIVERED",
+    "recon_runs": [
+      {
+        "recon_run_id": "reconrun-6c691d55061c9807b26d521ac00fb5c11bbb83e0a6a26981",
+        "run_status": "COMPLETED",
+        "output_sha256": "f84d9fd42ec0d59a60e625d05027f8e0066487fd5d92ca746d8de423ecb2bfcf",
+        "evidence_bundle_sha256": "6b0e62703e97c88ca6ea38127064ea3c32ba87d990a58e082f913c8fea55e28b"
+      }
+    ],
+    "attempt_count": 1,
+    "result_sha256": "c74e61754d50f717867308069ed4b54d15f0d6471111c0547a51da62de8dc538",
+    "evidence": {
+      "capture_status": "SEALED",
+      "evidence_ref": "stage6-evidence://xevidence-d4e7feb39e9f6a3df17a0af4b1c85014",
+      "manifest_sha256": "6d7cc5bf47fd63c70e214fc83df3f27973d07270a8b591d53ec257af20ae493e"
+    },
+    "scan_metrics": {
+      "evidence_strength_index_max": 70,
+      "favicon_fingerprints": 1,
+      "fingerprints_matched": 3,
+      "headers_observed": 6,
+      "html_responses": 0,
+      "redirects_blocked": 1,
+      "redirects_observed": 1,
+      "request_budget": 6,
+      "request_errors": 0,
+      "requests_performed": 2,
+      "requests_planned": 2,
+      "response_rate_percent": 100,
+      "responses_received": 2,
+      "scan_status": "PARTIAL",
+      "tls_sessions": 0
+    },
+    "technology_findings": [
+      "Apache/2.4.58 (Win64) OpenSSL/3.1.3 PHP/8.0.30",
+      "PHP",
+      "PHP/8.0.30"
+    ],
+    "runtime_timeout_fix_deployed": true,
+    "scope_without_expiry_fix_deployed": true,
+    "validation": {
+      "scope_runtime_tests_passed": 33,
+      "governance_tests_passed_prior_turn": 47,
+      "supplementary_runtime_tests": {
+        "passed": 20,
+        "failed": 6,
+        "failure": "VEP execution/evidence lineage; one representative failure reproduced with baseline timeout code"
+      }
+    }
+  }
+}

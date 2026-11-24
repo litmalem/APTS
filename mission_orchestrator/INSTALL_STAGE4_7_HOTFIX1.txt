@@ -1,0 +1,14 @@
+STAGE 4.7 HOTFIX1 - WINDOWS HTTP REGRESSION STABILITY
+
+1. Stop no runtime service solely for this patch; production runtime code is unchanged.
+2. Extract the patch ZIP directly over D:\mission_orchestrator and allow overwrite of the five
+   Stage 4.1-4.5 test files.
+3. Verify the isolated historical Stage 4.3 test:
+
+   python -m pytest -q tests/test_stage4_3_pentest_mission_task_contract.py::test_17_http_stage43_health_contract_create_get_list_and_execution_negative_boundary
+
+4. Re-run:
+
+   .\STAGE4_7_ACCEPTANCE.ps1
+
+Expected canonical inventory remains 1724 tests.

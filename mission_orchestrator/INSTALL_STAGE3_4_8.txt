@@ -1,0 +1,79 @@
+Stage 3.4.8 — Retry, Fallback, Reassignment & Conflict Control
+==============================================================
+
+Target project
+--------------
+D:\mission_orchestrator
+
+Runtime identity after installation
+-----------------------------------
+control_version = stage3.4.8-retry-fallback-reassignment-conflict-control
+server_version  = APTSMissionOrchestrator/3.4.8
+repository_migration_level = 25
+new_store = mission_delegation_recovery_controls
+new_event = MISSION_TASK_DELEGATION_RECOVERY_CONTROL_RECORDED
+
+Installation
+------------
+1. Stop the Mission Orchestrator process currently listening on port 8780.
+
+2. Back up D:\mission_orchestrator and its Mission repository database.
+
+3. Apply the Stage-3.4.8 patch over D:\mission_orchestrator. Preserve deployment-specific environment/configuration and the existing data directory.
+
+4. From PowerShell:
+
+   cd D:\mission_orchestrator
+
+5. Activate the same Python environment used by Stage 3.4.7.
+
+6. Compile preflight:
+
+   python -m compileall -q mission_orchestrator tests
+
+7. Start Mission Orchestrator through the same startup path used for Stage 3.4.7. Repository bootstrap must apply migration level 25 and create:
+
+   mission_delegation_recovery_controls
+
+8. Verify runtime health:
+
+   Invoke-RestMethod http://127.0.0.1:8780/health | ConvertTo-Json -Depth 12
+
+   Expected critical values:
+
+   control_version = stage3.4.8-retry-fallback-reassignment-conflict-control
+   mission_repository_migration_level = 25
+   delegation_recovery_control_database_migration_level = 25
+   delegation_recovery_control_persistence_store = mission_delegation_recovery_controls
+   delegation_recovery_control_max_retry_attempts = 3
+   delegation_recovery_control_requires_stage347_ownership_receipt = true
+   delegation_recovery_control_caller_selected_fallback_forbidden = true
+   delegation_recovery_control_retry_retains_current_owner = true
+   delegation_recovery_control_ownership_transfer_performed = false
+   delegation_recovery_control_runtime_endpoint_resolution_performed = false
+   delegation_recovery_control_external_network_io_performed = false
+   delegation_recovery_control_governance_query_performed = false
+   delegation_recovery_control_dispatch_performed = false
+   delegation_recovery_control_execution_authorized = false
+   delegation_recovery_control_pre_dispatch_governance_revalidation_required = true
+
+9. Run the acceptance harness:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_4_8_ACCEPTANCE.ps1
+
+10. Expected terminal result:
+
+   STAGE 3.4.8 ACCEPTANCE: PASS
+
+Operational boundary
+--------------------
+Stage 3.4.8 is a control-plane recovery layer. Retry is an admission record, not dispatch. Fallback/reassignment derives only the next immutable Stage-3.4.4 candidate and records a proposal; ownership remains with the Stage-3.4.7 recipient until a later canonical route/Governance/delegation sequence establishes a successor ownership chain.
+
+Conflict boundary
+-----------------
+Every control chain uses expected_control_count plus transactional sequence guarding. Controls bind their immediate predecessor by ID and SHA-256. FREEZE_OWNERSHIP_CONFLICT is fail-closed and blocks later controls for the ownership receipt.
+
+Governance boundary
+-------------------
+Stage 3.4.8 performs no new Governance query. The Stage-3.4.5 authorization remains pre-delegation evidence only. Any future dispatch/execution control must perform authoritative pre-dispatch Governance revalidation.

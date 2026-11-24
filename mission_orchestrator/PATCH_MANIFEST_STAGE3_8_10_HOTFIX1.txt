@@ -1,0 +1,28 @@
+Stage 3.8.10 Hotfix 1 — Patch Manifest
+======================================
+
+Purpose:
+  Regression-only rebase for three stale historical supported_controls assertions.
+
+Changed test files:
+  tests/test_stage3_4_10_routing_delegation_acceptance_regression_gate.py
+  tests/test_stage3_5_10_execution_dispatch_acceptance_regression_gate.py
+
+Added verification/documentation:
+  STAGE3_8_10_HOTFIX1_VERIFY.ps1
+  README_STAGE3_8_10_HOTFIX1_REGRESSION_REBASE.md
+  PATCH_NOTES_STAGE3_8_10_HOTFIX1_REGRESSION_REBASE.md
+  INSTALL_STAGE3_8_10_HOTFIX1.txt
+  SHA256_STAGE3_8_10_HOTFIX1.txt
+
+Production runtime files changed:
+  NONE
+
+Database migration:
+  NONE
+
+Durable store:
+  NONE
+
+Authority expansion:
+  NONE

@@ -1,0 +1,58 @@
+Stage 4.10 implementation-environment regression evidence
+Date: 2026-10-01
+
+Control:
+  stage4.10-pentest-foundation-acceptance-gate
+
+Pentest migration:
+  7 (unchanged)
+
+Python compilation:
+  PASS
+
+Canonical pytest inventory:
+  1799 tests collected
+
+Focused Stage 4.10:
+  15 passed in 1.67s
+
+Stage 4.1 -> 4.10 regression:
+  224 passed in 12.34s
+
+Explicit Stage 4.10 roadmap acceptance dimensions:
+  31 passed in 2.24s
+
+Critical Stage 3 -> Stage 4 lineage/governance/closure regression:
+  105 passed in 11.56s
+
+Roadmap acceptance dimensions bound by the gate:
+  persistence
+  restart
+  replay
+  idempotency
+  duplicate PIP
+  stale PIP
+  invalid scope
+  denied action
+  stop/kill
+  event ordering
+  cross-subsystem lineage
+
+Final deployment PASS/FAIL authority:
+  STAGE4_10_ACCEPTANCE.ps1
+  -> full historical pytest regression (1799 tests) on the deployment host
+
+Authority boundary:
+  no new database migration
+  no new durable store
+  no PolicyDecision minting
+  no execution intake authority
+  no tool invocation
+  no external network I/O
+  no target actuation
+
+Stage 4 output on successful host acceptance:
+  PENTEST_SUBSYSTEM_PLATFORM
+
+Next:
+  Stage 5.1 — Full Agentic Pentest Workflow Orchestrator

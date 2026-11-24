@@ -1,0 +1,82 @@
+APTS Stage 5.10 — Agentic Pentest Acceptance & Regression Gate
+Regression evidence generated in the implementation sandbox on 2026-10-02.
+
+Control:
+  stage5.10-agentic-pentest-acceptance-regression-gate
+
+Pentest repository migration:
+  16 (unchanged)
+
+Python compilation:
+  PASS
+
+Canonical pytest inventory:
+  2045 tests collected
+
+Focused Stage 5.10:
+  tests/test_stage5_10_agentic_pentest_acceptance_regression_gate.py
+  15 passed in 7.26s
+
+Immediate predecessor continuity:
+  tests/test_stage5_9_governance_bound_multi_agent_pentest_e2e.py
+  tests/test_stage5_10_agentic_pentest_acceptance_regression_gate.py
+  36 passed in 12.68s
+
+Stage 5 chain verified in isolated focused runs:
+  Stage 5.1:  24 passed in 2.53s
+  Stage 5.2:  24 passed in 3.29s
+  Stage 5.3:  26 passed in 4.08s
+  Stage 5.4:  28 passed in 5.03s
+  Stage 5.5:  28 passed in 5.50s
+  Stage 5.6:  28 passed in 6.25s
+  Stage 5.7:  28 passed in 6.77s
+  Stage 5.8:  24 passed in 5.66s
+  Stage 5.9:  21 passed in 5.73s
+  Stage 5.10: 15 passed in 7.26s
+  Total focused Stage-5 assertions: 246 passed
+
+Critical global-root / governance / evidence / closure regression:
+  tests/test_stage3_9_10_global_mission_orchestrator_acceptance_regression_gate.py
+  tests/test_stage4_8_governance_scope_roe_enforcement.py
+  tests/test_stage4_9_evidence_finding_lineage_foundation.py
+  tests/test_stage4_10_pentest_foundation_acceptance_gate.py
+  tests/test_stage5_8_cross_agent_feedback_shared_state_replanning.py
+  tests/test_stage5_9_governance_bound_multi_agent_pentest_e2e.py
+  tests/test_stage5_10_agentic_pentest_acceptance_regression_gate.py
+  150 passed in 27.81s
+
+Roadmap Stage-5.10 acceptance dimensions bound by the gate:
+  specialist isolation
+  role ownership
+  handoff
+  agent identity
+  shared state
+  no direct tool bypass
+  governance preservation
+  deterministic contracts
+  recovery
+  replanning
+  lineage
+  regression
+
+Sandbox execution note:
+  A single monolithic Stage-5 chain command exceeded the sandbox execution window after
+  substantial progress; all Stage-5 test files were therefore executed individually and all
+  246 Stage-5 assertions passed. The complete 2045-test historical suite was not executed
+  as one monolithic sandbox command.
+
+Final deployment PASS/FAIL authority:
+  STAGE5_10_ACCEPTANCE.ps1
+  -> runs the Stage-5.1 -> Stage-5.10 chain and the full historical `python -m pytest -q`
+     on the deployment host.
+
+Authority boundary:
+  no new database migration
+  no new durable store
+  no PolicyDecision minting
+  no ExecutionRequest creation
+  no ActionResult creation
+  no raw tool invocation
+  no external target network I/O
+  no target actuation
+  Stage 6 remains controlled execution and target-evidence authority

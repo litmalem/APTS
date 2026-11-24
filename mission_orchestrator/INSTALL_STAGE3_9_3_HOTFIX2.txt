@@ -1,0 +1,32 @@
+Stage 3.9.3 Hotfix 2 — Installation
+===================================
+
+Purpose
+-------
+Rebase seven historical supported_controls expectations to preserve the accepted Stage 3.9.2 predecessor before Stage 3.9.3.
+
+Install root
+------------
+D:\mission_orchestrator
+
+Procedure
+---------
+1. Stop only if your local repository contains uncommitted edits to any of the seven test files in this patch that you need to preserve.
+2. Extract this ZIP directly over D:\mission_orchestrator, preserving the tests\ subdirectory.
+3. No service restart is required because production runtime modules are unchanged.
+4. Run:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_9_3_HOTFIX2_VERIFY.ps1
+
+5. If verification passes, rerun:
+
+   .\STAGE3_9_3_ACCEPTANCE.ps1
+
+Expected invariants
+-------------------
+control_version = stage3.9.3-planning-task-graph-dependency-verification
+mission_repository_migration_level = 53
+canonical pytest inventory = 1473
+runtime/authority changes = none

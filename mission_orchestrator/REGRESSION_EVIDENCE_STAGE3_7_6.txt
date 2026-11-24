@@ -1,0 +1,14 @@
+STAGE 3.7.6 REGRESSION EVIDENCE
+===============================
+Build workspace: /mnt/data/mission376
+
+Verified:
+- Python compile: PASS
+- Canonical pytest collection: 1282 tests
+- Focused Stage-3.7.6 suite: 25 passed in 28.02s
+- Stage-3.7.5 focused suite + two historical current-head probes: 23 passed in 23.53s
+
+Additional development partitions verified successfully included Stage 3.1, Stage 3.2, Stage 3.3 partitions, and multiple Stage 3.4 partitions. Historical current-head assertions were rebased where they intentionally track repository head.
+
+IMPORTANT:
+A single uninterrupted full 1282-test pytest invocation has not been completed in this build environment because long aggregate invocations exceeded the available tool execution window. This is not recorded as a regression PASS. Formal acceptance therefore remains pending and must be established on the target host by STAGE3_7_6_ACCEPTANCE.ps1, which runs the complete canonical suite.

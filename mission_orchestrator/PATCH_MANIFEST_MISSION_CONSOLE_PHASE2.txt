@@ -1,0 +1,52 @@
+PHASE 2 - GUARDED HUMAN INTERACTION MISSION CONSOLE
+
+Baseline:
+- Mission(20261007-020337).zip
+
+Modified:
+- mission_orchestrator/api_service.py
+- mission_orchestrator/service.py
+- mission_orchestrator/governance_binding.py
+- mission_web/index.html
+- mission_web/app.css
+- mission_web/app.js
+- tests/test_mission_console_phase1_readonly.py
+
+Added:
+- README_MISSION_CONSOLE_PHASE2.md
+- START_MISSION_CONSOLE_PHASE2.ps1
+- PATCH_MANIFEST_MISSION_CONSOLE_PHASE2.txt
+- tests/test_mission_console_phase2_human_interaction.py
+
+Phase-2 operator command surface:
+- START
+- PAUSE
+- RESUME
+- REPLAN
+- BEGIN_CLEANUP
+- ABORT
+
+Canonical mutation route reused:
+- POST /api/missions/{mission_id}/lifecycle/commands
+
+Canonical guard/concurrency read models reused:
+- GET /api/missions/{mission_id}/state
+- GET /api/missions/{mission_id}/version-vector
+- GET /api/missions/{mission_id}/lifecycle-command-contract
+- GET /api/missions/{mission_id}/commands
+
+Read-only governance projection added:
+- GET /api/missions/{mission_id}/governance-visibility
+
+Safety properties:
+- no direct Mission DB write from Web UI
+- command eligibility derives from backend lifecycle guard contract
+- state-version + version-vector preflight before mutation
+- no automatic mutation retry after conflict
+- explicit actor/reason/reason-code capture
+- evidence capture where required
+- explicit ABORT danger confirmation
+- no Governance ALLOW/DENY mutation
+- no human APPROVE/DENY mutation
+- no target dispatch or target actuation from Mission UI
+- external aptsGSS remains authorization/approval authority

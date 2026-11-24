@@ -1,0 +1,19 @@
+Stage 3.8.1 installation / verification
+
+1. Overlay the patch contents on D:\mission_orchestrator.
+2. Do NOT add migration 054. Repository migration level remains 53.
+3. Restart the Mission Orchestrator runtime.
+4. Verify:
+
+   Invoke-RestMethod http://127.0.0.1:8780/health |
+       Select-Object status,control_version,mission_repository_migration_level,observability_trace_schema_version,observability_trace_context_schema_version,observability_trace_database_change_mode,observability_trace_export_mode
+
+5. Run:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_8_1_ACCEPTANCE.ps1
+
+Expected terminal line:
+
+   STAGE 3.8.1 ACCEPTANCE: PASS

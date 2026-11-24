@@ -1,0 +1,20 @@
+Stage 3.8.10 — Observe / Reconstruct Acceptance & Regression Gate
+
+1. Stop the Mission Orchestrator process using D:\mission_orchestrator.
+2. Back up D:\mission_orchestrator and its data directory.
+3. Extract the Stage 3.8.10 overlay into D:\mission_orchestrator, preserving relative paths and overwriting included files.
+4. Do NOT delete or replace data\mission_orchestrator.db. Stage 3.8.10 adds no migration; expected migration level remains 53.
+5. Restart the Mission Orchestrator.
+6. Confirm /health reports:
+   control_version = stage3.8.10-observe-reconstruct-acceptance-regression-gate
+   mission_repository_migration_level = 53
+7. Run from an elevated PowerShell only if your environment requires it:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_8_10_ACCEPTANCE.ps1
+
+   Optional live Mission cross-view probe:
+   .\STAGE3_8_10_ACCEPTANCE.ps1 -MissionId '<existing-mission-id>'
+
+The acceptance harness expects 1431 collected/passed tests and 4 focused Stage 3.8.10 tests.

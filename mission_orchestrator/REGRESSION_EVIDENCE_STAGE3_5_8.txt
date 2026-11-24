@@ -1,0 +1,101 @@
+Stage 3.5.8 — Timeout, Cancellation, Abort & Failure Propagation
+Generated: 2026-09-15
+
+CONTROL
+  stage3.5.8-timeout-cancellation-abort-failure-propagation
+
+HTTP SERVER
+  APTSMissionOrchestrator/3.5.8
+
+REPOSITORY MIGRATION
+  34
+
+CANONICAL PYTEST INVENTORY
+  931 tests collected in 0.43s
+
+PYTHON COMPILE
+  python -m compileall -q mission_orchestrator tests
+  PASS
+
+FOCUSED STAGE-3.5.8 PROOF
+  tests/test_stage3_5_8_timeout_cancellation_abort_failure_propagation.py
+  20/20 passed.
+  Container finalization runner was executed as four deterministic 5-test batches
+  to stay below the per-command transport timeout:
+    batch 1: 5 passed in 12.34s
+    batch 2: 5 passed in 12.76s
+    batch 3: 5 passed in 13.18s
+    batch 4: 5 passed in 13.04s
+  The complete canonical full-suite run below includes all 20 Stage-3.5.8 tests
+  in one regression run.
+
+FULL REGRESSION
+  python -m pytest -q
+  931 passed in 886.25s (0:14:46)
+  exit code: 0
+
+REGRESSION COMPATIBILITY FINALIZATION
+  Stage 3.5.8 extends the active supported-control lineage and repository migration
+  inventory. Prior tests containing current-runtime expectations were rebased from
+  Stage 3.5.7 / migration 33 to Stage 3.5.8 / migration 34 where appropriate.
+  Historical per-stage authority and behavior assertions remain unchanged unless they
+  explicitly verify the current runtime head, repository migration inventory, HTTP
+  version, or supported-control tail.
+
+RUNTIME DECLARATION SMOKE CHECK
+  control_version=stage3.5.8-timeout-cancellation-abort-failure-propagation
+  HTTP server=APTSMissionOrchestrator/3.5.8
+  mission_repository_migration_level=34
+  stage358_database_migration_level=34
+  stage358_schema_version=apts-execution-timeout-cancellation-abort-failure-propagation-v1
+  execution_termination_control_schema_version=apts-execution-termination-control-v1
+  execution_termination_control_identity_prefix=xterm-
+  execution_termination_control_mode=FAIL_CLOSED_RUNTIME_TIMEOUT_CANCELLATION_ABORT_CONTROL_PENDING_TERMINAL_RESULT
+  execution_termination_control_authority=MISSION_ORCHESTRATOR_EXECUTION_CONTROL_INTENT
+  execution_termination_control_persistence_store=mission_execution_termination_controls
+  execution_outcome_propagation_schema_version=apts-execution-terminal-outcome-propagation-v1
+  execution_outcome_propagation_identity_prefix=xprop-
+  execution_outcome_propagation_mode=VERIFIED_TERMINAL_OUTCOME_WITH_FAIL_FAST_MISSION_FAILURE_PROPAGATION
+  execution_outcome_propagation_authority=MISSION_ORCHESTRATOR_VERIFIED_EXECUTION_OUTCOME_PROPAGATION
+  execution_outcome_persistence_store=mission_execution_outcome_propagations
+  execution_outcome_success_does_not_imply_mission_completion=true
+  execution_outcome_failure_propagates_via_canonical_stage327_lifecycle=true
+  supported-control tail:
+    stage3.5.7-execution-result-evidence-artifact-capture
+    stage3.5.8-timeout-cancellation-abort-failure-propagation
+
+BOUNDARY EVIDENCE
+  - Runtime termination control accepts TIMEOUT, CANCEL, and ABORT only for the exact
+    current RUNNING execution attempt bound to active Plan, xattempt, xack, xenv, and
+    latest xrun identities/hashes.
+  - The exact Stage-3.5.5 runtime endpoint is reused; no endpoint re-resolution occurs.
+  - The Stage-3.5.3 ALLOW authorization remains evidence for the already-authorized
+    attempt; Stage 3.5.8 performs no new Governance query.
+  - A control request performs one runtime health probe and one control I/O, persists an
+    immutable xterm-* acknowledgement, and performs no Mission transition itself.
+  - Only one termination control is allowed per execution attempt; exact idempotent
+    replay performs no additional runtime I/O.
+  - Control after a Stage-3.5.7 terminal xresult-* capture is rejected fail-closed.
+  - Stage 3.5.7 remains authoritative for terminal execution result/evidence capture.
+  - Stage 3.5.8 propagation consumes the durable xresult-*; it performs no runtime
+    result re-query, runtime control I/O, Governance query, redelivery, or new target action.
+  - SUCCEEDED -> VERIFIED_SUCCESS / VERIFIED_COMPLETED; Mission remains RUNNING.
+  - FAILED -> VERIFIED_FAILURE -> lifecycle FAIL -> Mission FAILED.
+  - TIMED_OUT -> VERIFIED_TIMEOUT -> lifecycle FAIL -> Mission FAILED.
+  - CANCELLED -> lifecycle ABORT -> Mission ABORTED unless a prior TIMEOUT intent
+    classifies the outcome as VERIFIED_TIMEOUT and fails the Mission.
+  - CANCELLED after ABORT is classified VERIFIED_ABORT.
+  - SUCCEEDED after an acknowledged termination request is rejected as an inconsistent
+    runtime trajectory.
+  - Non-success propagation uses deterministic canonical lifecycle command identity for
+    idempotency and crash-recovery safety.
+  - New lineage events are persisted for termination acknowledgement and terminal
+    outcome propagation.
+  - Repository reconstruction covers both Stage-3.5.8 stores, canonical hashes,
+    persistence-manifest projections, restart durability, and tamper detection.
+
+HOST ACCEPTANCE
+  STAGE3_5_8_ACCEPTANCE.ps1 is the authoritative deployment-host closure gate.
+  It verifies active runtime control on port 8780, canonical inventory, full regression,
+  focused Stage-3.5.8 proof, migration 34, source-control ordering, and authority-boundary
+  invariants against the deployed Mission Orchestrator.

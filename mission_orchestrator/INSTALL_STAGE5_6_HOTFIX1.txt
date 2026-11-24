@@ -1,0 +1,21 @@
+STAGE 5.6 HOTFIX1 INSTALL
+=========================
+
+Target root:
+  D:\mission_orchestrator
+
+1. Extract Stage5_6_HOTFIX1_Windows_HTTP_Regression_Stability.zip.
+2. Copy/overlay all files into D:\mission_orchestrator preserving relative paths.
+3. Allow overwrite of:
+     tests\test_stage4_10_pentest_foundation_acceptance_gate.py
+     tests\test_stage5_6_exploitation_agent.py
+     tests\_localhost_http.py
+4. No database migration is added.
+5. No runtime restart is required solely for this test-harness hotfix.
+6. Run:
+     cd D:\mission_orchestrator
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE5_6_HOTFIX1_VERIFY.ps1
+     .\STAGE5_6_ACCEPTANCE.ps1
+
+The second command remains the final 1957-test acceptance authority.

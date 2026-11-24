@@ -1,0 +1,26 @@
+Stage 3.7.8 regression evidence generated in the implementation workspace
+==========================================================================
+
+Python compile:
+  PASS — mission_orchestrator and tests compile.
+
+Canonical collection:
+  PASS — 1322 tests collected.
+
+Focused Stage 3.7.8:
+  PASS — 18 passed.
+
+Focused Stage 3.7.7 predecessor:
+  PASS — 22 passed.
+
+Repository smoke/integrity:
+  PASS — Stage-3.7.8 handoff persisted; MISSION_REPLAN_HANDOFF_READY emitted;
+         repository reconstruction returned integrity_status=PASS and handoff count=1.
+
+Full regression in this sandbox:
+  ATTEMPTED, NOT AUTHORITATIVELY COMPLETED — the long-running full suite exceeded the
+  sandbox command timeout before completion; no failure was observed before timeout.
+  The target-host acceptance script therefore remains the authoritative full regression gate.
+
+Authoritative host command:
+  .\STAGE3_7_8_ACCEPTANCE.ps1

@@ -1,0 +1,27 @@
+Stage 3.5.5 — Dispatch Delivery & Execution Acknowledgement
+Generated package evidence
+
+CONTROL
+  stage3.5.5-dispatch-delivery-execution-acknowledgement
+
+REPOSITORY MIGRATION
+  31
+
+CANONICAL PYTEST INVENTORY
+  875 tests collected
+
+FOCUSED STAGE-3.5.5 PROOF
+  tests/test_stage3_5_5_dispatch_delivery_execution_acknowledgement.py
+  19 passed in 32.17s
+
+SMOKE PROOF
+  - Stage-3.5.4 xattempt/xenv prepared
+  - Stage-3.5.5 xack persisted
+  - runtime endpoint resolution called once
+  - runtime health probe called once
+  - delivery called once with xenv-* as downstream idempotency key
+  - repository reconstruction returned migration 31 and mission_execution_deliveries count 1
+
+FULL REGRESSION
+  The package includes STAGE3_5_5_ACCEPTANCE.ps1, which requires all 875 canonical tests to pass on the deployment host.
+  A complete full-suite run was not certified in the packaging sandbox because the pre-existing suite exceeds the available single-command execution window there. Host acceptance remains authoritative for closure.

@@ -1,0 +1,38 @@
+{
+  "status": "PASS",
+  "acceptance_scope": "BUILD_ISOLATED",
+  "component_counts": {
+    "mission": 2974,
+    "gss": 197,
+    "vulndesk": 136
+  },
+  "total_tests": 3307,
+  "junit_totals": {
+    "tests": 3307,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "all_required_gates_passed": true,
+  "source_snapshot_unchanged": true,
+  "sandbox_backend": "SECCOMP_RLIMIT",
+  "wall_seconds": 655.721,
+  "windows_deployment_exercised": false,
+  "live_user_mission_execution_proven": false,
+  "execution_authorized": false,
+  "gss_source_digest": "63480df9dfe52bb84908e09b8e58f5ff1b21d7f50b9ab0675e5c552096685909",
+  "optional_gss_mariadb_suite": {
+    "file": "tests/test_human_approval_mariadb.py",
+    "test_count": 10,
+    "status": "NOT_EXERCISED_IN_CANONICAL_REGRESSION"
+  },
+  "copied_gss_test_quarantine_validation": {
+    "status": "PASS",
+    "exact_source_copy_files": 13,
+    "corresponding_gss_test_nodes": 135,
+    "historical_mission_bridge_preserved": true,
+    "native_test_removed": false,
+    "quarantine_receipt_and_file_hashes_verified": true
+  },
+  "regression_report_sha256": "91e15b725b5118682ca88a2c831e516caf1e6e7f4ec003560835b1ca9fdb7a2d"
+}

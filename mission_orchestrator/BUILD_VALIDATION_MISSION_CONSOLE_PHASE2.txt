@@ -1,0 +1,43 @@
+PHASE 2 - GUARDED HUMAN INTERACTION MISSION CONSOLE
+BUILD / VALIDATION RECORD
+
+Baseline archive:
+Mission(20261007-020337).zip
+
+Static validation:
+- python compile: mission_orchestrator/api_service.py PASS
+- python compile: mission_orchestrator/service.py PASS
+- python compile: mission_orchestrator/governance_binding.py PASS
+- node --check mission_web/app.js PASS
+
+Focused test group:
+- tests/test_mission_console_phase1_readonly.py
+- tests/test_mission_console_phase2_human_interaction.py
+Result: 6 passed
+
+Lifecycle + console regression group:
+- tests/test_stage3_2_1_mission_lifecycle_command_contract.py
+- tests/test_stage3_2_2_lifecycle_transition_guard_matrix.py
+- tests/test_mission_console_phase1_readonly.py
+- tests/test_mission_console_phase2_human_interaction.py
+Result: 35 passed
+
+Validated Phase-2 invariants:
+- bounded Web command surface only
+- lifecycle guard remains canonical backend authority
+- optimistic concurrency conflict fails closed
+- stale version vector is not silently retried
+- Mission Web cannot decide Governance authorization
+- Mission Web cannot decide human approval
+- Governance visibility remains read-only
+- target dispatch/actuation remains disabled in Mission Web
+
+HTTP smoke validation (local isolated port):
+- GET /ui/ -> HTTP 200; Phase-2 marker present
+- GET /api/missions?limit=1 -> HTTP 200
+- GET /api/missions/{id}/lifecycle-command-contract -> HTTP 200
+- GET /api/missions/{id}/governance-visibility -> HTTP 200
+- governance visibility reports read_only=true
+- governance authorization authority reports EXTERNAL_APTS_GSS
+- approval_decision_enabled=false
+- when external aptsGSS is not running in the isolated smoke environment, visibility reports external status UNAVAILABLE without manufacturing an authorization result

@@ -1,0 +1,16 @@
+{
+  "mission_id": "mission-gmo-17a8fa8a-c6d9-4da5-aad2-0fc73113239c",
+  "scope_revision": 3,
+  "runtime_state": "FAILED",
+  "attempt_id": "xattempt-63ec73a8fff55056a2c3669055b5caed",
+  "reason_code": "WEB_PROFILE_NO_RESPONSE",
+  "target_io_performed": true,
+  "retired_intake_id": "wptreq-auto-7af3a08f81c753407cee26a9cab78cda1615dcd4",
+  "released_requests": 6,
+  "tests": {
+    "mission_related_passed": 30,
+    "wpt_passed": 23,
+    "javascript_syntax": "passed"
+  },
+  "target_service": "No listener on port 80; Docker Desktop engine unavailable"
+}

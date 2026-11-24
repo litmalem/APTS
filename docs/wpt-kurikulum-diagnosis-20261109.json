@@ -1,0 +1,29 @@
+{
+  "checked_at": "2026-11-09T04:32:06.411212+00:00",
+  "target": "https://kurikulum.del.ac.id:443",
+  "job_id": "wpt-3ff35dea8c0e2ee866952ea692e74596",
+  "execution_id": "exec-db17d1159b5cc7902d8022736b299fb5",
+  "attempt_id": "xattempt-c3cb28e8d9faa8125e1ca1a4f35af3e6",
+  "state": "FAILED",
+  "terminal_event": {
+    "adapter_result_sha256": "481a28513478892bcd118ff9304b330c761ad1d5b8340cbed3f62c4809404632",
+    "reason_code": "RESOLVED_ADDRESS_OUTSIDE_SCOPE",
+    "resources_closed": true,
+    "target_io_uncertain": false
+  },
+  "reason_codes": [
+    "RESOLVED_ADDRESS_OUTSIDE_SCOPE"
+  ],
+  "target_io_performed": false,
+  "retry_eligible_by_result": true,
+  "dns_observations": {
+    "system_getaddrinfo": [
+      "172.21.2.2"
+    ],
+    "explicit_resolver_1.1.1.1": [
+      "103.167.217.156"
+    ]
+  },
+  "recovery_status": "SCOPE_REVISED_RUNTIME_REVALIDATION_STALE",
+  "followup_evidence": "wpt-kurikulum-internal-verified-20261109.json"
+}

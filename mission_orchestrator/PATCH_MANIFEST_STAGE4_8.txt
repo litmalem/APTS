@@ -1,0 +1,13 @@
+Stage 4.8 files
+pentest_subsystem/governance_contract.py
+pentest_subsystem/governance_repository.py
+pentest_subsystem/governance_service.py
+pentest_subsystem/api_service.py
+pentest_subsystem/capability_repository.py
+pentest_migrations/006_stage4_8_governance_scope_roe_enforcement.sql
+run/pentest_subsystem.py
+tests/test_stage4_8_governance_scope_roe_enforcement.py
+STAGE4_8_ACCEPTANCE.ps1
+README_STAGE4_8.md
+PATCH_NOTES_STAGE4_8.md
+INSTALL_STAGE4_8.txt

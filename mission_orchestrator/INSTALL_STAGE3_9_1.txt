@@ -1,0 +1,33 @@
+Stage 3.9.1 installation / acceptance
+=====================================
+
+Target repository:
+  D:\mission_orchestrator
+
+1. Stop/restart the Mission Orchestrator only as required by your existing run procedure.
+2. Back up the current Stage 3.8.10 tree.
+3. Extract the Stage 3.9.1 overlay at the repository root, preserving relative paths and overwriting matching files.
+4. Do NOT create or run a new database migration. Stage 3.9.1 remains at migration level 53.
+5. Restart the Mission Orchestrator so the active runtime loads:
+     stage3.9.1-canonical-e2e-mission-scenario-acceptance-contract
+6. From PowerShell:
+
+     cd D:\mission_orchestrator
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE3_9_1_ACCEPTANCE.ps1
+
+Expected acceptance properties:
+  control_version                         = stage3.9.1-canonical-e2e-mission-scenario-acceptance-contract
+  server_version                          = APTSMissionOrchestrator/3.9.1
+  mission_repository_migration_level      = 53
+  Stage 3.9.1 schema                      = apts-stage3.9-e2e-mission-acceptance-contract-v1
+  canonical scenario schema               = apts-stage3.9-canonical-e2e-mission-scenario-v1
+  canonical scenario ID                   = stage3.9-canonical-e2e-control-plane-mission-v1
+  canonical pytest inventory              = 1443
+  focused Stage 3.9.1 tests               = 12
+  focused Stage 3.8.10 predecessor tests  = 4
+  new durable store                       = NONE
+  new database migration                  = NONE
+  new execution/target authority          = NONE
+
+Do not proceed to Stage 3.9.2 until STAGE3_9_1_ACCEPTANCE.ps1 reports PASS on the deployment host.

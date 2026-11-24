@@ -1,0 +1,15 @@
+Stage 3.7.8 Hotfix 1 — Regression Evidence
+==========================================
+Trigger: target-host acceptance: 4 failed, 1318 passed in 1896.91s.
+Failure class: stale supported_controls ordering/tail-width assertions only.
+Runtime preflight: PASS on target host.
+Authority boundary proof: PASS on target host.
+Python compile: PASS on target host.
+Canonical inventory: 1322 tests on target host.
+
+Repair-workspace verification:
+- python -m pytest --collect-only -q => 1322 tests collected
+- four formerly failing nodes => 4 passed in 2.67s
+
+Runtime code/schema/migration changes in this hotfix: NONE.
+Formal closure requires rerunning STAGE3_7_8_ACCEPTANCE.ps1 on the target host.

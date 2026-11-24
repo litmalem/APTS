@@ -1,0 +1,102 @@
+STAGE 3.6.1 PATCH MANIFEST
+Canonical Task Outcome Contract & Identity
+======================================================================
+
+RUNTIME IDENTITY
+----------------
+control_version            = stage3.6.1-canonical-task-outcome-contract-identity
+server_version             = APTSMissionOrchestrator/3.6.1
+repository_migration_level = 36
+new migration              = 036_stage3_6_1_canonical_task_outcome_contract_identity.sql
+new durable store          = mission_task_outcomes
+expected test inventory    = 982
+focused Stage-3.6.1        = 19
+next stage                 = 3.6.2
+
+PACKAGE / ACCEPTANCE FILES
+--------------------------
++ INSTALL_STAGE3_6_1.txt
++ PATCH_NOTES_STAGE3_6_1.md
++ README_STAGE3_6_1.md
++ REGRESSION_EVIDENCE_STAGE3_6_1.txt
++ STAGE3_6_1_ACCEPTANCE.ps1
+
+NEW IMPLEMENTATION FILES
+------------------------
++ migrations/036_stage3_6_1_canonical_task_outcome_contract_identity.sql
++ mission_orchestrator/task_outcome.py
++ tests/test_stage3_6_1_canonical_task_outcome_contract_identity.py
+
+MODIFIED FILES
+--------------
+* mission_orchestrator/api_service.py
+* mission_orchestrator/errors.py
+* mission_orchestrator/mission_events.py
+* mission_orchestrator/repository.py
+* mission_orchestrator/repository_model.py
+* mission_orchestrator/service.py
+* tests/test_stage3_1_10_acceptance_regression_gate.py
+* tests/test_stage3_1_6_mission_versioning_concurrency.py
+* tests/test_stage3_1_7_mission_persistence_repository_model.py
+* tests/test_stage3_1_8_canonical_mission_api_validation_layer.py
+* tests/test_stage3_1_9_mission_event_lineage_foundation.py
+* tests/test_stage3_2_10_lifecycle_acceptance_regression_gate.py
+* tests/test_stage3_2_1_mission_lifecycle_command_contract.py
+* tests/test_stage3_2_2_lifecycle_transition_guard_matrix.py
+* tests/test_stage3_2_3_mission_pip_activation.py
+* tests/test_stage3_2_4_planning_run_activation.py
+* tests/test_stage3_2_5_waiting_dependency_control.py
+* tests/test_stage3_2_6_pause_resume_replanning_control.py
+* tests/test_stage3_2_7_abort_failure_expiration_semantics.py
+* tests/test_stage3_2_8_cleanup_verified_completion_gate.py
+* tests/test_stage3_2_9_event_driven_lifecycle_automation_reliability.py
+* tests/test_stage3_3_10_planning_acceptance_regression_gate.py
+* tests/test_stage3_3_1_canonical_plan_contract_identity.py
+* tests/test_stage3_3_2_planner_input_snapshot_context_binding.py
+* tests/test_stage3_3_3_canonical_task_decomposition_contract.py
+* tests/test_stage3_3_4_task_dependency_graph_structural_validation.py
+* tests/test_stage3_3_5_planner_invocation_plan_generation.py
+* tests/test_stage3_3_6_plan_validation_feasibility_gate.py
+* tests/test_stage3_3_7_plan_versioning_replanning_supersession.py
+* tests/test_stage3_3_8_task_readiness_scheduling_projection.py
+* tests/test_stage3_3_9_planning_event_lineage_replay_recovery.py
+* tests/test_stage3_4_10_routing_delegation_acceptance_regression_gate.py
+* tests/test_stage3_4_1_canonical_subsystem_registry_capability_contract.py
+* tests/test_stage3_4_2_task_routing_intent_candidate_resolution.py
+* tests/test_stage3_4_3_routing_eligibility_compatibility_gate.py
+* tests/test_stage3_4_4_deterministic_route_selection_decision_record.py
+* tests/test_stage3_4_5_governance_bound_delegation_authorization.py
+* tests/test_stage3_4_6_canonical_delegation_contract_handoff_envelope.py
+* tests/test_stage3_4_7_delegation_delivery_acknowledgement_ownership.py
+* tests/test_stage3_4_8_retry_fallback_reassignment_conflict_control.py
+* tests/test_stage3_4_9_routing_delegation_event_lineage_replay_recovery.py
+* tests/test_stage3_5_10_execution_dispatch_acceptance_regression_gate.py
+* tests/test_stage3_5_1_canonical_execution_dispatch_contract_identity.py
+* tests/test_stage3_5_2_dispatch_eligibility_execution_preconditions.py
+* tests/test_stage3_5_3_authoritative_pre_dispatch_governance_revalidation.py
+* tests/test_stage3_5_4_idempotent_dispatch_execution_attempt_identity.py
+* tests/test_stage3_5_5_dispatch_delivery_execution_acknowledgement.py
+* tests/test_stage3_5_6_running_execution_state_heartbeat_projection.py
+* tests/test_stage3_5_7_execution_result_evidence_artifact_capture.py
+* tests/test_stage3_5_8_timeout_cancellation_abort_failure_propagation.py
+* tests/test_stage3_5_9_execution_event_lineage_replay_recovery.py
+
+CHANGE CLASSIFICATION
+---------------------
+- task_outcome.py: immutable canonical toutcome-* contract/identity, request fingerprinting, and integrity verification.
+- migration 036: durable mission_task_outcomes store with idempotency, one-outcome-per-Plan-task, propagation, and recovery uniqueness.
+- service.py: activates Stage 3.6.1; materializes/retrieves task outcomes; records exactly-once lineage; extends repository-integrity projection and /health metadata.
+- repository.py / repository_model.py: Stage-3.6.1 persistence, schema, reads, uniqueness, record counts, and manifest support.
+- api_service.py: server identity 3.6.1 plus task-outcome POST/GET/definition routes.
+- mission_events.py: canonical MISSION_TASK_OUTCOME_MATERIALIZED event type.
+- errors.py: Stage-3.6.1 conflict/not-found/guard exceptions.
+- focused Stage-3.6.1 tests: 19 identity/binding/idempotency/restart/integrity/authority proofs.
+- historical tests: current-head / supported-control / migration assertions rebased for Stage 3.6.1.
+
+AUTHORITY BOUNDARY
+------------------
+Stage 3.6.1 materializes terminal task-outcome evidence only. It does NOT perform task acceptance, acceptance-criteria evaluation, task completion commit, task state transition, dependency release, readiness recalculation, Plan progression, Mission completion, Governance query, runtime query/control I/O, redispatch, new execution-attempt creation, target-action dispatch, external network I/O, or target actuation.
+
+INSTALLATION MODEL
+------------------
+Apply over an accepted Stage-3.5.10 D:\mission_orchestrator tree. Preserve the live data/mission_orchestrator.db and operator-managed configuration. Apply migration 036 according to the deployment database procedure and run STAGE3_6_1_ACCEPTANCE.ps1 after runtime restart.

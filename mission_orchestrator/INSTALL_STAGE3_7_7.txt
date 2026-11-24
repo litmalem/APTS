@@ -1,0 +1,44 @@
+STAGE 3.7.7 INSTALL / ACCEPTANCE
+================================
+
+Target control:
+  stage3.7.7-authoritative-replan-commit-authorization-successor-plan-materialization
+
+Expected repository migration:
+  51
+
+Core new files:
+  mission_orchestrator/replan_commit.py
+  migrations/051_stage3_7_7_authoritative_replan_commit_authorization_successor_plan_materialization.sql
+  tests/test_stage3_7_7_authoritative_replan_commit_authorization_successor_plan_materialization.py
+  STAGE3_7_7_ACCEPTANCE.ps1
+
+Recommended deployment procedure on the canonical Windows host:
+
+1. Stop the Mission Orchestrator process.
+2. Back up the repository/database and current source tree.
+3. Apply the Stage-3.7.7 patch over the existing Stage-3.7.6 tree.
+4. Confirm Python dependencies remain installed.
+5. Start the Mission Orchestrator so migration 051 is applied/available according to the existing repository startup procedure.
+6. Verify:
+
+   Invoke-RestMethod http://127.0.0.1:8780/health |
+       Select-Object status,control_version,mission_repository_migration_level,replan_commit_contract_schema_version,replan_commit_identity_prefix,replan_commit_persistence_store,replan_commit_status
+
+Expected key values:
+  status                              = ok
+  control_version                     = stage3.7.7-authoritative-replan-commit-authorization-successor-plan-materialization
+  mission_repository_migration_level  = 51
+  replan_commit_identity_prefix       = rpcom-
+  replan_commit_persistence_store     = mission_replan_commits
+  replan_commit_status                = COMMITTED_SUCCESSOR_PLAN
+
+7. Execute formal acceptance from the repository root:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_7_7_ACCEPTANCE.ps1
+
+Acceptance performs runtime preflight, authority-boundary checks, Python compilation, exact pytest inventory validation, full regression, focused Stage-3.7.7 proof, and source/migration presence checks.
+
+Rollback guidance:
+  Restore the Stage-3.7.6 source/database backup as one consistent unit. Do not mix a Stage-3.7.6 runtime with a database that has been operationally advanced by Stage-3.7.7 without following the project's normal migration rollback procedure.

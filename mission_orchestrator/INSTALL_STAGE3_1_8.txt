@@ -1,0 +1,107 @@
+Stage 3.1.8 - Canonical Mission API & Validation Layer
+=====================================================
+
+Scope of patch
+--------------
+Apply this patch to D:\mission_orchestrator only.
+No Stage-3.1.8 source-code change is required in VulnDesk or aptsGSS.
+
+1. Stop Mission Orchestrator
+----------------------------
+Stop the running mission_orchestrator service before replacing files.
+
+2. Back up
+----------
+Back up:
+
+   D:\mission_orchestrator
+
+and the Mission Orchestrator database.
+
+Do not overwrite your existing data\mission_orchestrator.db with a database from another machine.
+The Stage-3.1.8 patch ZIP intentionally does not contain a runtime database.
+
+3. Extract/copy the Stage-3.1.8 patch
+------------------------------------
+Extract the supplied patch over:
+
+   D:\mission_orchestrator
+
+Preserve the existing runtime database and environment configuration.
+
+4. Database
+-----------
+Stage 3.1.8 adds no migration.
+
+Keep the existing Stage-3.1.7 repository at migration level 7.
+Do NOT create or apply an 008 SQL migration for this stage.
+
+5. Preserve current runtime configuration
+-----------------------------------------
+Retain the current environment configuration, for example:
+
+   $env:MISSION_GOVERNANCE_BASE_URL = "http://127.0.0.1:8770"
+   $env:MISSION_GOVERNANCE_TIMEOUT_SECONDS = "3.0"
+   $env:MISSION_CTI_BASE_URL = "http://127.0.0.1:8765"
+   $env:MISSION_CTI_TIMEOUT_SECONDS = "5.0"
+
+Stage-3.1.8 preflight validation and canonical-contract read projection are local-only and do not call these external authorities.
+
+6. Run regression before service start
+--------------------------------------
+
+   cd D:\mission_orchestrator
+   python -m compileall -q mission_orchestrator tests
+   python -m pytest -q
+
+Expected result:
+
+   91 passed
+
+7. Start Mission Orchestrator
+-----------------------------
+
+   cd D:\mission_orchestrator
+   python .\run\run_mission_orchestrator.py --host 127.0.0.1 --port 8780
+
+8. Verify Stage-3.1.8 health
+----------------------------
+
+   Invoke-RestMethod http://127.0.0.1:8780/health
+
+Expected key values:
+
+   control_version                            = stage3.1.8-canonical-mission-api-validation-layer
+   canonical_mission_api_schema_version       = apts-canonical-mission-api-v1
+   canonical_mission_api_stabilized           = True
+   canonical_mission_validation_schema_version = apts-canonical-mission-validation-v1
+   canonical_mission_validation_mode          = PREFLIGHT_NO_PERSISTENCE_FAIL_CLOSED
+   canonical_mission_preflight_enabled        = True
+   validation_external_authority_queries      = False
+   mission_repository_migration_level         = 7
+   dispatch_enabled                           = False
+   target_action_dispatch_enabled             = False
+   target_actuation                           = False
+
+9. Run Stage-3.1.8 acceptance
+-----------------------------
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_1_8_ACCEPTANCE.ps1
+
+Optional explicit endpoint:
+
+   .\STAGE3_1_8_ACCEPTANCE.ps1 -MissionBaseUrl "http://127.0.0.1:8780"
+
+Expected final line:
+
+   STAGE 3.1.8 ACCEPTANCE: PASS
+
+Safety / authority notes
+------------------------
+- Validation is preflight-only and has zero persistence/authority/planning/target-action side effects.
+- Existing write APIs continue to perform their own canonical resource validation before their local writes.
+- aptsGSS remains the policy/approval/revocation/emergency-stop authority.
+- VulnDesk/CTI remains owner of CTI-local state_version and plan_version.
+- Target-action dispatch and target actuation remain disabled.

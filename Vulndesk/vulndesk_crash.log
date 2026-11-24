@@ -1,0 +1,46 @@
+
+===== VulnDesk session start =====
+
+===== VulnDesk session start =====
+
+===== VulnDesk session start =====
+
+===== VulnDesk session start =====
+
+===== VulnDesk session start =====
+
+===== VulnDesk session start =====
+
+===== VulnDesk session start =====
+
+===== VulnDesk session start =====
+Windows fatal exception: access violation
+
+Current thread 0x00001b00 (most recent call first):
+  File "d:\vulndesk\main.py", line 1154 in main
+  File "d:\vulndesk\main.py", line 1170 in <module>
+
+===== VulnDesk session start =====
+Windows fatal exception: access violation
+
+Current thread 0x000071a8 (most recent call first):
+  File "d:\vulndesk\main.py", line 1154 in main
+  File "d:\vulndesk\main.py", line 1170 in <module>
+
+===== VulnDesk session start =====
+
+===== VulnDesk session start =====
+
+===== VulnDesk session start =====
+
+===== VulnDesk session start =====
+
+===== VulnDesk session start =====
+
+===== VulnDesk session start =====
+
+===== VulnDesk session start =====
+
+===== VulnDesk session start =====
+
+===== VulnDesk session start =====

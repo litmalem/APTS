@@ -1,0 +1,81 @@
+Stage 4.6 — Pentest Workflow Orchestrator Skeleton
+==================================================
+
+Target root:
+  D:\mission_orchestrator
+
+1. Overlay the supplied files into the target root, preserving directories.
+
+2. Database behavior:
+   - Global Mission Orchestrator remains migration 53 and is not modified.
+   - Pentest Subsystem continues to use the isolated repository:
+       data\pentest_subsystem.db
+   - Pentest migration level becomes 4.
+   - Migration 004 creates:
+       pentest_workflows
+       pentest_workflow_results
+   - Existing Stage-4.3/4.4/4.5 task, lifecycle, and event records are preserved.
+   - Optional database override:
+       $env:APTS_PENTEST_DB = "D:\path\to\pentest_subsystem.db"
+
+3. Keep the Global Mission Orchestrator running on:
+     http://127.0.0.1:8780
+   It must remain at:
+     stage3.9.10-global-mission-orchestrator-acceptance-regression-gate
+
+4. Stop the prior Stage-4.5 Pentest runtime if it is still using port 8790.
+
+5. Start Stage 4.6 in a separate PowerShell window:
+
+     cd D:\mission_orchestrator
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\START_STAGE4_6_PENTEST.ps1
+
+   Default endpoint:
+     http://127.0.0.1:8790
+
+6. Manual checks if desired:
+
+     Invoke-RestMethod http://127.0.0.1:8790/health
+     Invoke-RestMethod http://127.0.0.1:8790/api/pentest/event-contract
+     Invoke-RestMethod http://127.0.0.1:8790/api/pentest/workflow-contract
+
+   Expected active control:
+     stage4.6-pentest-workflow-orchestrator-skeleton
+
+   Expected Pentest repository migration:
+     4
+
+7. Run authoritative acceptance in another PowerShell window:
+
+     cd D:\mission_orchestrator
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE4_6_ACCEPTANCE.ps1
+
+Expected pre-full-regression checkpoints:
+  - Stage 3.9.10 predecessor PASS
+  - Stage 4.1 → 4.5 predecessor contracts PASS
+  - Stage 4.6 runtime / migration 4 PASS
+  - canonical Stage-4.6 workflow contract PASS
+  - canonical PIP-bound task materialization PASS
+  - workflow start drives RECEIVED→VALIDATED→READY→PLANNING→RUNNING PASS
+  - fixed PENTEST_PLACEHOLDER_WORKER assignment PASS
+  - workflow-start replay idempotency PASS
+  - structured result closes RUNNING→COMPLETED PASS
+  - result replay idempotency PASS
+  - inherited Stage-4.5 event chain verification PASS
+  - execution-dispatch negative boundary PASS
+  - Python compilation PASS
+  - 1697 tests collected
+  - 26 focused Stage-4.6 tests PASS
+  - 122 Stage-4.1–4.6 tests PASS
+  - 181 critical predecessor tests PASS
+  - full historical regression PASS
+
+Important Stage-4.6 invariant:
+  The orchestrator tracks a local workflow and placeholder result only. It does not execute
+  penetration-testing tools or target-side actions. RUNNING is local lifecycle state, not proof
+  of target execution.
+
+Next stage:
+  Stage 4.7 — Capability Registry & Tool Contract

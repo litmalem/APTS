@@ -1,0 +1,46 @@
+Stage 3.4.5 — Governance-Bound Delegation Authorization
+Patch manifest
+
+Core implementation
+-------------------
+mission_orchestrator/delegation_authorization.py          NEW
+mission_orchestrator/errors.py                           MODIFIED
+mission_orchestrator/repository.py                       MODIFIED
+mission_orchestrator/repository_model.py                 MODIFIED
+mission_orchestrator/service.py                          MODIFIED
+mission_orchestrator/mission_events.py                   MODIFIED
+mission_orchestrator/api_service.py                      MODIFIED
+mission_orchestrator/__init__.py                         MODIFIED
+
+Persistence
+-----------
+migrations/022_stage3_4_5_governance_bound_delegation_authorization.sql  NEW
+
+Tests
+-----
+tests/test_stage3_4_5_governance_bound_delegation_authorization.py       NEW
+Historical tests under tests/ were minimally rebased where they assert current runtime control, current repository migration inventory, or current supported-control ordering. Historical stage-specific migration/control constants remain unchanged.
+
+Release / acceptance documentation
+----------------------------------
+README_STAGE3_4_5.md                                     NEW
+PATCH_NOTES_STAGE3_4_5.md                                NEW
+INSTALL_STAGE3_4_5.txt                                   NEW
+STAGE3_4_5_ACCEPTANCE.ps1                                NEW
+PATCH_MANIFEST_STAGE3_4_5.txt                            NEW
+SHA256_STAGE3_4_5.txt                                    NEW
+
+Control identity
+----------------
+control_version = stage3.4.5-governance-bound-delegation-authorization
+server_version  = APTSMissionOrchestrator/3.4.5
+repository_migration_level = 22
+new_store = mission_delegation_authorizations
+new_event = MISSION_TASK_DELEGATION_AUTHORIZATION_RECORDED
+
+Validation recorded in build environment
+----------------------------------------
+Focused Stage 3.4.5: 30 passed
+Stage 3.1 regression partition: 111 passed
+Stage 3.2 regression partition: 156 passed
+Complete suite collection: 666 tests

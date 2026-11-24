@@ -1,0 +1,59 @@
+Stage 4.9 — Evidence, Finding & Lineage Foundation
+Regression Evidence (implementation environment)
+==================================================
+
+Date: 2026-10-01
+
+Python compilation
+------------------
+Command:
+  python -m compileall -q mission_orchestrator pentest_subsystem run tests
+Result:
+  PASS
+
+Focused Stage 4.9
+-----------------
+Command:
+  python -m pytest -q tests/test_stage4_9_evidence_finding_lineage_foundation.py
+Result:
+  36 passed
+
+Stage 4.1 -> Stage 4.9 regression
+---------------------------------
+Command:
+  python -m pytest -q \
+    tests/test_stage4_1_pentest_boundary_canonical_contract.py \
+    tests/test_stage4_2_pip_ingestion_validation_binding.py \
+    tests/test_stage4_3_pentest_mission_task_contract.py \
+    tests/test_stage4_4_pentest_lifecycle_state.py \
+    tests/test_stage4_5_pentest_event_runtime_contract.py \
+    tests/test_stage4_6_pentest_workflow_orchestrator_skeleton.py \
+    tests/test_stage4_7_capability_registry_tool_contract.py \
+    tests/test_stage4_8_governance_scope_roe_enforcement.py \
+    tests/test_stage4_9_evidence_finding_lineage_foundation.py
+Result:
+  209 passed
+
+Critical Stage-3 + Stage-4 regression
+--------------------------------------
+Command:
+  python -m pytest -q \
+    tests/test_stage3_9_10_global_mission_orchestrator_acceptance_regression_gate.py \
+    tests/test_stage3_1_3_scope_roe_constraint_contract.py \
+    tests/test_stage4_7_capability_registry_tool_contract.py \
+    tests/test_stage4_8_governance_scope_roe_enforcement.py \
+    tests/test_stage4_9_evidence_finding_lineage_foundation.py
+Result:
+  115 passed
+
+Canonical inventory
+-------------------
+Command:
+  python -m pytest --collect-only -q
+Result:
+  1784 tests collected
+
+Full suite
+----------
+Not executed in the packaging environment. The deployment-host STAGE4_9_ACCEPTANCE.ps1
+runs the full 1784-test suite and remains the final PASS/FAIL authority.

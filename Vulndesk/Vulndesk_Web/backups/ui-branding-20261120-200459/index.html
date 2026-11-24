@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vulndesk — CTI Workspace</title>
+  <meta name="description" content="Antarmuka web Vulndesk untuk menelusuri intelligence kerentanan, mengelola dataset, dan memantau runtime CTI.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M9 8l7 3 7-3v9c0 5-7 8-7 8s-7-3-7-8z' fill='none' stroke='white' stroke-width='2'/%3E%3Cpath d='M12 16l3 3 5-6' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Lewati navigasi</a>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#overview"><span class="brand-symbol" aria-hidden="true">V</span><span>Vulndesk<small>CTI WORKSPACE</small></span></a>
+      <div class="workspace-tag"><span class="workspace-avatar">S</span><div>SCRG Lab ITB<small>Intelligence workspace</small></div></div>
+      <p class="nav-caption">WORKSPACE</p><nav id="navigation" aria-label="Navigasi utama"></nav>
+      <div class="sidebar-bottom"><div class="sidebar-divider"></div><button id="connection-button" class="sidebar-link" type="button"></button><div class="lab-signature">Institut Teknologi Bandung<small>Vulndesk Web · v1.1</small></div></div>
+    </aside>
+    <div class="main-shell">
+      <header class="topbar"><div class="breadcrumb"><button class="icon-button mobile-menu" id="menu-button" aria-label="Buka navigasi"></button><span>Workspace</span><span class="crumb-slash">/</span><strong id="breadcrumb-current">Ringkasan</strong></div><div class="topbar-right"><span id="mode-badge" class="badge demo">DATA CONTOH</span><button id="refresh-button" class="icon-button" aria-label="Perbarui data"></button><span class="user-avatar" title="Operator lokal">OP</span></div></header>
+      <main id="main" tabindex="-1"><div id="mode-note" class="mode-note"></div><div id="view" aria-live="polite"></div></main>
+      <footer><span>Vulndesk · Cyber Threat Intelligence</span><span id="updated-label">Belum diperbarui</span></footer>
+    </div>
+  </div>
+  <dialog id="detail-dialog" class="detail-dialog"><div id="detail-content"></div></dialog>
+  <dialog id="action-dialog" class="action-dialog"><div id="action-content"></div></dialog>
+  <div id="toast-region" class="toast-region" aria-live="polite"></div>
+  <script src="bootstrap.js"></script><script src="demo.js"></script><script src="sources.js"></script><script src="app.js"></script>
+</body>
+</html>

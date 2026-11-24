@@ -1,0 +1,37 @@
+Stage 5.7 installation / validation
+===================================
+
+1. Replace the working tree with this package or apply the files listed in PATCH_FILE_LIST_STAGE5_7.txt.
+2. The Pentest repository upgrades automatically from migration 13 to migration 14 on first Stage-5.7 startup.
+3. Start the Global Mission Orchestrator as usual on http://127.0.0.1:8780.
+4. Start the Pentest Subsystem:
+
+   cd D:\mission_orchestrator
+   python run\pentest_subsystem.py --host 127.0.0.1 --port 8790
+
+5. In another PowerShell:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE5_7_ACCEPTANCE.ps1
+
+Expected active Pentest control:
+  stage5.7-post-exploitation-impact-agent
+
+Expected Pentest migration:
+  14
+
+Expected canonical inventory:
+  1985 tests
+
+Important authority boundary:
+  Stage 5.7 consumes exact authoritative Stage-5.6 exploitation proposal output/evidence and
+  Stage-5.5 attack-path provenance. It produces ImpactAnalysis and provisional
+  PostValidationFinding artifacts covering reached privilege, accessible resources, potential
+  lateral movement, security/business impact, evidence sufficiency, and stop conditions.
+
+  It does NOT accept post-exploitation results or credentials from callers, contact targets,
+  enumerate resources on targets, execute lateral movement, invoke tools, actuate targets,
+  create Stage-6 ExecutionRequest/ActionResult objects, create target-derived evidence,
+  confirm compromise, create confirmed Stage-4.9 FINDING records, or mint PolicyDecision
+  authorization. Controlled execution and confirmation remain Stage 6 authority.

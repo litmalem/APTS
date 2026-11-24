@@ -1,0 +1,40 @@
+Stage 3.1.5 - Governed Task Routing Patch Manifest
+==================================================
+
+New files
+---------
+README_STAGE3_1_5.md
+PATCH_NOTES_STAGE3_1_5.md
+INSTALL_STAGE3_1_5.txt
+STAGE3_1_5_ACCEPTANCE.ps1
+migrations/005_stage3_1_5_governed_task_routing.sql
+mission_orchestrator/task_routing.py
+tests/test_stage3_1_5_governed_task_routing.py
+
+Modified files
+--------------
+mission_orchestrator/api_service.py
+mission_orchestrator/errors.py
+mission_orchestrator/repository.py
+mission_orchestrator/service.py
+tests/test_stage3_1_4_governance_authorization_binding.py
+
+Unchanged subsystem source
+--------------------------
+aptsGSS: no Stage-3.1.5 source change required
+VulnDesk: no Stage-3.1.5 source change required
+
+Validation
+----------
+python -m compileall -q mission_orchestrator tests : PASS
+python -m pytest -q                              : 61 passed
+
+Database
+--------
+SQLite: tables auto-created at repository startup.
+MariaDB/MySQL: apply migrations/005_stage3_1_5_governed_task_routing.sql.
+
+Data safety
+-----------
+The distributable ZIPs intentionally exclude data/mission_orchestrator.db,
+.pytest_cache, and __pycache__ so an existing runtime database is not overwritten.

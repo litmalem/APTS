@@ -1,0 +1,72 @@
+STAGE 3.6.9 BUILD REGRESSION EVIDENCE
+========================================================================
+Strategy: each pytest file executed in an isolated Python process (4-way worker pool).
+Reason: prevents long-lived process/fixture accumulation while preserving every collected test.
+
+Test files: 59/59 PASS
+Tests summed from pytest summaries: 1144/1144 PASS
+Nonzero return codes: 0
+Elapsed wall time: 482 seconds
+Stage-3.6 chain: 181/181 PASS in 121.07s
+Focused Stage-3.6.9: 22/22 PASS
+
+Per-file results:
+test_stage3_1_10_acceptance_regression_gate: 10 passed; 2.77s
+test_stage3_1_1_identity_envelope: 7 passed; 0.83s
+test_stage3_1_2_canonical_mission_state: 12 passed; 2.07s
+test_stage3_1_3_scope_roe_constraint_contract: 13 passed; 1.86s
+test_stage3_1_4_governance_authorization_binding: 16 passed; 3.11s
+test_stage3_1_5_governed_task_routing: 13 passed; 3.44s
+test_stage3_1_6_mission_versioning_concurrency: 9 passed; 2.81s
+test_stage3_1_7_mission_persistence_repository_model: 12 passed; 5.04s
+test_stage3_1_8_canonical_mission_api_validation_layer: 9 passed; 1.25s
+test_stage3_1_9_mission_event_lineage_foundation: 10 passed; 1.89s
+test_stage3_2_10_lifecycle_acceptance_regression_gate: 12 passed; 9.13s
+test_stage3_2_1_mission_lifecycle_command_contract: 14 passed; 5.63s
+test_stage3_2_2_lifecycle_transition_guard_matrix: 15 passed; 4.42s
+test_stage3_2_3_mission_pip_activation: 12 passed; 2.96s
+test_stage3_2_4_planning_run_activation: 14 passed; 7.15s
+test_stage3_2_5_waiting_dependency_control: 16 passed; 13.14s
+test_stage3_2_6_pause_resume_replanning_control: 17 passed; 13.30s
+test_stage3_2_7_abort_failure_expiration_semantics: 17 passed; 8.30s
+test_stage3_2_8_cleanup_verified_completion_gate: 18 passed; 14.11s
+test_stage3_2_9_event_driven_lifecycle_automation_reliability: 21 passed; 11.40s
+test_stage3_3_10_planning_acceptance_regression_gate: 12 passed; 19.24s
+test_stage3_3_1_canonical_plan_contract_identity: 13 passed; 5.59s
+test_stage3_3_2_planner_input_snapshot_context_binding: 16 passed; 9.33s
+test_stage3_3_3_canonical_task_decomposition_contract: 19 passed; 13.89s
+test_stage3_3_4_task_dependency_graph_structural_validation: 29 passed; 23.82s
+test_stage3_3_5_planner_invocation_plan_generation: 37 passed; 35.26s
+test_stage3_3_6_plan_validation_feasibility_gate: 20 passed; 21.72s
+test_stage3_3_7_plan_versioning_replanning_supersession: 27 passed; 41.34s
+test_stage3_3_8_task_readiness_scheduling_projection: 28 passed; 38.62s
+test_stage3_3_9_planning_event_lineage_replay_recovery: 38 passed; 58.51s
+test_stage3_4_10_routing_delegation_acceptance_regression_gate: 12 passed; 16.58s
+test_stage3_4_1_canonical_subsystem_registry_capability_contract: 19 passed; 1.91s
+test_stage3_4_2_task_routing_intent_candidate_resolution: 26 passed; 30.34s
+test_stage3_4_3_routing_eligibility_compatibility_gate: 35 passed; 51.88s
+test_stage3_4_4_deterministic_route_selection_decision_record: 50 passed; 83.19s
+test_stage3_4_5_governance_bound_delegation_authorization: 30 passed; 56.65s
+test_stage3_4_6_canonical_delegation_contract_handoff_envelope: 32 passed; 65.83s
+test_stage3_4_7_delegation_delivery_acknowledgement_ownership: 19 passed; 40.87s
+test_stage3_4_8_retry_fallback_reassignment_conflict_control: 28 passed; 69.33s
+test_stage3_4_9_routing_delegation_event_lineage_replay_recovery: 22 passed; 49.87s
+test_stage3_5_10_execution_dispatch_acceptance_regression_gate: 12 passed; 37.96s
+test_stage3_5_1_canonical_execution_dispatch_contract_identity: 19 passed; 59.36s
+test_stage3_5_2_dispatch_eligibility_execution_preconditions: 19 passed; 52.62s
+test_stage3_5_3_authoritative_pre_dispatch_governance_revalidation: 19 passed; 55.43s
+test_stage3_5_4_idempotent_dispatch_execution_attempt_identity: 20 passed; 64.79s
+test_stage3_5_5_dispatch_delivery_execution_acknowledgement: 19 passed; 62.84s
+test_stage3_5_6_running_execution_state_heartbeat_projection: 18 passed; 62.05s
+test_stage3_5_7_execution_result_evidence_artifact_capture: 18 passed; 75.98s
+test_stage3_5_8_timeout_cancellation_abort_failure_propagation: 20 passed; 77.16s
+test_stage3_5_9_execution_event_lineage_replay_recovery: 20 passed; 76.05s
+test_stage3_6_1_canonical_task_outcome_contract_identity: 19 passed; 13.63s
+test_stage3_6_2_task_terminality_completion_eligibility: 20 passed; 14.97s
+test_stage3_6_3_evidence_binding_verification: 20 passed; 15.45s
+test_stage3_6_4_dependency_aware_task_completion: 20 passed; 14.62s
+test_stage3_6_5_mission_outcome_aggregation: 20 passed; 15.10s
+test_stage3_6_6_mission_success_criteria_evaluation: 20 passed; 14.35s
+test_stage3_6_7_completion_readiness_blockers: 20 passed; 15.00s
+test_stage3_6_8_verified_completion_declaration_lifecycle_handoff: 20 passed; 24.00s
+test_stage3_6_9_outcome_lineage_replay_recovery: 22 passed; 16.29s

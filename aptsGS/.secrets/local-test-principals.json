@@ -1,0 +1,16 @@
+{
+  "schema_version": "apts-gss-human-approval-principals-v1",
+  "principals": [
+    {
+      "principal_id": "local-test-operator",
+      "principal_type": "HUMAN",
+      "roles": [
+        "GOVERNANCE_ADMIN",
+        "OPERATOR",
+        "SECURITY_APPROVER"
+      ],
+      "token_sha256": "d920d8d91f2beed366e9018ef8fc5fd8102ba79c6d03e91ca9e1de306cb810d9",
+      "enabled": true
+    }
+  ]
+}

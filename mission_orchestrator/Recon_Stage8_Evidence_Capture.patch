@@ -1,0 +1,111 @@
+--- a/execution_subsystem/evidence_contract.py
++++ b/execution_subsystem/evidence_contract.py
+@@ -22,7 +22,7 @@
+ KINDS = ("TOOL_IDENTITY", "ACTION_PARAMETERS", "BEFORE_STATE", "STDOUT", "STDERR",
+          "NETWORK_OBSERVATION", "TARGET_RESPONSE", "RESULT", "AFTER_STATE")
+ LINK_FIELDS = ("attempt_id", "invocation_id", "execution_id", "task_id", "pentest_id",
+-               "pentest_task_id", "mission_id")
++               "pentest_task_id", "mission_id", "authorization_id", "recon_action_id", "proposal_ref")
+ SEMANTICS = {"execution_authorized": False, "usable_for_dispatch": False,
+     "replay_performs_io": False, "vep_created": False, "vulnerability_confirmed": False}
+ SESSION_FIELDS = set(LINK_FIELDS) | {"schema_version", "control_version", "attempt_sha256",
+@@ -49,6 +49,7 @@
+             "terminal_manifest_and_result_atomic": True, "caller_paths_supported": False},
+         "capture": {"producer": "SERVER_RUNTIME_AND_TRUSTED_BROKER", "kinds": list(KINDS),
+             "link_fields": list(LINK_FIELDS), "caller_upload_supported": False,
++            "recon_proposal_action_authorization_binding": True,
+             "screenshots": "NOT_SUPPORTED_BY_CURRENT_FIXED_ADAPTERS",
+             "target_before_after_state": "NOT_MEASURED_BY_CURRENT_FIXED_ADAPTERS",
+             "runtime_before_after_state": "CAPTURED", "partial_failures": "EXPLICIT_COVERAGE",
+@@ -87,8 +88,12 @@
+ 
+ 
+ def verify_links(value):
+-    prefixes = ("xattempt-", "toolinv-", "exec-", "ptask-", "pentest-", "", "mission-gmo-")
+-    for key, prefix in zip(LINK_FIELDS, prefixes):
++    prefixes = {"attempt_id":"xattempt-", "invocation_id":"toolinv-", "execution_id":"exec-",
++        "task_id":"ptask-", "pentest_id":"pentest-", "pentest_task_id":"", "mission_id":"mission-gmo-",
++        "authorization_id":"eauth-", "recon_action_id":"rareq-", "proposal_ref":"actp-"}
++    for key, prefix in prefixes.items():
++        if key in {"recon_action_id", "proposal_ref"} and value[key] is None:
++            continue
+         require_id(value[key], key, prefix)
+ 
+ 
+--- a/execution_subsystem/evidence_repository.py
++++ b/execution_subsystem/evidence_repository.py
+@@ -35,8 +35,21 @@
+         row = conn.execute("SELECT * FROM execution_runtime_attempts WHERE attempt_id=?",
+             (attempt_id(claim["invocation_id"]),)).fetchone()
+         record = json.loads(row["record_json"])
++        envelope = self._envelope(conn, record["execution_id"])
++        request = envelope["execution_request"]
++        is_recon = envelope["intake"].get("source_type") == "STAGE5_2_RECON_ACTION_REQUEST"
++        if is_recon:
++            recon_action_id = request["parameters"].get("source_action_id")
++            proposal_ref = envelope["source_binding"].get("action_proposal_ref")
++            if (not recon_action_id or not proposal_ref
++                    or recon_action_id != envelope["intake"].get("recon_action_id")):
++                raise ExecutionRequestIntegrityError("Recon evidence lineage is incomplete or mismatched")
++        else:
++            recon_action_id = proposal_ref = None
+         session = with_integrity({"schema_version": SESSION_SCHEMA, "control_version": EVIDENCE_CONTROL_VERSION,
+-            **{k:record[k] for k in LINK_FIELDS}, "attempt_sha256": record["integrity"]["canonical_sha256"],
++            **{k:record[k] for k in LINK_FIELDS if k in record},
++            "authorization_id": claim["authorization_id"], "recon_action_id": recon_action_id,
++            "proposal_ref": proposal_ref, "attempt_sha256": record["integrity"]["canonical_sha256"],
+             "claim_sha256": claim["integrity"]["canonical_sha256"], "envelope_sha256": claim["envelope_sha256"],
+             "contract_sha256": canonical_evidence_contract()["integrity"]["canonical_sha256"],
+             "enrolled_at": record["authorized_at"]}, SESSION_DOMAIN)
+@@ -53,7 +66,10 @@
+         # Free-text expected evidence is retained in its immutable request, not copied to output blobs.
+         self._insert_artifact(conn, session, "ACTION_PARAMETERS", {
+             "action": req["action"], "target": req["target"], "operation": adapter.operation,
+-            "parameters": {"validation_task_id": req["parameters"]["validation_task_id"],
++            "recon_action_id": session["recon_action_id"], "proposal_ref": session["proposal_ref"],
++            "authorization_id": session["authorization_id"],
++            "parameters": {("source_action_id" if "source_action_id" in req["parameters"] else "validation_task_id"):
++                req["parameters"].get("source_action_id", req["parameters"].get("validation_task_id")),
+                 "estimated_impact": req["parameters"]["estimated_impact"],
+                 "expected_evidence_sha256": bytes_sha256(canonical_json(req["parameters"]["expected_evidence"]).encode())},
+             "parameters_sha256": bytes_sha256(canonical_json(req["parameters"]).encode()),
+@@ -77,8 +93,22 @@
+             return None
+         try:
+             value = json.loads(row["record_json"])
++            first_event = conn.execute("SELECT record_json FROM execution_runtime_events WHERE attempt_id=? AND event_sequence=1",
++                                       (record["attempt_id"],)).fetchone()
++            if first_event is None:
++                raise ExecutionRequestIntegrityError("capture authorization event missing")
++            authorization_id = json.loads(first_event["record_json"])["data"].get("authorization_id")
++            envelope = self._envelope(conn, record["execution_id"])
++            is_recon = envelope["intake"].get("source_type") == "STAGE5_2_RECON_ACTION_REQUEST"
++            request = envelope["execution_request"]
++            expected_action_id = request["parameters"].get("source_action_id") if is_recon else None
++            expected_proposal_ref = envelope["source_binding"].get("action_proposal_ref") if is_recon else None
+             if (not verify_session(value) or row["record_sha256"] != value["integrity"]["canonical_sha256"]
+-                or row["attempt_id"] != value["attempt_id"] or any(value[k] != record[k] for k in LINK_FIELDS)
++                or row["attempt_id"] != value["attempt_id"]
++                or any(value[k] != record[k] for k in LINK_FIELDS if k in record)
++                or value["authorization_id"] != authorization_id
++                or value["recon_action_id"] != expected_action_id
++                or value["proposal_ref"] != expected_proposal_ref
+                 or value["attempt_sha256"] != record["integrity"]["canonical_sha256"]
+                 or value["claim_sha256"] != record["claim_sha256"]
+                 or value["envelope_sha256"] != record["runtime_intake"]["envelope_sha256"]
+--- a/tests/test_stage6_6_artifact_evidence_capture.py
++++ b/tests/test_stage6_6_artifact_evidence_capture.py
+@@ -95,6 +95,13 @@
+     assert {a["kind"] for a in capture["artifacts"]} == set(KINDS)
+     assert manifest["terminal_event_sha256"] == item["head_sha256"]
+     assert manifest["adapter_result_sha256"] == item["invocation"]["result"]["integrity"]["canonical_sha256"]
++    assert manifest["authorization_id"] == item["events"][0]["data"]["authorization_id"]
++    assert manifest["recon_action_id"] is None and manifest["proposal_ref"] is None
++    action_parameters = next(a for a in capture["artifacts"] if a["kind"] == "ACTION_PARAMETERS")
++    _, action_payload = ctx[0].repository.get_artifact(action_parameters["artifact_id"], item["attempt_id"])
++    action_payload = json.loads(action_payload)
++    assert action_payload["authorization_id"] == manifest["authorization_id"]
++    assert action_payload["recon_action_id"] is None and action_payload["proposal_ref"] is None
+     assert manifest["coverage"]["SCREENSHOTS"] == "NOT_SUPPORTED_BY_CURRENT_FIXED_ADAPTERS"
+     assert manifest["coverage"]["TARGET_BEFORE_STATE"] == "NOT_MEASURED"
+     for descriptor in capture["artifacts"]:

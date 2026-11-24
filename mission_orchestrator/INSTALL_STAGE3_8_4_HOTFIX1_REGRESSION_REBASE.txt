@@ -1,0 +1,20 @@
+Stage 3.8.4 Hotfix 1 — Regression Baseline Rebase
+
+1. Stop the Mission Orchestrator process if it is running from the directory being replaced.
+2. Back up D:\mission_orchestrator.
+3. Extract this package over D:\mission_orchestrator, preserving the directory structure.
+4. This hotfix is test-only; the Stage 3.8.4 production runtime implementation remains unchanged.
+5. Start/restart Mission Orchestrator and confirm /health reports:
+   control_version = stage3.8.4-live-mission-state-execution-projection
+   mission_repository_migration_level = 53
+6. Run:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_8_4_HOTFIX1_VERIFY.ps1
+
+7. If the hotfix verifier passes, run the authoritative gate:
+
+   .\STAGE3_8_4_ACCEPTANCE.ps1
+
+Formal Stage 3.8.4 closure requires the authoritative acceptance gate to report PASS.

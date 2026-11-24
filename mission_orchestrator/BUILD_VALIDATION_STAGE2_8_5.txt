@@ -1,0 +1,36 @@
+Stage 2.8.5 — Task Lifecycle Event Enrichment
+=============================================
+
+Baseline:
+  VulnDesk control version: hybrid-event-driven-2.7-task-committed-lineage
+
+Implemented control version:
+  hybrid-event-driven-2.8-task-lifecycle-lineage
+
+Focused test:
+  python -m pytest -q tests/test_task_lifecycle_event_enrichment_stage2_8_5.py
+  RESULT: 5 passed
+
+Stage regression:
+  test_task_lifecycle_event_enrichment_stage2_8_5.py
+  + test_task_committed_event_stage2_8_4.py
+  + test_task_lineage_event_v2_stage2_8.py
+  + test_cti_event_driven_runtime.py
+  + test_policydecision_taskcontract_stage2.py
+  + test_pre_dispatch_revalidation_stage2_6.py
+  + test_granular_revocation_stage2_7.py
+  RESULT: 36 passed
+
+Broad VulnDesk regression:
+  python -m pytest -q --ignore=tests/test_nvd_bulk_upsert.py
+  RESULT: 69 passed
+
+Full suite in build environment:
+  collection blocked only because PyMySQL is not installed in the build environment.
+  User workstation already has PyMySQL and should run the full suite after deployment.
+
+DB migration:
+  NONE. Migration 07 already contains every first-class event lineage column required by 2.8.5.
+
+aptsGSS changes:
+  NONE.

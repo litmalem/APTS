@@ -1,0 +1,44 @@
+STAGE 6.7 - VEP CONSTRUCTION & INTEGRITY
+
+Baseline: Mission(20261003-133323).zip, Stage 6.6, Execution migration 6.
+Control: stage6.7-vep-construction-integrity
+
+1. Hentikan proses Execution yang menggunakan port 8791.
+2. Backup database Execution setelah proses berhenti:
+   D:\mission_orchestrator\data\execution_subsystem.db
+   Gunakan lokasi APTS_EXECUTION_DB / --execution-db jika dikonfigurasi.
+3. Ekstrak seluruh isi arsip hasil Stage 6.7 langsung ke D:\mission_orchestrator,
+   menimpa source yang sama. Tidak ada folder pembungkus tambahan.
+   Arsip hasil tidak membawa database pengguna atau credential leases.
+4. Pertahankan layanan Mission 8780, Pentest 8790, dan GSS yang sudah aktif.
+   Mission migration 53 / Pentest migration 16 tetap read-only.
+   Protocol execution revalidation GSS dari Stage 6.6 tetap digunakan untuk execution.
+5. PowerShell pertama:
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\START_STAGE6_7_EXECUTION.ps1
+6. PowerShell kedua:
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE6_7_ACCEPTANCE.ps1
+
+Startup mengupgrade database Execution secara atomik ke migration 7.
+Database migration 1-6 dapat diupgrade; initializer lama menolak migration 7.
+Owner runtime tetap eksklusif. Tidak perlu mengimpor SQL ke Mission/Pentest/GSS.
+Rollback menggunakan backup database setelah menghentikan runtime baru;
+jangan menurunkan metadata migration secara manual.
+
+VEP dibuat melalui POST /api/execution/veps dengan exact attempt_id,
+envelope_sha256, evidence_sha256, dan expected_head_sha256.
+Lihat contoh pada README_STAGE6_7.md.
+Konstruksi VEP tidak menjalankan target, memanggil GSS, atau mengulangi execution.
+Replay dengan referensi yang sama mengembalikan VEP immutable yang sama.
+Attempt lama tanpa capture Stage 6.6 tidak dibackfill menjadi VEP.
+
+Audit opsional atas VEP terminal yang telah dibuat:
+   .\STAGE6_7_ACCEPTANCE.ps1 -LiveAttemptId 'xattempt-...' -LiveVepId 'xvep-...'
+Audit opsional membaca dan mengunduh data yang sudah ada; tidak membuat VEP baru.
+Default API loopback port 8791. Semua parameter database dan GovernanceUrl
+dapat diteruskan melalui startup script seperti pada Stage 6.6.
+
+Next: Stage 6.8 - Cleanup, Rollback & Post-Action Verification.

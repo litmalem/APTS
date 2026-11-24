@@ -1,0 +1,21 @@
+STAGE 3.5.9 INSTALL / REPLACEMENT NOTES
+========================================
+
+Package type:
+  Full Mission Orchestrator source tree based on the supplied Stage-3.5.8 package.
+
+Recommended Windows replacement:
+  1. Stop the currently running Mission Orchestrator process.
+  2. Back up D:\mission_orchestrator and its database.
+  3. Replace the application tree with this package (preserve local secrets/configuration as appropriate).
+  4. Apply migration 035 when using MySQL/MariaDB according to the existing migration procedure.
+     SQLite local development schema is created/advanced automatically by MissionRepository.ensure_schema().
+  5. Start Mission Orchestrator on port 8780.
+  6. Confirm /health returns:
+       control_version = stage3.5.9-execution-event-lineage-replay-recovery
+       mission_repository_migration_level = 35
+  7. Run:
+       Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+       .\STAGE3_5_9_ACCEPTANCE.ps1
+
+Stage 3.5.9 does not require a new runtime actuator endpoint. Replay/recovery are local durable-repository operations.

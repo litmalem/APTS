@@ -1,0 +1,24 @@
+Stage 3.8.4 Hotfix 1 local qualification evidence
+
+Triggering target-host evidence:
+- Stage 3.8.4 runtime contract: PASS
+- Python compilation: PASS
+- Canonical inventory: 1389 tests collected
+- Pre-hotfix full regression: 1314 passed, 75 failed
+- Failure class: stale Stage 3.8.3 current-control/server-version expectations and stale supported_controls suffix/tail windows
+
+Hotfix scope:
+- tests only + hotfix verification/documentation
+- production runtime unchanged
+- repository migration unchanged at 53
+- canonical inventory expected unchanged at 1389
+
+Local verification:
+- representative repaired lineage/tail assertions: PASS (8/8)
+- Python compile: PASS
+- canonical collection: 1389 tests collected
+- focused Stage 3.8.1-3.8.4 regression: 33 passed in 1.58s
+- full canonical regression: 1389 passed in 1116.30s (0:18:36)
+
+Authoritative closure:
+- rerun STAGE3_8_4_ACCEPTANCE.ps1 on D:\mission_orchestrator

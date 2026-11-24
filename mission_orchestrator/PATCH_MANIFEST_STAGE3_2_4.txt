@@ -1,0 +1,29 @@
+Stage 3.2.4 — Planning and Run Activation patch manifest
+=========================================================
+
+Baseline required: Stage 3.2.3 — Mission PIP Activation
+Repository migration level: 8 (unchanged)
+
+Changed files:
+- mission_orchestrator/api_service.py
+- mission_orchestrator/mission_lifecycle.py
+- mission_orchestrator/service.py
+- tests/test_stage3_1_6_mission_versioning_concurrency.py
+- tests/test_stage3_1_7_mission_persistence_repository_model.py
+- tests/test_stage3_1_8_canonical_mission_api_validation_layer.py
+- tests/test_stage3_1_9_mission_event_lineage_foundation.py
+- tests/test_stage3_1_10_acceptance_regression_gate.py
+- tests/test_stage3_2_1_mission_lifecycle_command_contract.py
+- tests/test_stage3_2_2_lifecycle_transition_guard_matrix.py
+- tests/test_stage3_2_3_mission_pip_activation.py
+
+New files:
+- tests/test_stage3_2_4_planning_run_activation.py
+- STAGE3_2_4_ACCEPTANCE.ps1
+- README_STAGE3_2_4.md
+- PATCH_NOTES_STAGE3_2_4.md
+- INSTALL_STAGE3_2_4.txt
+- PATCH_MANIFEST_STAGE3_2_4.txt
+- SHA256_STAGE3_2_4.txt
+
+Expected regression after installation: 166 passed

@@ -1,0 +1,71 @@
+Stage 3.5.2 — Package Construction Regression Evidence
+======================================================
+
+Source root
+-----------
+mission352_work (derived from Mission(20260913-144055).zip / Stage 3.5.1 baseline)
+
+Compilation
+-----------
+python -m compileall -q mission_orchestrator tests
+PASS
+
+Canonical test inventory
+------------------------
+python -m pytest --collect-only -q
+817 tests collected in 0.42s
+
+Focused Stage 3.5.2 proof
+-------------------------
+python -m pytest -q tests/test_stage3_5_2_dispatch_eligibility_execution_preconditions.py
+19 passed in 27.01s
+
+Stage 3.4.10 compatibility proof
+--------------------------------
+The Stage-3.5.2 supported-control extension exposed one stale Stage-3.4.10 tail-cardinality
+expectation. The regression assertion was corrected without changing Stage-3.4.10 runtime
+semantics or authority boundaries.
+
+python -m pytest -q tests/test_stage3_4_10_routing_delegation_acceptance_regression_gate.py
+12 passed in 9.24s
+
+Complete regression
+-------------------
+python -m pytest -q
+817 passed in 510.51s (0:08:30)
+
+Stage totals
+------------
+Stage 3.1:       111 tests
+Stage 3.2:       156 tests
+Stage 3.3:       239 tests
+Stage 3.4:       273 tests
+Stage 3.5.1:      19 tests
+Stage 3.5.2:      19 tests
+                 ---------
+TOTAL:           817 tests
+
+Stage-3.5.2 positive-path evidence
+----------------------------------
+Canonical preconditions evaluated: 25
+Satisfied preconditions:            25
+Failed preconditions:                0
+Persisted gate result:              PASSED
+Eligibility status:                 ELIGIBLE_FOR_PRE_DISPATCH_GOVERNANCE_REVALIDATION
+Execution authorization:            NOT PERFORMED
+Governance revalidation query:      NOT PERFORMED
+Runtime endpoint resolution:        NOT PERFORMED
+Runtime health probe:               NOT PERFORMED
+Resource assignment:                NOT PERFORMED
+Network dispatch:                   NOT PERFORMED
+External network I/O:               NOT PERFORMED
+Target actuation:                   NOT PERFORMED
+Version-vector extension:           NOT PERFORMED
+
+Operational note
+----------------
+The package-construction regression above is local build evidence. The target-host
+STAGE3_5_2_ACCEPTANCE.ps1 remains the authoritative deployment acceptance gate because
+it additionally verifies the running Mission Orchestrator on http://127.0.0.1:8780,
+runtime control identity, repository migration level, predecessor ordering, and the
+no-execution/no-network/no-actuation boundary.

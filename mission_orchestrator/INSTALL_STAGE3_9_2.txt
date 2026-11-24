@@ -1,0 +1,49 @@
+Stage 3.9.2 installation / acceptance
+=====================================
+
+Target repository:
+  D:\mission_orchestrator
+
+Baseline prerequisite:
+  Stage 3.9.1 acceptance must already be PASS.
+  Expected previous runtime control:
+    stage3.9.1-canonical-e2e-mission-scenario-acceptance-contract
+
+1. Stop/restart the Mission Orchestrator only as required by your existing run procedure.
+2. Back up the current Stage 3.9.1 tree.
+3. Extract the Stage 3.9.2 overlay at the repository root, preserving relative paths and overwriting matching files.
+4. Do NOT create or run a new database migration. Stage 3.9.2 remains at migration level 53.
+5. Restart the Mission Orchestrator so the active runtime loads:
+     stage3.9.2-intake-lifecycle-e2e-segment-qualification
+6. From PowerShell:
+
+     cd D:\mission_orchestrator
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE3_9_2_ACCEPTANCE.ps1
+
+The acceptance script intentionally creates one canonical Stage 3.9 Mission using the existing public Mission-intake route, advances it using the existing lifecycle-command route through CREATED -> PIP_BOUND -> PLANNING, verifies the read-only Stage 3.9.2 qualification proof, and exact-replays the same requests to prove idempotency.
+
+Expected acceptance properties:
+  control_version                           = stage3.9.2-intake-lifecycle-e2e-segment-qualification
+  predecessor                               = stage3.9.1-canonical-e2e-mission-scenario-acceptance-contract
+  server_version                            = APTSMissionOrchestrator/3.9.2
+  mission_repository_migration_level        = 53
+  Stage 3.9.2 schema                        = apts-stage3.9-intake-lifecycle-segment-qualification-v1
+  canonical scenario ID                     = stage3.9-canonical-e2e-control-plane-mission-v1
+  qualified segment head                    = PLANNING
+  qualified segment head state version      = 3
+  exact state transitions                   = 2
+  exact lifecycle commands                  = 2
+  exact Mission events                      = 5
+  planner invocation at Stage 3.9.2 head    = false
+  plan artifact at Stage 3.9.2 head         = false
+  canonical pytest inventory                = 1458
+  focused Stage 3.9.2 tests                 = 15
+  focused Stage 3.9.1 predecessor tests     = 12
+  new durable store                         = NONE
+  new database migration                    = NONE
+  new Governance/routing/delegation authority = NONE
+  new planner/dispatch/execution authority  = NONE
+  new external-I/O/telemetry/target authority = NONE
+
+Do not proceed to Stage 3.9.3 until STAGE3_9_2_ACCEPTANCE.ps1 reports PASS on the deployment host.

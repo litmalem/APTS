@@ -1,0 +1,6 @@
+Stage 3.8.4 install
+1. Replace the repository with this package or copy the changed files preserving paths.
+2. No database migration is required; migration level remains 53.
+3. Restart Mission Orchestrator.
+4. Confirm /health control_version = stage3.8.4-live-mission-state-execution-projection.
+5. Run STAGE3_8_4_ACCEPTANCE.ps1 from repository root.

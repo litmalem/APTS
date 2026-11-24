@@ -1,0 +1,57 @@
+Stage 5.2 implementation-environment regression evidence
+Date: 2026-10-01
+
+Control:
+  stage5.2-reconnaissance-agent
+
+Pentest migration:
+  9
+
+Python compilation:
+  PASS
+
+Canonical pytest inventory:
+  1847 tests collected
+
+Focused Stage 5.2:
+  24 passed in 3.32s
+
+Stage 4.1 -> Stage 5.2 Pentest qualification chain:
+  272 passed in 18.44s
+
+Critical Stage 3.9.10 -> Stage 4.10 -> Stage 5.1 -> Stage 5.2 regression:
+  78 passed in 12.85s
+
+Focused Stage 5.1 + Stage 4.8 + Stage 4.9 predecessor regression:
+  84 passed in 5.43s
+
+Full historical suite:
+  not executed inside the packaging environment because prior full-suite runs for this
+  repository are long-running. The deployment-host STAGE5_2_ACCEPTANCE.ps1 is the final
+  PASS/FAIL authority and executes all 1847 tests.
+
+Implemented Stage 5.2 capabilities:
+  bounded PENTEST_RECONNAISSANCE_AGENT specialist
+  strict imported observation contract
+  deterministic Recon run identity
+  deterministic hosts/domains/services/attack-surface aggregation
+  confidence aggregation
+  Stage-4.9 Observation + Evidence lineage binding
+  SHA-bound raw-evidence references
+  Stage-4.8 scope/RoE governance on discovery proposals
+  narrower local-task target-scope fail-closed enforcement
+  governed ACTION_PROPOSAL publication
+  durable Recon Evidence Bundle
+  idempotent replay and restart
+  Stage-5.1 progress handoff that releases Enumeration
+
+Authority boundary:
+  no raw tool access
+  no direct external target network I/O
+  no target actuation
+  no PolicyDecision minting
+  Stage-4.8 eligibility decision is not authorization
+  Stage 6 remains controlled execution authority
+
+Next:
+  Stage 5.3 — Enumeration Agent

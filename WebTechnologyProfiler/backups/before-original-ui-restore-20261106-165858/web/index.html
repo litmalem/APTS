@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="id">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Web Technology Profiler</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head>
+<body>
+<header><div><span class="eyebrow">APTS · WPT</span><h1>Web Technology Profiler</h1><p>Fingerprint teknologi web dan enumerasi permukaan terbatas.</p></div><button id="refresh" type="button">Segarkan</button></header>
+<main><p id="health" role="status">Memeriksa layanan…</p><p id="message" role="alert" hidden></p>
+<section><h2>Pemindaian baru</h2><form id="scan">
+<div class="grid"><label>Konteks eksekusi<select name="execution_mode" id="execution"><option value="GOVERNED">APTS · Governance / Stage 6</option><option value="STANDALONE">Mandiri · target berizin</option></select></label><label>Profil<select name="mode"><option value="fingerprinting">Fingerprint teknologi</option><option value="enumeration">Enumerasi permukaan web</option></select></label><label>URL target<input name="target" type="url" placeholder="http://localhost:8080/" required></label><label>Operator<input name="requested_by" value="operator" required></label></div>
+<div id="governed" class="grid"><label>Mission ID<input name="mission_id" placeholder="mission-gmo-…" required></label><label>Task ID<input name="task_id" placeholder="ptask-…"></label><label>Authorization ID<input name="authorization_id"></label></div>
+<div id="standalone" hidden><p>Probe pasif terbatas. Target remote harus terdaftar di Target Remote. Hasil mandiri tidak menjadi bukti Stage 6.</p><label class="check"><input name="local_authorized" type="checkbox"> Saya berwenang memindai target ini.</label><label class="check"><input name="remote_authorized" type="checkbox"> Saya mengizinkan probe ke target remote yang terdaftar.</label></div>
+<p id="scan-note">Simpan proposal, kemudian kirim melalui Governance / Stage 6.</p><button type="submit" id="submit">Simpan proposal</button></form></section>
+<section><h2>Target Mission</h2><p>Inbox otomatis dari Mission. Target menunggu task dan otorisasi Stage 6 sebelum dieksekusi.</p><div class="scroll"><table><thead><tr><th>Target</th><th>Mission / Task</th><th>Profil</th><th>Status</th></tr></thead><tbody id="intakes"></tbody></table></div></section>
+<section><h2>Riwayat job</h2><div class="scroll"><table><thead><tr><th>Waktu</th><th>Target</th><th>Konteks / Profil</th><th>Status</th><th>Delivery</th><th>Aksi</th></tr></thead><tbody id="jobs"></tbody></table></div></section>
+<section id="detail" hidden><h2>Detail job</h2><div id="summary"></div><details><summary>Data hasil lengkap</summary><pre id="result"></pre></details></section>
+<section><h2>Target Remote</h2><p>Allowlist exact-host untuk mode mandiri. Tambahkan hanya target yang berizin.</p><form id="allowlist"><label>Hostname, IP, atau URL<input name="entry" placeholder="lab.example.test" required></label><button type="submit">Tambahkan</button></form><ul id="entries"></ul></section>
+</main><footer>WPT · Bukti teknologi adalah indikator, bukan konfirmasi kerentanan.</footer></body></html>

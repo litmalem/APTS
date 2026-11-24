@@ -1,0 +1,99 @@
+{
+  "mission_id": "mission-gmo-31538bcf-92cc-46be-8a94-a9179c496f4a",
+  "jobs": [
+    {
+      "job_id": "wpt-3033cd635b816320f1ab17dc1dd6512a",
+      "intake_id": "wptreq-auto-267deca5231ffe1933eef07a95901bdb23d56439",
+      "execution_id": "exec-ac0e06d13ebc5a0da4e1cc9669beb192",
+      "status": "COMPLETED",
+      "error": null,
+      "recon_status": "DELIVERED",
+      "recon_delivery_id": "reconrun-afd44751a2c5120284200413f265ac9b4049bcd61af447b4",
+      "runtime_attempt_number": 2,
+      "superseded_by_intake_id": null,
+      "verified_result": {
+        "scan_metrics": {
+          "evidence_strength_index_max": 55,
+          "favicon_fingerprints": 0,
+          "fingerprints_matched": 1,
+          "headers_observed": 1,
+          "html_responses": 1,
+          "redirects_blocked": 1,
+          "redirects_observed": 2,
+          "request_budget": 6,
+          "request_errors": 0,
+          "requests_performed": 3,
+          "requests_planned": 2,
+          "response_rate_percent": 100,
+          "responses_received": 3,
+          "scan_status": "PARTIAL",
+          "tls_sessions": 0
+        },
+        "technology_findings": [
+          {
+            "confidence_level": "medium",
+            "evidence": [
+              {
+                "family": "cookie_name",
+                "signal": "http.cookie_name",
+                "value": "JSESSIONID",
+                "weight": 55
+              }
+            ],
+            "evidence_count": 1,
+            "evidence_strength_score": 55,
+            "independent_evidence_families": [
+              "cookie_name"
+            ],
+            "technology": "Java Servlet"
+          }
+        ],
+        "evidence": {
+          "capture_status": "SEALED",
+          "evidence_ref": "stage6-evidence://xevidence-9c8c2edc782452b366d657ece530eea2",
+          "manifest_sha256": "2adf0c96e6ffeec2403f5813901e5b2cad697d9909b30e40eba900fc329f57a5"
+        },
+        "favicon_status": "REDIRECTED"
+      }
+    },
+    {
+      "job_id": "wpt-0a0db4736711d10fc5b7d73b22f0c10b",
+      "intake_id": "wptreq-auto-83bcdd37ff88f0fd6a3f3ff7e620410e0ae39b3f",
+      "execution_id": "exec-d5161f59152d442f8df1971a491931b8",
+      "status": "FAILED",
+      "error": "RESOLVED_ADDRESS_OUTSIDE_SCOPE",
+      "recon_status": "NOT_SENT",
+      "recon_delivery_id": null,
+      "runtime_attempt_number": 1,
+      "superseded_by_intake_id": "wptreq-auto-267deca5231ffe1933eef07a95901bdb23d56439"
+    },
+    {
+      "job_id": "wpt-452c75d32c4f8bf1feb8f93726f1ffe0",
+      "intake_id": "wptreq-auto-b3139ae1a3d27f1b42cc8fff4ff1800cdff90a8e",
+      "execution_id": "exec-52e510b1ef7855b0e5cb93f48f82e820",
+      "status": "FAILED",
+      "error": "RESOLVED_ADDRESS_OUTSIDE_SCOPE",
+      "recon_status": "NOT_SENT",
+      "recon_delivery_id": null,
+      "runtime_attempt_number": 1,
+      "superseded_by_intake_id": "wptreq-auto-267deca5231ffe1933eef07a95901bdb23d56439"
+    },
+    {
+      "job_id": "wpt-82c53abb07613c4ebecef46db15fa92b",
+      "intake_id": "wptreq-auto-6323cdb170a2f0c3acda6bcf2a75b85791de8424",
+      "execution_id": "exec-ca97650d8aebf41ac585fe5f449b940e",
+      "status": "FAILED",
+      "error": "RESOLVED_ADDRESS_OUTSIDE_SCOPE",
+      "recon_status": "NOT_SENT",
+      "recon_delivery_id": null,
+      "runtime_attempt_number": 1,
+      "superseded_by_intake_id": "wptreq-auto-267deca5231ffe1933eef07a95901bdb23d56439"
+    }
+  ],
+  "test_results": {
+    "focused_regression_passed": 120,
+    "excluded_failures": 7,
+    "wpt_passed": 31
+  },
+  "backup_directory": "D:\\APTS\\backups\\wpt-repair-20261109"
+}

@@ -1,0 +1,137 @@
+STAGE 3.6.4 — DEPENDENCY-AWARE TASK COMPLETION
+PACKAGE-CONSTRUCTION VERIFICATION EVIDENCE
+======================================================================
+
+Runtime/control target
+----------------------
+control_version            : stage3.6.4-dependency-aware-task-completion
+server_version             : APTSMissionOrchestrator/3.6.4
+repository migration       : 39
+new durable store          : mission_task_completion_commits
+identity prefix            : tcomp-
+completion status          : COMPLETED_DEPENDENCY_CONSISTENT
+acceptance status          : ACCEPTED_FOR_TASK_COMPLETION
+dependency status          : DEPENDENCIES_SATISFIED
+
+Canonical test inventory
+------------------------
+Command:
+  python -m pytest --collect-only -q
+
+Observed:
+  1042 tests collected
+
+Result:
+  PASS — exact expected inventory 1042
+
+Python / source verification
+----------------------------
+The Stage-3.6.4 source tree imports successfully and the focused tests execute from the
+canonical project root. The target-host acceptance harness additionally executes
+`python -m compileall -q mission_orchestrator tests` before regression.
+
+Focused Stage 3.6.4
+-------------------
+Command:
+  python -m pytest -q tests/test_stage3_6_4_dependency_aware_task_completion.py
+
+Observed:
+  20 passed in 6.17s
+
+Result:
+  PASS
+
+Stage 3.6.1 + 3.6.2 + 3.6.3 + 3.6.4
+-----------------------------------
+Command:
+  python -m pytest -q tests/test_stage3_6_1_canonical_task_outcome_contract_identity.py tests/test_stage3_6_2_task_terminality_completion_eligibility.py tests/test_stage3_6_3_evidence_binding_verification.py tests/test_stage3_6_4_dependency_aware_task_completion.py
+
+Observed:
+  79 passed in 23.18s
+
+Result:
+  PASS
+
+Health / supported-control regression subset
+--------------------------------------------
+Command:
+  python -m pytest -q -k 'health or supported_control'
+
+Observed:
+  61 passed, 981 deselected in 22.03s
+
+Result:
+  PASS
+
+Stage-3.1 regression file group
+-------------------------------
+Observed during package construction:
+  111 passed in 16.23s
+
+Result:
+  PASS
+
+Historical regression repairs made during Stage-3.6.4 construction
+------------------------------------------------------------------
+Two stale closure assertions were found after adding the Stage-3.6.4 control and migration:
+- Stage-3.5.10 supported-control positional assertions did not include Stage 3.6.3 before current Stage 3.6.4;
+- Stage-3.4.10 final supported-control positional assertions ended one slot early;
+- Stage-3.5.10 migration-tail assertions omitted migration 038.
+
+Those assertions were rebased to the actual canonical control sequence and 035..039 migration tail,
+and the targeted regressions pass.
+
+Full regression in package-construction environment
+---------------------------------------------------
+A complete sequential 1042-test regression is NOT claimed by this package-construction run.
+The sandbox suite is long-running; parallel exploratory runs were also bounded by command-runtime
+limits. No failure remains in the focused Stage-3.6 chain, health/supported-control subset, Stage-3.1
+group, or the corrected Stage-3.5.10/Stage-3.4.10 assertions described above.
+
+The authoritative target-host acceptance command is:
+
+  .\STAGE3_6_4_ACCEPTANCE.ps1
+
+The harness prints STAGE 3.6.4 ACCEPTANCE: PASS only after the complete 1042-test regression,
+the 79-test Stage-3.6 chain, the focused 20-test Stage-3.6.4 proof, and runtime/migration/authority
+boundary checks all pass.
+
+Focused Stage-3.6.4 evidence
+----------------------------
+- immutable tcomp-* contract and canonical SHA-256 self-verification;
+- exact binding to active pver-*, ebind-*, toutcome-* and telig-* lineage;
+- deterministic prerequisite derivation from the active Plan DAG;
+- root-task completion with dependency_count=0;
+- non-root task fails closed while a prerequisite is incomplete;
+- same-Plan dependency completions are canonical prerequisite evidence;
+- superseded/stale Plan dependency completion is rejected;
+- stale Mission vector, active Plan and ebind hash expectations fail closed;
+- caller-supplied dependency/acceptance/release/readiness/progression fields are rejected;
+- exact idempotent replay without duplicate completion/event;
+- one immutable completion per active-Plan task;
+- no Governance or runtime contact during completion/replay;
+- restart preserves the same durable tcomp-* record;
+- exactly-once MISSION_TASK_COMPLETION_COMMITTED event;
+- repository manifest/integrity includes dependency_aware_task_completion_store;
+- persisted-column tampering is detected;
+- migration 039 and API routes are registered;
+- dependency release, readiness recalculation, Plan progression and Mission completion remain false.
+
+Clean patch-application verification
+------------------------------------
+Procedure:
+  1. extract the original supplied accepted Stage-3.6.3 tree to a clean directory;
+  2. overlay the Stage-3.6.4 payload only;
+  3. compile mission_orchestrator + tests;
+  4. collect the canonical pytest inventory;
+  5. run Stage-3.6.1 + Stage-3.6.2 + Stage-3.6.3 + Stage-3.6.4;
+  6. run the health/supported-control regression subset.
+
+Observed:
+  Python compilation: PASS
+  Canonical inventory: 1042 tests collected in 1.63s
+  Stage-3.6.1..3.6.4: 79 passed in 22.69s
+  Health/supported-control subset: 61 passed, 981 deselected in 22.46s
+
+Result:
+  PASS — the Stage-3.6.4 delta is self-contained relative to the supplied Stage-3.6.3 baseline.

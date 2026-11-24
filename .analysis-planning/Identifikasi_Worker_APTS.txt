@@ -1,0 +1,113 @@
+Identifikasi Worker APTS
+Daftar posisi, fungsi, dan komunikasi antarkomponen berdasarkan source code yang diunggah
+Ringkasan. Source code memperlihatkan dua kelompok worker domain: enam specialist Pentest di Mission dan empat agent CTI di Vulndesk. Keduanya dikoordinasikan oleh orchestrator; sebagian besar bukan thread atau proses mandiri. Worker teknis terpisah menangani otomasi Mission, runtime Stage 6, event CTI/Governance, pemantauan sumber, dan sinkronisasi data.
+Cakupan pemeriksaan. Analisis berfokus pada source ZIP Mission, Vulndesk, aptsGSS, WPT, dan APTS Control Center yang diunggah. File SQL tidak dipakai untuk menentukan implementasi worker. Salinan komponen yang muncul pada lebih dari satu ZIP dihitung satu kali. Folder backup, cache, dan test tidak dihitung sebagai implementasi aktif.
+Gambaran posisi worker
+Alur specialist PentestReconnaissance → Enumeration → Vulnerability Hypothesis → Attack Path Planning → Exploitation → Post-Exploitation Impact
+Alur CTIAcquisition & Freshness → Normalization & Provenance → Asset Profiling/CPE → Vulnerability Correlation → ATT&CK Mapping → Threat Context / Attack-Path Reasoning → Risk Prioritization → PIP Assembly & Validation
+1. Specialist Pentest
+Posisi dan fungsi berikut dinyatakan dalam modul `Mission/pentest_subsystem`. Orchestrator Pentest mengatur task graph; setiap specialist membaca prasyarat serta hasil/evidence dari tahap sebelumnya.
+Posisi dan worker
+Fungsi
+Komunikasi dengan worker/komponen lain
+1 · Reconnaissance Agent`pentest_subsystem/reconnaissance.py`
+Membentuk konteks Recon dan mengolah observasi/evidence yang diimpor. Source membatasi specialist agar tidak melakukan akses target langsung atau eksekusi aksi.
+Menerima scope Mission/GSS dan evidence yang sah, termasuk jalur handoff WPT. Output Recon menjadi prasyarat Enumeration; progres Recon dapat membuka subtask Enumeration.
+2 · Enumeration Agent`pentest_subsystem/enumeration.py`
+Menormalkan observasi layanan, teknologi, versi, endpoint, dan konfigurasi.
+Membaca output serta hash evidence Recon sebagai predecessor. Output Enumeration menjadi input Vulnerability Hypothesis.
+3 · Vulnerability Hypothesis Agent`pentest_subsystem/vulnerability_hypothesis.py`
+Mengorelasikan evidence Enumeration dengan pengetahuan kerentanan/CTI untuk membentuk hipotesis. Hipotesis tidak diperlakukan sebagai temuan terkonfirmasi; validasi tetap diperlukan.
+Mengonsumsi output Enumeration authoritative dan item CTI dengan provenance. Output diteruskan ke Attack Path Planning.
+4 · Attack Path Planning Agent`pentest_subsystem/attack_path_planning.py`
+Menyusun dan memberi peringkat kandidat jalur serangan yang terikat evidence. Modusnya perencanaan baca-saja.
+Menggunakan hasil Vulnerability Hypothesis dan lineage evidence-nya. Kandidat jalur menjadi input Exploitation Agent.
+5 · Exploitation Agent`pentest_subsystem/exploitation.py`
+Menyusun proposal aksi validasi/eksploitasi dan task yang dibutuhkan. Agent ini bukan pemegang otoritas eksekusi.
+Membaca kandidat Attack Path. Aksi aktual harus melalui otorisasi Governance dan runtime/adapter Stage 6.
+6 · Post-Exploitation Impact Agent`pentest_subsystem/post_exploitation_impact.py`
+Menganalisis dampak dari evidence eksekusi. Source menyatakan tahap ini tidak menjalankan aksi dan tidak otomatis mengubah hasil menjadi temuan terkonfirmasi.
+Membaca output Exploitation dan evidence eksekusi Stage 6; hasil analisis kembali ke alur task/evidence Mission.
+
+Posisi WPT dalam alur Mission
+`Mission/mission_orchestrator/mission_planning_automation.py` menyusun task Mission yang menempatkan WPT intake dan fingerprinting sebelum handoff hasil ke Recon. Job WPT yang governed dijalankan melalui adapter Stage 6. WPT (`WPT/app.py`, `WPT/adapters/profile_engine.py`) adalah layanan profiler; source tidak menunjukkan WPT sebagai specialist agent Pentest yang memiliki thread otonom sendiri.
+2. Agent CTI
+CTI-A01 mengoordinasikan pipeline berbasis event. Dependency DAG ada di `Vulndesk/cti_services/architecture.py`; implementasi runtime berada di `cti_subsystem_orchestrator.py`. aptsGSS tetap menjadi otoritas kebijakan untuk akuisisi yang memerlukan otorisasi.
+Agent dan posisi
+Fungsi
+Komunikasi
+CTI-A01 · CTI Subsystem Orchestrator`cti_subsystem_orchestrator.py`
+Mengatur misi CTI, dependency DAG, event, dan perpindahan proses dari satu komponen ke komponen berikutnya.
+Berkomunikasi melalui CTI Event Bus/Dispatcher. Memanggil komponen pipeline sesuai dependency dan meneruskan konteks misi/versi.
+CTI-A02 · Acquisition & Freshness`acquisition_freshness_agent.py`
+Memeriksa kesegaran sumber CTI dan mengoordinasikan akuisisi sumber yang diizinkan.
+Mengirim hasil akuisisi ke Normalization & Provenance. Akuisisi governed bergantung pada keputusan aptsGSS; agent CTI tidak memberi otorisasi eksekusi Pentest.
+CTI-A03 · Attack-Path Reasoning`attack_path_reasoning_agent.py`
+Membuat usulan jalur intelijen dari konteks aset, korelasi kerentanan, dan pemetaan ATT&CK. Registry menandainya sebagai komponen opsional.
+Mengonsumsi hasil Asset Profiling, Vulnerability Correlation, dan Attack Mapping; hasilnya dapat digunakan Threat Context dan Risk Prioritization.
+CTI-A04 · Risk Prioritization`risk_prioritization_agent.py`
+Menghasilkan rekomendasi prioritas risiko.
+Menggunakan profil aset, korelasi kerentanan, pemetaan ATT&CK, hasil Attack-Path Reasoning, dan Threat Context. Output diserahkan ke PIP Assembly & Validation.
+
+Layanan CTI pendukung yang bukan agent
+Layanan
+Peran dalam komunikasi pipeline
+CTI-S01 · Normalization & Provenance
+Menormalkan data sumber dan menjaga asal-usul/provenance.
+CTI-S02 · Asset Profiling & CPE Resolution
+Membentuk profil aset dan resolusi CPE.
+CTI-S03 · Vulnerability Correlation
+Menghubungkan aset/CPE dengan kandidat kerentanan.
+CTI-S04 · ATT&CK Mapping
+Memetakan korelasi ke teknik ATT&CK.
+CTI-S05 · Threat Context
+Menyintesis konteks ancaman dari keluaran CTI.
+CTI-S06 · PIP Assembly & Validation
+Mengemas dan memvalidasi keluaran sebagai PIP.
+
+3. Background worker teknis
+Worker pada bagian ini menjalankan tugas runtime atau pemeliharaan. Mereka berbeda dari specialist Pentest/CTI yang melakukan analisis domain.
+Worker dan lokasi
+Tugas
+Komunikasi
+Mission Auto-PIP worker`mission_orchestrator/automatic_pip.py`
+Thread `mission-auto-pip` menjalankan sweep berkala untuk bootstrap/pemulihan PIP. Sweep memanggil otomasi planning, opsi aktivasi RUNNING, persiapan WPT, dan delivery hasil WPT ke Recon.
+Memanggil layanan Mission, sinkronisasi scope GSS, dan fungsi sweep otomasi terkait. Binding PIP atau aktivasi lifecycle tidak dengan sendirinya mengotorisasi target I/O.
+Stage 6 execution worker, monitor, watchdog`execution_subsystem/runtime_service.py`
+Mengelola satu eksekusi: worker menjalankan request; monitor mengawasi runtime; watchdog memeriksa guard dan heartbeat.
+Berkoordinasi lewat guard/runtime resources, repository dan event. Runtime menjalankan fixed sandbox worker dan menyimpan hasil/evidence.
+Fixed sandbox worker`execution_subsystem/sandbox_worker.py`, `sandbox_runtime.py`
+Menjalankan adapter/tool yang terdaftar dalam batas sandbox.
+Menerima kerja dari Stage 6 runtime dan mengembalikan output yang dikumpulkan runtime sebagai evidence.
+CTI Event Dispatcher`cti_services/event_dispatcher.py`
+Thread `cti-event-dispatcher` mengeluarkan event dari queue dan mengirimkannya ke subscriber.
+Menghubungkan event bus dengan handler CTI. Kegagalan handler dicatat dan dapat memicu event kegagalan.
+Adaptive CTI Source Scheduler`Vulndesk_Web/adaptive_scheduler.py`
+Thread `cti-adaptive-source-scheduler` memeriksa sumber CTI sesuai interval adaptif dan mendeteksi perubahan.
+Perubahan dapat memulai governed CTI mission jika konfigurasi mengizinkan. Scheduler tidak melewati GSS atau memanggil konektor akuisisi secara langsung.
+Governance Event Publisher`aptsGSS/app/event_publisher.py`
+Mengirim record transactional outbox ke endpoint event CTI dan mencoba kembali pengiriman gagal.
+Mengirim event Governance ke Vulndesk CTI dengan ID event untuk korelasi/idempotensi.
+Vulndesk data sync workers`sync_worker.py`, `mitre_sync_worker.py`, `cwe_sync_worker.py`, `cpe_dictionary_sync_worker.py`
+Menjalankan sinkronisasi NVD, MITRE, CWE, dan CPE di thread UI.
+Mengirim progress, hasil selesai, atau kegagalan ke antarmuka melalui Qt signals. Ini worker sinkronisasi data, bukan agent misi.
+Governance UI RefreshWorker`aptsGSS/governance_ui/main_window.py`
+Mengambil status proses, API, arsitektur, interface, dan outbox untuk diperbarui di UI.
+Memanggil Governance API dan service supervisor, lalu mengirim hasil ke UI. Bukan worker pengambil keputusan Governance.
+
+4. Batas peran dan kesimpulan
+Worker domain vs. thread runtime. Agent Pentest/CTI pada umumnya berupa modul/service yang dipanggil oleh orchestrator, bukan proses OS mandiri per agent. Nama “worker” di sini mencakup logical agent domain dan background thread yang benar-benar berjalan.
+Otoritas eksekusi. Recon, Enumeration, Vulnerability Hypothesis, Attack Path Planning, dan analisis dampak menghasilkan atau mengolah artefak; pemindaian/aksi yang governed harus melalui Stage 6 dan otorisasi yang berlaku.
+Komunikasi. Pentest memakai task graph, repository, output predecessor, dan evidence/lineage; CTI memakai orchestrator, dependency DAG, event bus, serta layanan berbagi. Antar-subsystem berkomunikasi melalui kontrak/API dan artefak terikat provenance, bukan dengan asumsi pemanggilan langsung antar-agent.
+Controller. APTS Control Center mengelola proses dan status modul. Source yang diperiksa tidak mengidentifikasikannya sebagai worker analisis domain.
+Peta file utama
+Source ZIP
+Lokasi yang dirujuk
+Mission
+`pentest_subsystem/` — enam specialist; `pentest_subsystem/orchestration/` — pengaturan task; `mission_orchestrator/automatic_pip.py` dan `mission_planning_automation.py` — otomasi Mission; `execution_subsystem/` — runtime Stage 6.
+Vulndesk
+`cti_services/architecture.py` dan `cti_subsystem_orchestrator.py` — registry/dependency/orchestrator; file agent dan service CTI lain di direktori yang sama; `Vulndesk_Web/adaptive_scheduler.py` — scheduler sumber.
+aptsGSS
+`app/event_publisher.py` — transactional-outbox publisher; `governance_ui/main_window.py` — RefreshWorker.
+WPT dan Control Center
+`WPT/app.py` dan `WPT/adapters/profile_engine.py` — layanan profiler; Control Center menjalankan/memantau modul, bukan specialist agent.

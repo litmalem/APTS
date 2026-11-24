@@ -1,0 +1,72 @@
+STAGE 3.7.2 BUILD REGRESSION EVIDENCE
+========================================================================
+Stage: Adaptation Trigger Detection & Classification
+Build source: user-supplied Misssion.zip (accepted Stage-3.7.1 baseline)
+
+STATIC / COLLECTION VALIDATION
+------------------------------
+python -m compileall -q mission_orchestrator tests
+RESULT: PASS
+
+python -m pytest --collect-only -q
+RESULT: 1197 tests collected
+
+FOCUSED STAGE-3.7.2 VALIDATION
+------------------------------
+python -m pytest -q tests/test_stage3_7_2_adaptation_trigger_detection_classification.py
+RESULT: 22 passed in 17.04s
+
+HISTORICAL CURRENT-HEAD TAIL VALIDATION
+---------------------------------------
+python -m pytest -q \
+  tests/test_stage3_5_10_execution_dispatch_acceptance_regression_gate.py::test_12_stage35_supported_control_tail_is_complete_ordered_and_closed \
+  tests/test_stage3_4_10_routing_delegation_acceptance_regression_gate.py::test_stage3410_final_supported_control_tail_is_complete_and_ordered
+RESULT: 2 passed in 1.68s
+
+STAGE-3.7.2 SEMANTIC COVERAGE
+-----------------------------
+The focused suite validates:
+  - control/server/migration/store activation;
+  - closed reason/severity/source/scope taxonomies;
+  - Level-3 partial-plan and Level-4 mission mappings;
+  - Stage-3.7.1 trigger/reason compatibility and fail-closed refinement;
+  - Stage-3.7.1 contract-hash and detection-event-hash binding;
+  - exact Mission state/version and active Plan-head concurrency binding;
+  - rejection of state drift after Stage-3.7.1 detection;
+  - rejection of future-authority/side-effect fields;
+  - exact idempotent replay and idempotency conflict handling;
+  - one classification per adaptation episode;
+  - restart persistence/read surfaces;
+  - persistence-manifest and repository-lineage integrity;
+  - tamper detection;
+  - immutable Stage-3.7.1 DETECTED source with effective CLASSIFIED projection;
+  - no eligibility, lifecycle REPLAN, planner, Plan supersession, dispatch, or actuation.
+
+BROADER REGRESSION ATTEMPTS
+---------------------------
+Broad/full-suite runs in the build sandbox exceeded the available command window before
+pytest emitted a final suite summary. Passing progress before timeout is not counted as a
+formal full-regression PASS. The full 1197-test gate is therefore intentionally reserved
+for the target host.
+
+AUTHORITATIVE HOST-SIDE ACCEPTANCE
+----------------------------------
+The release gate is:
+
+  STAGE3_7_2_ACCEPTANCE.ps1
+
+It requires:
+
+  control_version                   = stage3.7.2-adaptation-trigger-detection-classification
+  repository migration level        = 46
+  Stage-3.7.1 migration metadata     = 45
+  canonical pytest inventory        = 1197
+  focused Stage-3.7.2               = 22 passed
+  full Stage 3.1-3.7.2 regression   = PASS
+  historical head-tail probes       = 2 passed
+  migration 046                     = PRESENT
+  durable store                     = mission_adaptation_trigger_classifications
+
+No formal Stage-3.7.2 acceptance should be recorded until the target-host script ends with:
+
+  STAGE 3.7.2 ACCEPTANCE: PASS

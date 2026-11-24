@@ -1,0 +1,43 @@
+Stage 2.8.1-2.8.3 Build Validation
+==================================
+Baseline: Vulndesk(20260818-084217).zip
+Patch scope: canonical task lineage semantics + migration 07 + CTI event envelope v2
+
+Validation performed in isolated build environment:
+
+1. Python syntax compilation
+   PASS
+   - cti_services/event_bus.py
+   - cti_services/cti_subsystem_orchestrator.py
+   - cti_services/contracts.py
+   - tests/test_task_lineage_event_v2_stage2_8.py
+
+2. Stage-focused regression
+   Command:
+     pytest -q tests/test_task_lineage_event_v2_stage2_8.py \
+               tests/test_cti_event_driven_runtime.py \
+               tests/test_policydecision_taskcontract_stage2.py \
+               tests/test_pre_dispatch_revalidation_stage2_6.py \
+               tests/test_granular_revocation_stage2_7.py
+   Result: 27 passed
+
+3. VulnDesk regression excluding unrelated DB-driver-dependent NVD bulk suite
+   Command:
+     pytest -q --ignore=tests/test_nvd_bulk_upsert.py
+   Result: 60 passed
+
+4. Full pytest collection
+   Not completed because the build environment does not have pymysql installed.
+   tests/test_nvd_bulk_upsert.py imports SQLAlchemy's mysql+pymysql dialect at
+   collection time and fails with ModuleNotFoundError: No module named 'pymysql'.
+   This is an environment dependency limitation, not a Stage 2.8 regression.
+
+Deployment order:
+   1. Stop VulnDesk.
+   2. Back up the VulnDesk database.
+   3. Apply sql_update_cti_harmonized/07_task_lineage_event_traceability.sql.
+   4. Deploy the patched source.
+   5. Restart VulnDesk so DbAdapter schema caches are rebuilt after migration.
+   6. Run the Stage 2.8 test and SQL acceptance probes.
+
+No aptsGSS source/database change is required for Stage 2.8.1-2.8.3.

@@ -1,0 +1,68 @@
+Stage 4.3 — Pentest Mission & Task Contract
+===========================================
+
+Target root:
+  D:\mission_orchestrator
+
+1. Overlay the supplied files into the target root, preserving directories.
+
+2. Database behavior:
+   - Global Mission Orchestrator remains migration 53 and is not modified.
+   - Pentest Subsystem introduces its own isolated repository at:
+       data\pentest_subsystem.db
+   - Pentest migration level becomes 1.
+   - Migration is initialized automatically by the Stage-4.3 Pentest runtime.
+   - Optional override:
+       $env:APTS_PENTEST_DB = "D:\path\to\pentest_subsystem.db"
+
+3. Keep the Global Mission Orchestrator running on:
+     http://127.0.0.1:8780
+   It must remain at:
+     stage3.9.10-global-mission-orchestrator-acceptance-regression-gate
+
+4. Stop the prior Stage-4.2 Pentest runtime if it is still using port 8790.
+
+5. Start Stage 4.3 in a separate PowerShell window:
+
+     cd D:\mission_orchestrator
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\START_STAGE4_3_PENTEST.ps1
+
+   Default endpoint:
+     http://127.0.0.1:8790
+
+6. Manual health/contract checks if desired:
+
+     Invoke-RestMethod http://127.0.0.1:8790/health
+     Invoke-RestMethod http://127.0.0.1:8790/api/pentest/boundary-contract
+     Invoke-RestMethod http://127.0.0.1:8790/api/pentest/pip-contract
+     Invoke-RestMethod http://127.0.0.1:8790/api/pentest/task-contract
+
+7. Run authoritative acceptance in another PowerShell window:
+
+     cd D:\mission_orchestrator
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE4_3_ACCEPTANCE.ps1
+
+Expected pre-full-regression checkpoints:
+  - Stage 3.9.10 predecessor PASS
+  - Stage 4.1 + Stage 4.2 predecessors PASS
+  - Pentest Stage 4.3 runtime PASS
+  - Pentest repository migration 1 PASS
+  - canonical task contract PASS
+  - PIP-bound task materialization/persistence PASS
+  - repository read/query/idempotency PASS
+  - scope-widening negative path PASS
+  - execution-dispatch negative boundary PASS
+  - Python compilation PASS
+  - 1623 tests collected
+  - 18 focused Stage 4.3 tests PASS
+  - 107 critical predecessor tests PASS
+  - full historical regression PASS
+
+Important Stage-4.3 invariant:
+  A local Pentest task is a governed, PIP-bound contract record. Materializing it is not
+  execution and does not begin Stage-4.4 lifecycle state transitions.
+
+Next stage:
+  Stage 4.4 — Pentest Lifecycle & State

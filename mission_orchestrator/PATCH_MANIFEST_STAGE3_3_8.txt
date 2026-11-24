@@ -1,0 +1,60 @@
+Stage 3.3.8 — Task Readiness & Scheduling Projection patch manifest
+==================================================================
+
+Files included:
+  INSTALL_STAGE3_3_8.txt
+  PATCH_NOTES_STAGE3_3_8.md
+  README_STAGE3_3_8.md
+  STAGE3_3_8_ACCEPTANCE.ps1
+  migrations/016_stage3_3_8_task_readiness_scheduling_projection.sql
+  mission_orchestrator/__init__.py
+  mission_orchestrator/api_service.py
+  mission_orchestrator/errors.py
+  mission_orchestrator/mission_events.py
+  mission_orchestrator/mission_versioning.py
+  mission_orchestrator/repository.py
+  mission_orchestrator/repository_model.py
+  mission_orchestrator/service.py
+  mission_orchestrator/task_readiness_projection.py
+  tests/test_stage3_1_10_acceptance_regression_gate.py
+  tests/test_stage3_1_6_mission_versioning_concurrency.py
+  tests/test_stage3_1_7_mission_persistence_repository_model.py
+  tests/test_stage3_1_8_canonical_mission_api_validation_layer.py
+  tests/test_stage3_1_9_mission_event_lineage_foundation.py
+  tests/test_stage3_2_10_lifecycle_acceptance_regression_gate.py
+  tests/test_stage3_2_1_mission_lifecycle_command_contract.py
+  tests/test_stage3_2_2_lifecycle_transition_guard_matrix.py
+  tests/test_stage3_2_3_mission_pip_activation.py
+  tests/test_stage3_2_4_planning_run_activation.py
+  tests/test_stage3_2_5_waiting_dependency_control.py
+  tests/test_stage3_2_6_pause_resume_replanning_control.py
+  tests/test_stage3_2_7_abort_failure_expiration_semantics.py
+  tests/test_stage3_2_8_cleanup_verified_completion_gate.py
+  tests/test_stage3_2_9_event_driven_lifecycle_automation_reliability.py
+  tests/test_stage3_3_1_canonical_plan_contract_identity.py
+  tests/test_stage3_3_2_planner_input_snapshot_context_binding.py
+  tests/test_stage3_3_3_canonical_task_decomposition_contract.py
+  tests/test_stage3_3_4_task_dependency_graph_structural_validation.py
+  tests/test_stage3_3_5_planner_invocation_plan_generation.py
+  tests/test_stage3_3_6_plan_validation_feasibility_gate.py
+  tests/test_stage3_3_7_plan_versioning_replanning_supersession.py
+  tests/test_stage3_3_8_task_readiness_scheduling_projection.py
+
+Database:
+  Existing required level: 15
+  New migration: migrations/016_stage3_3_8_task_readiness_scheduling_projection.sql
+  Resulting repository migration level: 16
+
+Expected regression baseline:
+  456 tests collected
+  Stage 3.1 = 111 passed
+  Stage 3.2 = 156 passed
+  Stage 3.3 = 189 tests total; Stage 3.3.8 focused = 28 passed
+
+Authority boundary:
+  READINESS != PERMISSION
+  READY != AUTHORIZED
+  TASK != DISPATCH
+  PLANNER != GOVERNANCE
+  Governance authority remains EXTERNAL_APTS_GSS
+  No wall-clock scheduling, resource assignment, target dispatch, or target actuation

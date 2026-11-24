@@ -1,0 +1,503 @@
+﻿{
+    "status":  "completed",
+    "mission_id":  "mission-stage298-e2e-20260902-022733",
+    "integrity":  {
+                      "schema_version":  "cti-integrity-probe-v1",
+                      "scope":  "MISSION",
+                      "mission_id":  "mission-stage298-e2e-20260902-022733",
+                      "status":  "PASS",
+                      "classification":  "LINEAGE_INTEGRITY_VIOLATION_CLASSIFICATION_STAGE_2_9_5",
+                      "read_only":  true,
+                      "verification_complete":  true,
+                      "verification_reasons":  [
+
+                                               ],
+                      "task_integrity":  [
+                                             {
+                                                 "schema_version":  "cti-integrity-probe-v1",
+                                                 "scope":  "TASK",
+                                                 "mission_id":  "mission-stage298-e2e-20260902-022733",
+                                                 "task_id":  "task-f89928ee-c8e7-4aee-9c8f-e49db337745d",
+                                                 "status":  "PASS",
+                                                 "classification":  "LINEAGE_INTEGRITY_VIOLATION_CLASSIFICATION_STAGE_2_9_5",
+                                                 "read_only":  true,
+                                                 "required_authority":  true,
+                                                 "verification_complete":  true,
+                                                 "verification_reasons":  [
+
+                                                                          ],
+                                                 "checks":  [
+                                                                {
+                                                                    "invariant":  "GOVERNED_DISPATCH_REQUIRES_POLICY_DECISION",
+                                                                    "status":  "PASS",
+                                                                    "evidence":  {
+                                                                                     "policy_decision_id":  "gdec-171166bf-59a5-4a3f-a92a-61fc1531bcf8"
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "REVOCATION_PREVENTS_LATER_DISPATCH",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "TASK_SCOPE_EQUALS_POLICY_DECISION_SCOPE",
+                                                                    "status":  "PASS",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "COMPLETION_REQUIRES_PRIOR_DISPATCH",
+                                                                    "status":  "PASS",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                }
+                                                            ],
+                                                 "violations":  [
+
+                                                                ],
+                                                 "violation_count":  0,
+                                                 "severity_counts":  {
+                                                                         "CRITICAL":  0,
+                                                                         "HIGH":  0,
+                                                                         "MEDIUM":  0,
+                                                                         "LOW":  0
+                                                                     },
+                                                 "violation_code_counts":  {
+
+                                                                           }
+                                             },
+                                             {
+                                                 "schema_version":  "cti-integrity-probe-v1",
+                                                 "scope":  "TASK",
+                                                 "mission_id":  "mission-stage298-e2e-20260902-022733",
+                                                 "task_id":  "task-28d09308-6fb6-4e35-a366-182276b2cb70",
+                                                 "status":  "PASS",
+                                                 "classification":  "LINEAGE_INTEGRITY_VIOLATION_CLASSIFICATION_STAGE_2_9_5",
+                                                 "read_only":  true,
+                                                 "required_authority":  false,
+                                                 "verification_complete":  true,
+                                                 "verification_reasons":  [
+
+                                                                          ],
+                                                 "checks":  [
+                                                                {
+                                                                    "invariant":  "GOVERNED_DISPATCH_REQUIRES_POLICY_DECISION",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "REVOCATION_PREVENTS_LATER_DISPATCH",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "TASK_SCOPE_EQUALS_POLICY_DECISION_SCOPE",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "COMPLETION_REQUIRES_PRIOR_DISPATCH",
+                                                                    "status":  "PASS",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                }
+                                                            ],
+                                                 "violations":  [
+
+                                                                ],
+                                                 "violation_count":  0,
+                                                 "severity_counts":  {
+                                                                         "CRITICAL":  0,
+                                                                         "HIGH":  0,
+                                                                         "MEDIUM":  0,
+                                                                         "LOW":  0
+                                                                     },
+                                                 "violation_code_counts":  {
+
+                                                                           }
+                                             },
+                                             {
+                                                 "schema_version":  "cti-integrity-probe-v1",
+                                                 "scope":  "TASK",
+                                                 "mission_id":  "mission-stage298-e2e-20260902-022733",
+                                                 "task_id":  "task-4034f380-8f63-4cf8-995e-5f22211bfa65",
+                                                 "status":  "PASS",
+                                                 "classification":  "LINEAGE_INTEGRITY_VIOLATION_CLASSIFICATION_STAGE_2_9_5",
+                                                 "read_only":  true,
+                                                 "required_authority":  false,
+                                                 "verification_complete":  true,
+                                                 "verification_reasons":  [
+
+                                                                          ],
+                                                 "checks":  [
+                                                                {
+                                                                    "invariant":  "GOVERNED_DISPATCH_REQUIRES_POLICY_DECISION",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "REVOCATION_PREVENTS_LATER_DISPATCH",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "TASK_SCOPE_EQUALS_POLICY_DECISION_SCOPE",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "COMPLETION_REQUIRES_PRIOR_DISPATCH",
+                                                                    "status":  "PASS",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                }
+                                                            ],
+                                                 "violations":  [
+
+                                                                ],
+                                                 "violation_count":  0,
+                                                 "severity_counts":  {
+                                                                         "CRITICAL":  0,
+                                                                         "HIGH":  0,
+                                                                         "MEDIUM":  0,
+                                                                         "LOW":  0
+                                                                     },
+                                                 "violation_code_counts":  {
+
+                                                                           }
+                                             },
+                                             {
+                                                 "schema_version":  "cti-integrity-probe-v1",
+                                                 "scope":  "TASK",
+                                                 "mission_id":  "mission-stage298-e2e-20260902-022733",
+                                                 "task_id":  "task-68c1bfca-e29d-46e8-ab40-912e4bf62271",
+                                                 "status":  "PASS",
+                                                 "classification":  "LINEAGE_INTEGRITY_VIOLATION_CLASSIFICATION_STAGE_2_9_5",
+                                                 "read_only":  true,
+                                                 "required_authority":  false,
+                                                 "verification_complete":  true,
+                                                 "verification_reasons":  [
+
+                                                                          ],
+                                                 "checks":  [
+                                                                {
+                                                                    "invariant":  "GOVERNED_DISPATCH_REQUIRES_POLICY_DECISION",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "REVOCATION_PREVENTS_LATER_DISPATCH",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "TASK_SCOPE_EQUALS_POLICY_DECISION_SCOPE",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "COMPLETION_REQUIRES_PRIOR_DISPATCH",
+                                                                    "status":  "PASS",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                }
+                                                            ],
+                                                 "violations":  [
+
+                                                                ],
+                                                 "violation_count":  0,
+                                                 "severity_counts":  {
+                                                                         "CRITICAL":  0,
+                                                                         "HIGH":  0,
+                                                                         "MEDIUM":  0,
+                                                                         "LOW":  0
+                                                                     },
+                                                 "violation_code_counts":  {
+
+                                                                           }
+                                             },
+                                             {
+                                                 "schema_version":  "cti-integrity-probe-v1",
+                                                 "scope":  "TASK",
+                                                 "mission_id":  "mission-stage298-e2e-20260902-022733",
+                                                 "task_id":  "task-2557779b-152b-4e58-a55e-17361f51dcb3",
+                                                 "status":  "PASS",
+                                                 "classification":  "LINEAGE_INTEGRITY_VIOLATION_CLASSIFICATION_STAGE_2_9_5",
+                                                 "read_only":  true,
+                                                 "required_authority":  false,
+                                                 "verification_complete":  true,
+                                                 "verification_reasons":  [
+
+                                                                          ],
+                                                 "checks":  [
+                                                                {
+                                                                    "invariant":  "GOVERNED_DISPATCH_REQUIRES_POLICY_DECISION",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "REVOCATION_PREVENTS_LATER_DISPATCH",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "TASK_SCOPE_EQUALS_POLICY_DECISION_SCOPE",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "COMPLETION_REQUIRES_PRIOR_DISPATCH",
+                                                                    "status":  "PASS",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                }
+                                                            ],
+                                                 "violations":  [
+
+                                                                ],
+                                                 "violation_count":  0,
+                                                 "severity_counts":  {
+                                                                         "CRITICAL":  0,
+                                                                         "HIGH":  0,
+                                                                         "MEDIUM":  0,
+                                                                         "LOW":  0
+                                                                     },
+                                                 "violation_code_counts":  {
+
+                                                                           }
+                                             },
+                                             {
+                                                 "schema_version":  "cti-integrity-probe-v1",
+                                                 "scope":  "TASK",
+                                                 "mission_id":  "mission-stage298-e2e-20260902-022733",
+                                                 "task_id":  "task-e4656b8d-52c3-44fc-9106-b766f0d9c0c3",
+                                                 "status":  "PASS",
+                                                 "classification":  "LINEAGE_INTEGRITY_VIOLATION_CLASSIFICATION_STAGE_2_9_5",
+                                                 "read_only":  true,
+                                                 "required_authority":  false,
+                                                 "verification_complete":  true,
+                                                 "verification_reasons":  [
+
+                                                                          ],
+                                                 "checks":  [
+                                                                {
+                                                                    "invariant":  "GOVERNED_DISPATCH_REQUIRES_POLICY_DECISION",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "REVOCATION_PREVENTS_LATER_DISPATCH",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "TASK_SCOPE_EQUALS_POLICY_DECISION_SCOPE",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "COMPLETION_REQUIRES_PRIOR_DISPATCH",
+                                                                    "status":  "PASS",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                }
+                                                            ],
+                                                 "violations":  [
+
+                                                                ],
+                                                 "violation_count":  0,
+                                                 "severity_counts":  {
+                                                                         "CRITICAL":  0,
+                                                                         "HIGH":  0,
+                                                                         "MEDIUM":  0,
+                                                                         "LOW":  0
+                                                                     },
+                                                 "violation_code_counts":  {
+
+                                                                           }
+                                             },
+                                             {
+                                                 "schema_version":  "cti-integrity-probe-v1",
+                                                 "scope":  "TASK",
+                                                 "mission_id":  "mission-stage298-e2e-20260902-022733",
+                                                 "task_id":  "task-bb0c2979-d8fe-476a-96e3-194ee5e6c6a6",
+                                                 "status":  "PASS",
+                                                 "classification":  "LINEAGE_INTEGRITY_VIOLATION_CLASSIFICATION_STAGE_2_9_5",
+                                                 "read_only":  true,
+                                                 "required_authority":  false,
+                                                 "verification_complete":  true,
+                                                 "verification_reasons":  [
+
+                                                                          ],
+                                                 "checks":  [
+                                                                {
+                                                                    "invariant":  "GOVERNED_DISPATCH_REQUIRES_POLICY_DECISION",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "REVOCATION_PREVENTS_LATER_DISPATCH",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "TASK_SCOPE_EQUALS_POLICY_DECISION_SCOPE",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "COMPLETION_REQUIRES_PRIOR_DISPATCH",
+                                                                    "status":  "PASS",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                }
+                                                            ],
+                                                 "violations":  [
+
+                                                                ],
+                                                 "violation_count":  0,
+                                                 "severity_counts":  {
+                                                                         "CRITICAL":  0,
+                                                                         "HIGH":  0,
+                                                                         "MEDIUM":  0,
+                                                                         "LOW":  0
+                                                                     },
+                                                 "violation_code_counts":  {
+
+                                                                           }
+                                             },
+                                             {
+                                                 "schema_version":  "cti-integrity-probe-v1",
+                                                 "scope":  "TASK",
+                                                 "mission_id":  "mission-stage298-e2e-20260902-022733",
+                                                 "task_id":  "task-b3885323-bffa-41b7-b29c-f8713c49e7a7",
+                                                 "status":  "PASS",
+                                                 "classification":  "LINEAGE_INTEGRITY_VIOLATION_CLASSIFICATION_STAGE_2_9_5",
+                                                 "read_only":  true,
+                                                 "required_authority":  false,
+                                                 "verification_complete":  true,
+                                                 "verification_reasons":  [
+
+                                                                          ],
+                                                 "checks":  [
+                                                                {
+                                                                    "invariant":  "GOVERNED_DISPATCH_REQUIRES_POLICY_DECISION",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "REVOCATION_PREVENTS_LATER_DISPATCH",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "TASK_SCOPE_EQUALS_POLICY_DECISION_SCOPE",
+                                                                    "status":  "NOT_APPLICABLE",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                },
+                                                                {
+                                                                    "invariant":  "COMPLETION_REQUIRES_PRIOR_DISPATCH",
+                                                                    "status":  "PASS",
+                                                                    "evidence":  {
+
+                                                                                 }
+                                                                }
+                                                            ],
+                                                 "violations":  [
+
+                                                                ],
+                                                 "violation_count":  0,
+                                                 "severity_counts":  {
+                                                                         "CRITICAL":  0,
+                                                                         "HIGH":  0,
+                                                                         "MEDIUM":  0,
+                                                                         "LOW":  0
+                                                                     },
+                                                 "violation_code_counts":  {
+
+                                                                           }
+                                             }
+                                         ],
+                      "mission_checks":  [
+                                             {
+                                                 "invariant":  "AUTHORITATIVE_GOVERNANCE_CORRELATION_AVAILABLE",
+                                                 "status":  "PASS",
+                                                 "evidence":  {
+                                                                  "correlation_status":  "CORRELATED"
+                                                              }
+                                             }
+                                         ],
+                      "violations":  [
+
+                                     ],
+                      "violation_count":  0,
+                      "severity_counts":  {
+                                              "CRITICAL":  0,
+                                              "HIGH":  0,
+                                              "MEDIUM":  0,
+                                              "LOW":  0
+                                          },
+                      "violation_code_counts":  {
+
+                                                },
+                      "summary":  {
+                                      "task_count":  8,
+                                      "clean_task_count":  8,
+                                      "violated_task_count":  0,
+                                      "unverifiable_task_count":  0,
+                                      "violation_count":  0
+                                  }
+                  }
+}

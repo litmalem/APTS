@@ -1,0 +1,51 @@
+Stage 3.2.9 installation
+========================
+
+Baseline required: Stage 3.2.8 — Cleanup & Verified Completion Gate (accepted)
+
+1. Stop Mission Orchestrator.
+2. Back up the Mission Orchestrator database.
+3. Extract STAGE3_2_9_EVENT_DRIVEN_LIFECYCLE_AUTOMATION_RELIABILITY_PATCH.zip directly into D:\mission_orchestrator with overwrite enabled.
+4. Do NOT create migration 009. Repository migration level remains 8.
+5. Run:
+
+   cd D:\mission_orchestrator
+   python -m compileall -q mission_orchestrator tests
+   python -m pytest -q
+
+   Expected: 255 passed
+
+6. Start Mission Orchestrator and verify /health reports:
+
+   control_version = stage3.2.9-event-driven-lifecycle-automation-reliability
+   mission_lifecycle_automation_schema_version = apts-mission-lifecycle-automation-v1
+   mission_lifecycle_automation_mode = TYPED_EVENT_TO_GUARDED_IDEMPOTENT_LIFECYCLE_COMMAND_FAIL_CLOSED
+   mission_lifecycle_automation_source_event_idempotency = SOURCE_COMPONENT_PLUS_EVENT_ID_CANONICAL_FINGERPRINT
+   mission_lifecycle_automation_replay_mode = DURABLE_RECEIPT_OUTCOME_PLUS_EXISTING_COMMAND_JOURNAL
+   mission_lifecycle_automation_stale_event_policy = REJECT_BEFORE_MUTATION_EXACT_STATE_VERSION_VECTOR_BINDING
+   mission_lifecycle_automation_uses_existing_command_journal = True
+   mission_lifecycle_automation_uses_existing_event_ledger = True
+   mission_lifecycle_automation_direct_state_mutation_allowed = False
+   mission_lifecycle_automation_exact_state_version_binding_required = True
+   mission_lifecycle_automation_source_event_fingerprint_conflict_rejected = True
+   mission_lifecycle_automation_external_event_delivery_enabled = False
+   mission_lifecycle_automation_governance_query_performed = False
+   mission_lifecycle_automation_planner_invocation_performed = False
+   mission_lifecycle_stage3_2_9_event_automation_enabled = True
+   mission_repository_migration_level = 8
+   governance_authorization_authority = EXTERNAL_APTS_GSS
+   target_action_dispatch_enabled = False
+   target_actuation = False
+
+7. Verify the discovery endpoint:
+
+   GET /api/missions/{mission_id}/lifecycle-automation-contract
+
+8. Typed lifecycle events are submitted to:
+
+   POST /api/missions/{mission_id}/lifecycle/events
+
+   The caller MUST bind the event to the exact current observed_state,
+   observed_state_version, and observed_version_sha256.
+
+9. Run STAGE3_2_9_ACCEPTANCE.ps1.

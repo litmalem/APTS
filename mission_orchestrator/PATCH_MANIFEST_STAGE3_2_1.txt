@@ -1,0 +1,54 @@
+Stage 3.2.1 - Mission Lifecycle Command Contract Patch Manifest
+===============================================================
+
+New files
+---------
+mission_orchestrator/mission_lifecycle.py
+tests/test_stage3_2_1_mission_lifecycle_command_contract.py
+README_STAGE3_2_1.md
+PATCH_NOTES_STAGE3_2_1.md
+INSTALL_STAGE3_2_1.txt
+PATCH_MANIFEST_STAGE3_2_1.txt
+STAGE3_2_1_ACCEPTANCE.ps1
+SHA256_STAGE3_2_1.txt
+
+Modified files
+--------------
+mission_orchestrator/__init__.py
+mission_orchestrator/api_service.py
+mission_orchestrator/mission_versioning.py
+mission_orchestrator/service.py
+tests/test_stage3_1_6_mission_versioning_concurrency.py
+tests/test_stage3_1_7_mission_persistence_repository_model.py
+tests/test_stage3_1_8_canonical_mission_api_validation_layer.py
+tests/test_stage3_1_9_mission_event_lineage_foundation.py
+tests/test_stage3_1_10_acceptance_regression_gate.py
+
+Database
+--------
+No new Stage-3.2.1 migration.
+Repository migration level remains 8.
+Latest existing migration remains:
+  migrations/008_stage3_1_9_mission_event_lineage_foundation.sql
+
+Runtime scope
+-------------
+Adds an explicit lifecycle-command contract and API on top of the existing
+versioned/idempotent mission command journal and canonical state-transition ledger.
+No planner, authorization authority, target-action execution capability, or event bus.
+
+Unchanged subsystem source
+--------------------------
+aptsGSS: no Stage-3.2.1 source change required
+VulnDesk: no Stage-3.2.1 source change required
+
+Validation
+----------
+python -m compileall -q mission_orchestrator tests : PASS
+python -m pytest -q                              : 125 passed
+Live Stage-3.2.1 acceptance                     : operator-run against active Mission service
+
+Data safety
+-----------
+Distributable ZIP excludes data/mission_orchestrator.db, .pytest_cache,
+__pycache__, local smoke databases, and external aptsGSS/VulnDesk repositories.

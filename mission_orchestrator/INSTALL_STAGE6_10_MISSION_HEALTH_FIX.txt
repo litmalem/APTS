@@ -1,0 +1,44 @@
+STAGE 6.10 — MISSION HEALTH SOURCE BINDING FIX
+
+Gejala: Stage 6.10 gagal dengan KeyError 'apts_source_locations'. Log /health
+menunjukkan Mission 8780 tidak mengirim field tersebut, sedangkan Pentest dan
+Execution sudah mengirim fingerprint sumber. Restart Mission tidak mengubahnya.
+
+Paket ini memulihkan mission_orchestrator/service.py dan apts_source_binding.py
+dari Mission(20261004-082442).zip yang diunggah dalam sesi ini. Health mengambil
+fingerprint Mission dari repository aktif dan CTI feedback dari konfigurasi
+consumer aktif, menggunakan rumus yang sama dengan Execution. Fingerprint
+mengidentifikasi lokasi konfigurasi; ia bukan hash isi database atau izin aksi.
+
+1. Tekan Ctrl+C pada terminal Mission. Simpan salinan service.py yang sedang
+   digunakan bila ada perubahan lokal, lalu ekstrak isi ZIP langsung ke
+   D:\mission_orchestrator dan izinkan penggantian file yang disertakan.
+   ZIP tidak menyertakan data/, SQL dump, .env, atau kredensial. Tidak ada
+   perubahan level migrasi: Mission 53 / Pentest 16 / Execution 9 / CTI 1.
+
+2. Gunakan interpreter yang sama dengan layanan Mission sebelumnya:
+      cd D:\mission_orchestrator
+      python .\run\run_stage6_10_mission.py --check-source
+   Output harus memuat sumber D:\mission_orchestrator\mission_orchestrator\service.py
+   dan 'Mission health source binding: PRESENT'. Pemeriksaan ini tidak membuka DB.
+
+3. Pada terminal Mission:
+      python .\run\run_stage6_10_mission.py --host 127.0.0.1 --port 8780
+   Biarkan proses berjalan. Gunakan konfigurasi/interpreter sebelumnya. Bila
+   menggunakan CTI feedback DB khusus, teruskan --cti-feedback-db yang sama
+   seperti sebelumnya. Mission dan Execution harus merujuk DB yang sama.
+
+4. Pada terminal acceptance:
+      cd D:\mission_orchestrator
+      python .\run\stage6_10_source_binding_check.py
+   Status PASS hanya memverifikasi kesesuaian lokasi ketiga layanan. Perbedaan
+   lokasi tetap ditolak. Jika field hilang, nama layanan dicetak dengan jelas.
+
+5. Jalankan acceptance penuh baru (evidence lama tidak berlaku untuk sumber ini):
+      Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+      .\STAGE6_10_ACCEPTANCE.ps1 -GssRoot D:\aptsGS -VulndeskRoot D:\Vulndesk -GovernanceUrl http://127.0.0.1:8770
+
+Patch ini tidak mengubah inventory acceptance, tidak melewati preflight, dan
+tidak mengklaim Stage 6.10 deployment PASS. Kegagalan inventory/hash setelah
+preflight harus diselesaikan dengan baseline yang diverifikasi untuk sumber baru.
+Hasil validasi paket tersedia di VALIDATION_STAGE6_10_MISSION_HEALTH_FIX.json.

@@ -1,0 +1,114 @@
+{
+  "verified_at": "2026-11-09T04:51:13.559056+00:00",
+  "mission_id": "mission-gmo-887dae4f-1611-4b07-8ee7-7f184b7379be",
+  "job_id": "wpt-d30854c7129a1b17b634f17c6a49b04e",
+  "execution_id": "exec-c9e53640bc68c2d3d0c13bfc32f230c5",
+  "attempt_id": "xattempt-3f3977b7cec54a0a5d95612a522afed9",
+  "runtime_status": "SUCCEEDED",
+  "wpt_status": "COMPLETED",
+  "scope_revision_version": 2,
+  "approved_destination": "172.21.2.2",
+  "pinned_target": {
+    "host": "kurikulum.del.ac.id",
+    "ip": "172.21.2.2",
+    "path": "/",
+    "port": 443,
+    "tls": true
+  },
+  "scan_metrics": {
+    "evidence_strength_index_max": 70,
+    "favicon_fingerprints": 0,
+    "fingerprints_matched": 3,
+    "headers_observed": 6,
+    "html_responses": 1,
+    "redirects_blocked": 0,
+    "redirects_observed": 2,
+    "request_budget": 6,
+    "request_errors": 0,
+    "requests_performed": 4,
+    "requests_planned": 2,
+    "response_rate_percent": 100,
+    "responses_received": 4,
+    "scan_status": "COMPLETED",
+    "tls_sessions": 0
+  },
+  "technology_findings": [
+    {
+      "confidence_level": "medium",
+      "evidence": [
+        {
+          "family": "cookie_name",
+          "signal": "http.cookie_name",
+          "value": "XSRF-TOKEN",
+          "weight": 65
+        }
+      ],
+      "evidence_count": 1,
+      "evidence_strength_score": 65,
+      "independent_evidence_families": [
+        "cookie_name"
+      ],
+      "technology": "Laravel"
+    },
+    {
+      "confidence_level": "medium",
+      "evidence": [
+        {
+          "family": "http_header",
+          "signal": "http.x-powered-by",
+          "value": "PHP/8.4.27",
+          "weight": 70
+        }
+      ],
+      "evidence_count": 1,
+      "evidence_strength_score": 70,
+      "independent_evidence_families": [
+        "http_header"
+      ],
+      "technology": "PHP/8.4.27"
+    },
+    {
+      "confidence_level": "medium",
+      "evidence": [
+        {
+          "family": "http_header",
+          "signal": "http.server",
+          "value": "nginx",
+          "weight": 65
+        }
+      ],
+      "evidence_count": 1,
+      "evidence_strength_score": 65,
+      "independent_evidence_families": [
+        "http_header"
+      ],
+      "technology": "nginx",
+      "technology_type": "web_server_or_reverse_proxy"
+    }
+  ],
+  "evidence": {
+    "capture_status": "SEALED",
+    "evidence_ref": "stage6-evidence://xevidence-26a328e7157e1c59f690b0b123008f36",
+    "manifest_sha256": "a1300101743b84544cc8e42a8bbfd6b43670e0003959660e4e569a1a9f6e9f63"
+  },
+  "recon_status": "DELIVERED",
+  "recon_delivery_id": "reconrun-a83a6fc7b458d128c284e10890efd26ea616c664cc45f348",
+  "result_sha256": "b5f6517696225880cb2f0f2ab900e60a90ca2a07a888c4beaf1939f65e02776c",
+  "governance_revalidation_heartbeat_authorizations": [
+    "eauth-1e8288d279b884ed054f6301e1dd495c",
+    "eauth-134bf912432314aa1ce929043ec8a08e",
+    "eauth-4b196c11c292f0b3865519caa9587249",
+    "eauth-be831314bb852cdac3eeb8719dcea817",
+    "eauth-6f18b80480123806822071de02e42ba6"
+  ],
+  "diagnostic_no_target_io_authorization_seconds": 0.093,
+  "tests": {
+    "passed": 5,
+    "full_suite_run": false
+  },
+  "limitations": [
+    "TLS metadata was not captured (TLS UNAVAILABLE); certificate checks were not disabled.",
+    "Favicon returned HTTP 200 but no hash/signature was emitted.",
+    "Historical failed jobs retain their recorded states."
+  ]
+}

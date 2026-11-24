@@ -1,0 +1,32 @@
+VulnDesk Stage 2.8.7 -- Decision / Audit Lineage
+================================================
+Baseline control version:
+  hybrid-event-driven-2.9.1-revocation-race-hardening
+
+New control version:
+  hybrid-event-driven-2.10-decision-audit-lineage
+
+Database migration:
+  NONE. Stage 2.8 migration 07 already provides the required
+  cti_decision_traces lineage columns; cti_audit_log already has
+  trace_id and downstream_event_ref.
+
+Build validation:
+  python -m compileall -q cti_services tests
+  PASS
+
+Focused:
+  python -m pytest -q tests/test_decision_audit_lineage_stage2_8_7.py
+  5 passed
+
+Stage 2.8 combined regression:
+  50 passed
+
+Broad regression:
+  python -m pytest -q --ignore=tests/test_nvd_bulk_upsert.py
+  83 passed
+
+Full regression in build environment:
+  Not collectable because pymysql is not installed in the build environment.
+  User local environment previously passed the NVD bulk-upsert suite.
+  Expected local total after the five new tests: ~87 passed.

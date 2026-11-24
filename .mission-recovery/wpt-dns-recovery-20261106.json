@@ -1,0 +1,31 @@
+{
+  "intake": {
+    "idempotency_key": "idem-wpt-dns-recovery-20261106",
+    "intake_id": "wptreq-dns-recovery-20261106",
+    "mission_id": "mission-gmo-8c2994e4-1f04-42e5-9761-1ffb415666de",
+    "profile": "fingerprinting",
+    "recon_target_key": "reconscope-b1c7a592785cdcfcbd94e7c4c8f7bb51be465e14",
+    "recon_target_sha256": "4db9e42ae612288dda913c4c14e99e12b76f2dc87643c765f235700560fd5866",
+    "recon_target_status": "READY_FOR_COLLECTION",
+    "schema_version": "apts-wpt-governed-intake-v2",
+    "target": {
+      "target_type": "URL",
+      "target_value": "https://kurikulum.del.ac.id:443"
+    },
+    "target_is_observed": false,
+    "task_id": "ptask-4a9d5674-37d7-4dc7-af6c-34834e4d02da"
+  },
+  "admission": {
+    "status": "REQUEST_CREATED",
+    "execution_id": "exec-f69e5c74193551a552845fcb8ac971d6",
+    "envelope_sha256": "bb22d523571cb04ab545afdfc5eb945b6fdde8fec92c1a7aa6a69dc63f77cadb",
+    "request_created": true,
+    "authorization_recorded": false,
+    "governance_query_performed": false,
+    "execution_authorized": false,
+    "gateway_admitted": false,
+    "dispatch_performed": false,
+    "target_io_performed": false
+  },
+  "attempt_id": "xattempt-827eda41fccf4272bb0b87c7990077d8"
+}

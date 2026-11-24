@@ -1,0 +1,117 @@
+{
+  "status": "completed",
+  "component_id": "APTS-MO01",
+  "control_version": "stage3.9.10-global-mission-orchestrator-acceptance-regression-gate",
+  "idempotent_replay": true,
+  "mission_id": "mission-gmo-57851fd3-1f64-436f-b713-0b49e839bcc2",
+  "authorization_binding_id": "mauth-4ecbf5d2-2be5-455d-92f9-b5f071b7c961",
+  "canonical_sha256": "d323347f520ee788a2e648e1696182d1276fa6ed89ed9acac07fc732e7219730",
+  "governance_status": "AUTHORIZED",
+  "authorization_granted": true,
+  "execution_authorized": false,
+  "authorization_binding": {
+    "action_fingerprint": "91debbf8f40497c98e33cfa5331c7ae664b02768e7a73d2699645dc6236d12d5",
+    "authorization_binding_id": "mauth-4ecbf5d2-2be5-455d-92f9-b5f071b7c961",
+    "authorization_granted": true,
+    "canonical_scope_binding": {
+      "mission_scope_contract_id": "mscope-8ab73d08-7a40-4aeb-a854-9c4fefe1cbcb",
+      "mission_scope_contract_version": 2,
+      "mission_scope_sha256": "0e95080aba3e67dc132fa3485abc0d35a155c5b62904bca71e467c7d5b42807f",
+      "mission_scope_snapshot_id": "mscope-snap-5043b43d-9ea3-40c3-954f-7695585c6e85"
+    },
+    "capability": {
+      "action_class": "TARGET_RECON",
+      "action_name": "web_technology_fingerprinting",
+      "authorization_mode": "REQUIRED",
+      "capability_id": "web_technology_fingerprinting",
+      "constraints": {
+        "allowed_methods": [
+          "GET"
+        ],
+        "execution_profile": "wpt.fingerprinting.v1",
+        "max_requests": 6,
+        "state_changing_requests": false
+      },
+      "max_risk_level": "LOW",
+      "requires_human_approval": false,
+      "resource_types": [
+        "URL"
+      ],
+      "source_allowlist": [],
+      "subject_component": "PENTEST-SUB01"
+    },
+    "created_at": "2026-11-09T04:39:00.412501Z",
+    "decision_provenance": {
+      "approval_request_id": null,
+      "authorization_authority": "aptsGSS",
+      "authorization_authority_component": "GOV-PLANE",
+      "authorization_mode": "REQUIRED",
+      "authorization_request_id": "greq-2a020fab-12e0-4503-aee5-e4454bc18269",
+      "constraints": {
+        "allowed_methods": [
+          "GET"
+        ],
+        "allowed_resource_types": [
+          "URL"
+        ],
+        "canonical_scope_sha256": "0e95080aba3e67dc132fa3485abc0d35a155c5b62904bca71e467c7d5b42807f",
+        "canonical_scope_snapshot_id": "mscope-snap-5043b43d-9ea3-40c3-954f-7695585c6e85",
+        "capability_id": "web_technology_fingerprinting",
+        "compliance_obligations": [
+          {
+            "action_class": null,
+            "config": {
+              "chain_hash": "sha256"
+            },
+            "description": "Every policy decision must be written to the immutable-style chained audit log.",
+            "mandatory": 1,
+            "obligation_id": "GOV-O001",
+            "obligation_type": "AUDIT",
+            "policy_set_id": "default-policy"
+          }
+        ],
+        "execution_profile": "wpt.fingerprinting.v1",
+        "max_requests": 6,
+        "state_changing_requests": false,
+        "subject_component": "PENTEST-SUB01"
+      },
+      "decision": "ALLOW",
+      "governance_event_id": "gevent-730c5354-1045-4488-b335-02a95cc2a481",
+      "policy_decision_hash": "935b90a532978e3fea2ef4bf569bd880347e574fbaf72a3d2319998a0b70c744",
+      "policy_decision_id": "gdec-71a3fdd1-1759-4c9d-8012-f2154adb0e5f",
+      "policy_set_id": "default-policy",
+      "policy_version": 1,
+      "reason_codes": [
+        "ACTION_CONSTRAINT_ALLOW",
+        "URL_MATCH"
+      ],
+      "requires_human_approval": false,
+      "scope_contract_id": "scope-424e7282-dad1-49cf-bc66-0a3d2522c468",
+      "scope_version": 1,
+      "valid_from": "2026-11-09T04:39:00.442342Z",
+      "valid_until": "2026-11-09T04:44:00.442342Z"
+    },
+    "dispatch_enabled": false,
+    "execution_authorized": false,
+    "governance_binding_version": 2,
+    "governance_status": "AUTHORIZED",
+    "integrity": {
+      "algorithm": "SHA-256",
+      "canonical_sha256": "d323347f520ee788a2e648e1696182d1276fa6ed89ed9acac07fc732e7219730",
+      "canonicalization": "UTF8_SORTED_JSON_V1",
+      "hash_domain": "MISSION_AUTHORIZATION_DECISION_BINDING_V1"
+    },
+    "metadata": {
+      "target_io_performed": false
+    },
+    "mission_governance_binding_id": "mgbind-3ee2279c-55c0-41e3-9d9d-81f446637d89",
+    "mission_id": "mission-gmo-57851fd3-1f64-436f-b713-0b49e839bcc2",
+    "pre_dispatch_revalidation_required": true,
+    "resource": {
+      "resource_type": "URL",
+      "resource_value": "https://kurikulum.del.ac.id:443"
+    },
+    "schema_version": "apts-mission-authorization-decision-binding-v1",
+    "target_actuation": false
+  }
+}

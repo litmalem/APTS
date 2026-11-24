@@ -1,0 +1,38 @@
+{
+  "intake": {
+    "idempotency_key": "idem-wpt-trust-recovery-20261106",
+    "intake_id": "wptreq-trust-recovery-20261106",
+    "mission_id": "mission-gmo-403c2257-9d7e-434c-9f98-1b47e424f693",
+    "profile": "fingerprinting",
+    "recon_target_key": "reconscope-34c2ffe78e9bbd7dd7ff7cd0832bf6db65522d49",
+    "recon_target_sha256": "5290110ed4c9853faab5be7238310f1853d5b779d95579a1283b5a604745634f",
+    "recon_target_status": "READY_FOR_COLLECTION",
+    "schema_version": "apts-wpt-governed-intake-v2",
+    "target": {
+      "target_type": "URL",
+      "target_value": "https://six.ukts.ac.id:443"
+    },
+    "target_is_observed": false,
+    "task_id": "ptask-2da036fe-7734-4655-b666-8dc810a9a038"
+  },
+  "admission": {
+    "status": "REQUEST_CREATED",
+    "execution_id": "exec-5b7755b8880a45e0ee767c5af5da3f0f",
+    "envelope_sha256": "7537324d68e4b7cc2f7f6eb4c130d92a4e32db493948bb266a4afaf697044e87",
+    "request_created": true,
+    "authorization_recorded": false,
+    "governance_query_performed": false,
+    "execution_authorized": false,
+    "gateway_admitted": false,
+    "dispatch_performed": false,
+    "target_io_performed": false
+  },
+  "attempt_id": "xattempt-51390bd4c84a627692b93cf349602396",
+  "verified_result_delivery": {
+    "status": "DELIVERED",
+    "job_id": "wpt-67918b997ff466aad983988abf061069",
+    "result_sha256": "76cf4bbe20de10fa6fd34b7c01385013d444ff4432ffe0992696db5c3ed7d105",
+    "evidence_ref": "stage6-evidence://xevidence-611debbbfb3ee461ec9dea284f3674ad"
+  },
+  "status": "SUCCEEDED"
+}

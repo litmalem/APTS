@@ -1,0 +1,1169 @@
+
+--- START 2026-10-06 14:06:17 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-06 14:25:15 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-06 16:08:19 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-06 22:41:51 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-08 05:42:34 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-08 15:13:02 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-09 09:25:01 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-09 13:59:13 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-09 14:08:59 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-09 16:12:22 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-10 10:32:22 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-10 11:02:00 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-10 13:31:46 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-11 08:50:12 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-12 10:53:52 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-12 12:46:24 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-12 13:50:19 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-12 14:07:44 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-12 21:12:36 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-13 06:33:25 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-13 08:59:24 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-13 10:53:28 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-13 11:52:18 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-13 13:47:58 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-13 14:56:14 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-13 15:57:39 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-14 20:17:10 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-14 20:57:09 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-14 22:05:15 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-15 07:07:23 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-15 08:47:31 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-15 09:14:21 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-15 10:19:07 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-15 11:38:15 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-15 15:46:06 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-16 15:43:02 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-18 06:18:12 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-18 06:24:44 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-18 07:52:56 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-19 15:19:48 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-19 20:23:06 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-19 20:23:37 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-19 20:25:42 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-19 20:27:54 ---
+aptsGSS Web: http://127.0.0.1:8802
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 65057)
+Traceback (most recent call last):
+  File "D:\aptsGS\gss_web\server.py", line 135, in do_GET
+    return self.reply(200, self.server.mission_upstream(target))
+                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "D:\aptsGS\gss_web\server.py", line 77, in mission_upstream
+    raise UpstreamError(503, {'detail': 'Mission Orchestrator tidak terjangkau; status tidak diketahui.'}) from None
+gss_web.server.UpstreamError: (503, {'detail': 'Mission Orchestrator tidak terjangkau; status tidak diketahui.'})
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Python313\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "C:\Python313\Lib\http\server.py", line 436, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Python313\Lib\http\server.py", line 424, in handle_one_request
+    method()
+    ~~~~~~^^
+  File "D:\aptsGS\gss_web\server.py", line 152, in do_GET
+    except UpstreamError as exc: return self.reply(exc.status, exc.data)
+                                        ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\aptsGS\gss_web\server.py", line 89, in reply
+    self.end_headers(); self.wfile.write(raw)
+                        ~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Python313\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+    ~~~~~~~~~~~~~~~~~~^^^
+ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine
+----------------------------------------
+
+--- START 2026-10-19 20:56:47 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-19 21:22:55 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-19 21:43:23 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-19 21:55:54 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-19 22:12:09 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-20 06:46:26 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-20 09:49:53 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-20 10:27:44 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-20 10:51:39 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-20 11:04:51 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-20 12:51:52 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-20 15:11:12 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-20 15:32:01 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-20 20:36:53 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-20 22:12:24 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-21 11:02:03 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-21 13:48:55 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-21 14:13:51 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-21 15:05:51 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-21 16:19:25 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-21 16:35:29 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-21 21:17:13 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-21 21:20:08 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-21 21:22:15 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-21 21:29:09 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-21 22:10:04 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-21 22:26:07 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-21 22:41:42 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-22 08:56:23 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-22 09:08:52 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-22 09:46:25 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-22 09:51:29 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-22 09:54:14 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-22 11:33:24 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-22 12:11:34 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-22 14:43:53 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-22 14:55:48 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-22 15:00:48 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-22 15:26:20 ---
+aptsGSS Web: http://127.0.0.1:8802
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 58287)
+Traceback (most recent call last):
+  File "C:\Python313\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "C:\Python313\Lib\http\server.py", line 436, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Python313\Lib\http\server.py", line 424, in handle_one_request
+    method()
+    ~~~~~~^^
+  File "D:\aptsGS\gss_web\server.py", line 151, in do_GET
+    return self.reply(200, self.server.upstream(self.path, session['token']))
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\aptsGS\gss_web\server.py", line 89, in reply
+    self.end_headers(); self.wfile.write(raw)
+                        ~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Python313\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+    ~~~~~~~~~~~~~~~~~~^^^
+ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine
+----------------------------------------
+
+--- START 2026-10-22 15:33:15 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-22 15:40:01 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-22 15:57:15 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-22 16:08:27 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-22 16:12:51 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-22 16:30:51 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-22 16:37:29 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-22 16:40:56 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-22 16:52:35 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-23 09:12:56 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-23 09:23:10 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-24 06:46:42 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-24 07:00:15 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-24 07:20:48 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-24 08:33:40 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-24 09:37:30 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-24 15:58:46 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-24 16:03:18 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-27 09:56:33 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-27 09:57:12 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-27 09:58:19 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-27 10:20:58 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-27 10:57:00 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-27 10:57:40 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-27 11:33:52 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-27 11:55:48 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-27 12:33:36 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-27 12:56:17 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-27 13:10:27 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-27 14:01:10 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-27 14:05:18 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-27 14:07:50 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-27 16:51:43 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-27 22:30:30 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-28 07:14:23 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-28 09:11:18 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-28 10:02:49 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-28 10:12:22 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-28 10:18:03 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-28 10:42:57 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-28 11:04:17 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-28 11:36:20 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-28 17:03:30 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-28 17:13:56 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 07:08:29 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 10:00:14 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 10:19:28 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 11:35:09 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 13:00:59 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 13:08:36 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 13:23:28 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 13:33:32 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 13:51:44 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 14:07:40 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 14:18:48 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 14:24:53 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 14:48:24 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 14:56:31 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 15:04:54 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 15:30:54 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 15:35:05 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 16:14:36 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 16:19:11 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 16:23:07 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 16:39:47 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 16:49:56 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 17:00:58 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-29 18:57:53 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-30 03:39:47 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-30 04:08:19 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-30 04:34:19 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-30 04:42:58 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-30 04:49:23 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-30 04:57:40 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-30 08:04:51 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-30 09:10:31 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-30 09:47:54 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-30 09:51:15 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-30 10:04:15 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-30 10:22:11 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-30 10:36:45 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-30 11:20:45 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-30 20:40:18 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-30 21:41:39 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-30 22:03:44 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-31 10:03:53 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-31 10:24:33 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-10-31 12:04:21 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-01 08:27:51 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-01 08:33:36 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-01 08:42:38 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-01 08:59:33 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-02 16:41:04 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-02 17:08:51 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-03 11:40:13 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-03 16:26:08 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-03 21:36:41 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-03 23:10:55 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-04 09:29:44 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-04 09:41:20 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-04 10:27:05 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-04 11:07:36 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-04 11:40:52 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-05 04:50:02 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-05 05:01:19 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-05 05:12:09 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-05 06:32:37 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-05 06:50:45 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-05 07:16:02 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-05 07:23:41 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-05 08:45:41 ---
+aptsGSS Web: http://127.0.0.1:8802
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 11472)
+Traceback (most recent call last):
+  File "C:\Python313\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "C:\Python313\Lib\http\server.py", line 436, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Python313\Lib\http\server.py", line 424, in handle_one_request
+    method()
+    ~~~~~~^^
+  File "D:\APTS\aptsGS\gss_web\server.py", line 151, in do_GET
+    return self.reply(200, self.server.upstream(self.path, session['token']))
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\APTS\aptsGS\gss_web\server.py", line 89, in reply
+    self.end_headers(); self.wfile.write(raw)
+                        ~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Python313\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+    ~~~~~~~~~~~~~~~~~~^^^
+ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine
+----------------------------------------
+
+--- START 2026-11-05 09:46:04 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-05 09:52:02 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-05 10:16:55 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-05 10:37:43 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-05 10:59:39 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-05 11:30:14 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-05 11:31:20 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-05 11:40:34 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-05 13:48:56 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-05 14:40:35 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-06 09:01:43 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-06 09:28:02 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-06 10:19:13 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-06 15:28:06 ---
+Traceback (most recent call last):
+  File "D:\APTS\aptsGS\run_web.py", line 1, in <module>
+    from gss_web.server import run
+ModuleNotFoundError: No module named 'gss_web.server'
+
+--- START 2026-11-06 15:30:11 ---
+Traceback (most recent call last):
+  File "D:\APTS\aptsGS\run_web.py", line 1, in <module>
+    from gss_web.server import run
+ModuleNotFoundError: No module named 'gss_web.server'
+
+--- START 2026-11-06 15:31:59 ---
+Traceback (most recent call last):
+  File "D:\APTS\aptsGS\run_web.py", line 1, in <module>
+    from gss_web.server import run
+ModuleNotFoundError: No module named 'gss_web.server'
+
+--- START 2026-11-06 15:33:03 ---
+Traceback (most recent call last):
+  File "D:\APTS\aptsGS\run_web.py", line 1, in <module>
+    from gss_web.server import run
+ModuleNotFoundError: No module named 'gss_web.server'
+
+--- START 2026-11-06 15:35:41 ---
+Traceback (most recent call last):
+  File "D:\APTS\aptsGS\run_web.py", line 1, in <module>
+    from gss_web.server import run
+ModuleNotFoundError: No module named 'gss_web.server'
+
+--- START 2026-11-06 15:37:23 ---
+Traceback (most recent call last):
+  File "D:\APTS\aptsGS\run_web.py", line 1, in <module>
+    from gss_web.server import run
+ModuleNotFoundError: No module named 'gss_web.server'
+
+--- START 2026-11-06 15:45:30 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-06 15:50:26 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-06 16:01:16 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-06 16:03:41 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-06 16:24:09 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-06 16:41:43 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-06 16:50:32 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-06 17:01:15 ---
+aptsGSS Web: http://127.0.0.1:8802
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 11587)
+Traceback (most recent call last):
+  File "C:\Python313\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "C:\Python313\Lib\http\server.py", line 436, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Python313\Lib\http\server.py", line 424, in handle_one_request
+    method()
+    ~~~~~~^^
+  File "D:\APTS\aptsGS\gss_web\server.py", line 156, in do_GET
+    return self.reply(200, self.server.upstream(self.path, session['token']))
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\APTS\aptsGS\gss_web\server.py", line 92, in reply
+    self.end_headers(); self.wfile.write(raw)
+                        ~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Python313\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+    ~~~~~~~~~~~~~~~~~~^^^
+ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine
+----------------------------------------
+
+--- START 2026-11-07 13:22:51 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-07 13:53:57 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-07 17:50:16 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-07 17:51:53 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-08 07:02:26 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-08 07:04:43 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-08 17:07:38 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-09 05:45:58 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-09 06:28:22 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-09 06:46:05 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-09 06:49:33 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-09 08:44:44 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-09 08:46:36 ---
+aptsGSS Web: http://127.0.0.1:8802
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 60216)
+Traceback (most recent call last):
+  File "C:\Python313\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "C:\Python313\Lib\http\server.py", line 436, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Python313\Lib\http\server.py", line 424, in handle_one_request
+    method()
+    ~~~~~~^^
+  File "D:\APTS\aptsGS\gss_web\server.py", line 156, in do_GET
+    return self.reply(200, self.server.upstream(self.path, session['token']))
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\APTS\aptsGS\gss_web\server.py", line 92, in reply
+    self.end_headers(); self.wfile.write(raw)
+                        ~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Python313\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+    ~~~~~~~~~~~~~~~~~~^^^
+ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine
+----------------------------------------
+
+--- START 2026-11-09 10:58:28 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-09 11:10:11 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-09 11:44:18 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-09 11:45:00 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-09 13:48:42 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-09 14:30:30 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-09 15:05:07 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-09 16:30:06 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-09 16:42:53 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-10 09:39:10 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-10 09:50:18 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-10 10:54:35 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-10 11:47:10 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-10 13:45:27 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-10 13:46:41 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-10 14:01:01 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-10 14:54:11 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-10 15:16:20 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-10 15:25:43 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-10 15:53:31 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-10 15:55:01 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-10 16:16:04 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-10 16:28:42 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-11 05:51:02 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-11 06:33:51 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-11 11:26:41 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-11 11:43:45 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-11 11:54:22 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-11 13:31:48 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-11 13:45:30 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-11 16:14:04 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-12 09:01:42 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-12 09:46:43 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-12 09:59:56 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-12 10:46:07 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-12 11:11:31 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-12 11:13:49 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-12 14:10:18 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-12 16:04:45 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-13 08:44:08 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-13 10:41:04 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-13 14:30:01 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-13 15:59:34 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-14 05:47:59 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-14 17:39:41 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-14 18:16:05 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-14 19:06:21 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-14 20:17:37 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-16 05:38:10 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-16 06:26:13 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-16 06:29:46 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-16 08:23:27 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-16 08:38:28 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-16 10:16:07 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-16 10:30:21 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-16 11:13:41 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-16 11:22:50 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-16 13:30:02 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-16 13:36:14 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-16 15:32:58 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-16 15:38:00 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-16 15:44:24 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-16 15:54:53 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-16 16:22:27 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-17 09:24:31 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-17 14:54:01 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-17 15:59:46 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-18 05:31:12 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-18 06:55:14 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-18 13:48:18 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-18 14:19:15 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-18 14:56:51 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-18 16:17:15 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-18 20:10:18 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-18 20:28:38 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-18 20:37:09 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-18 21:19:21 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-18 22:04:19 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-19 09:59:21 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-19 12:37:39 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-20 10:36:17 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-20 14:29:55 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-20 16:25:41 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-20 20:11:56 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-20 20:28:20 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-21 06:15:41 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-21 06:34:03 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-21 07:01:20 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-21 09:55:23 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-21 10:28:56 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-21 20:46:23 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-23 10:40:19 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-23 13:36:00 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-23 13:47:07 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-23 14:51:57 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-23 15:45:59 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-24 09:27:03 ---
+aptsGSS Web: http://127.0.0.1:8802
+
+--- START 2026-11-24 14:09:47 ---
+aptsGSS Web: http://127.0.0.1:8802

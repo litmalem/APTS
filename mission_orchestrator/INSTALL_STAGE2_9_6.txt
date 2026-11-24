@@ -1,0 +1,20 @@
+STAGE 2.9.6 INSTALL / RUN
+=========================
+
+1. Back up D:\vulndesk and D:\aptsGS.
+2. Replace the modified source files from the supplied Stage 2.9.6 packages.
+3. No SQL migration is required.
+4. Activate each application's existing virtual environment.
+5. Restart aptsGSS first, then VulnDesk.
+6. Run the targeted regression tests.
+7. Run STAGE2_9_6_ACCEPTANCE.ps1 from PowerShell.
+
+Expected VulnDesk control_version:
+  hybrid-event-driven-2.17-health-diagnostics
+
+Expected new endpoints:
+  http://127.0.0.1:8765/api/cti/diagnostics
+  http://127.0.0.1:8765/api/cti/diagnostics?deep=true
+  http://127.0.0.1:8765/api/cti/missions/<mission_id>/diagnostics
+  http://127.0.0.1:8770/api/governance/diagnostics
+  http://127.0.0.1:8770/api/governance/diagnostics?deep=true

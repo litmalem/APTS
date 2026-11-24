@@ -1,0 +1,9 @@
+# Stage 3.8.10 — Observe / Reconstruct Acceptance & Regression Gate
+
+Stage 3.8.10 closes the Stage 3.8 observability and reconstruction track. It is a **declaration-only acceptance gate** over Stages 3.8.1–3.8.9; it does not create a new observer, source of truth, repair mechanism, runtime resume path, Governance authority, dispatch capability, execution attempt, state transition, telemetry exporter, durable store, or database migration. Runtime control becomes `stage3.8.10-observe-reconstruct-acceptance-regression-gate`; repository migration remains **53**.
+
+The closure contract requires the complete Stage 3.8 chain: canonical trace identity, verified event normalization, global causal lineage, live Mission/execution projection, decision/Governance/evidence trace, deterministic timeline reconstruction, integrity/gap/consistency diagnostics, observability metrics/health, and the Stage 3.8.9 forensic evidence/query/reconstruction API. Acceptance adds cross-view consistency, stable-source restart/determinism, tamper/gap/source-drift fail-closed behavior, and explicit read-only/no-I/O/no-actuation boundary probes.
+
+The Stage 3.8.9 evidence bundle remains a source-bound digest, **not** an external attestation. Reconstruction remains a read-only representation of durable Mission records and the verified event ledger; it does not re-execute the Mission, resume a runtime, repair state, or prove an internally consistent event-tail deletion without an independent checkpoint.
+
+`STAGE3_8_10_ACCEPTANCE.ps1` performs runtime boundary probes, optionally validates one live Mission when `-MissionId` is supplied, compiles Python, requires the canonical **1431-test** inventory, runs the full regression, and finally runs the four focused Stage 3.8.10 tests. PASS must be produced on the deployment host after applying the overlay and restarting the service; the runtime does not self-certify acceptance.

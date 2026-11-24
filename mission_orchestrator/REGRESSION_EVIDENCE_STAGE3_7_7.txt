@@ -1,0 +1,63 @@
+Stage 3.7.7 — Regression Evidence
+=================================
+
+Build-workspace evidence
+------------------------
+
+1. Python compilation
+   Command:
+     python -m compileall -q mission_orchestrator tests
+   Result:
+     PASS
+
+2. Canonical pytest inventory
+   Command:
+     python -m pytest --collect-only -q
+   Result:
+     1304 tests collected in 1.40s
+
+3. Focused Stage-3.7.7 suite
+   Command:
+     python -m pytest -q tests/test_stage3_7_7_authoritative_replan_commit_authorization_successor_plan_materialization.py
+   Result:
+     22 passed in 27.37s
+
+4. Stage-3.7.6 predecessor regression
+   Command:
+     python -m pytest -q tests/test_stage3_7_6_replan_candidate_validation_delta_feasibility_gate.py
+   Result:
+     25 passed in 31.02s
+
+5. Legacy Plan-versioning regression
+   Command:
+     python -m pytest -q tests/test_stage3_3_7_plan_versioning_replanning_supersession.py
+   Result:
+     27 passed in 21.92s
+
+6. Manual Stage-3.7.7 smoke
+   Verified during implementation:
+     - Stage-3.7.6 VALIDATED_FOR_COMMIT -> authoritative commit succeeds
+     - exactly one fresh Governance authorization is issued on the happy path
+     - successor Plan version increments N -> N+1
+     - active Plan head advances to successor
+     - predecessor Plan artifact remains immutable
+     - Mission state remains unchanged
+     - replan commit is durable as rpcom-*
+     - repository reconstruction validates the persisted commit lineage
+   Result:
+     PASS
+
+7. Full canonical regression
+   Attempted in the constrained build workspace. A single uninterrupted 1304-test run did not finish before the workspace execution timeout. Earlier partial runs exposed historical hard-coded runtime/migration expectations; those fixtures were rebased and collection now succeeds at 1304 tests. A combined Stage-3.7.6 + Stage-3.7.7 run also exceeded the local command runtime window after substantial progress.
+
+   Result:
+     NOT COMPLETED IN BUILD WORKSPACE — target-host acceptance required
+
+Formal acceptance
+-----------------
+
+Run:
+  .\STAGE3_7_7_ACCEPTANCE.ps1
+
+The release is formally accepted only when that script completes the full suite and prints:
+  STAGE 3.7.7 ACCEPTANCE: PASS

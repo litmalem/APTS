@@ -1,0 +1,25 @@
+Stage 3.2.3 installation
+========================
+
+1. Stop Mission Orchestrator.
+2. Back up the Mission Orchestrator database.
+3. Extract STAGE3_2_3_MISSION_PIP_ACTIVATION_PATCH.zip directly into D:\mission_orchestrator with overwrite enabled.
+4. Do NOT create migration 009. Repository migration level remains 8.
+5. Run:
+
+   cd D:\mission_orchestrator
+   python -m compileall -q mission_orchestrator tests
+   python -m pytest -q
+
+   Expected: 152 passed
+
+6. Start Mission Orchestrator and verify /health reports:
+
+   control_version = stage3.2.3-mission-pip-activation
+   mission_activation_schema_version = apts-mission-pip-activation-v1
+   mission_repository_migration_level = 8
+   governance_authorization_authority = EXTERNAL_APTS_GSS
+   target_action_dispatch_enabled = False
+   target_actuation = False
+
+7. Run STAGE3_2_3_ACCEPTANCE.ps1.

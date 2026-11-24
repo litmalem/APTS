@@ -1,0 +1,12 @@
+# Backend-only dependencies for Mission, GSS and VulnDesk acceptance.
+# Explicit entries protect this gate from a misplaced component requirements file.
+# Install with the same interpreter that runs STAGE6_10_ACCEPTANCE.ps1.
+PyMySQL>=1.1,<2
+pytest>=8,<9
+requests>=2.32,<3
+python-dotenv>=1,<2
+SQLAlchemy>=2,<3
+pydantic>=2.9,<3
+fastapi>=0.115,<1
+uvicorn>=0.30,<1
+httpx>=0.27,<1

@@ -1,0 +1,62 @@
+STAGE 6.8 - CLEANUP, ROLLBACK & POST-ACTION VERIFICATION
+
+Baseline: Mission(20261003-222408).zip, Stage 6.7, Execution migration 7.
+Control: stage6.8-cleanup-rollback-post-action-verification
+Paket Hotfix 1 dapat diterapkan pada baseline Stage 6.7 atau Stage 6.8 yang
+sudah terpasang. Execution migration tetap 8; tidak ada migration tambahan.
+Hotfix memperbaiki revalidation supervisor yang terlambat setelah terminal.
+
+1. Hentikan proses Execution lama pada port 8791.
+2. Backup database Execution setelah proses berhenti:
+   D:\mission_orchestrator\data\execution_subsystem.db
+   Gunakan lokasi APTS_EXECUTION_DB / --execution-db bila dikonfigurasi.
+3. Ekstrak seluruh isi arsip Stage 6.8 langsung ke D:\mission_orchestrator,
+   menimpa source yang sama. Tidak ada folder pembungkus tambahan.
+   Paket tidak membawa database pengguna, lease configuration, atau secret.
+4. Pertahankan Mission 8780, Pentest 8790, dan external GSS yang sudah aktif.
+   Mission migration 53 / Pentest migration 16 tetap read-only.
+   Tidak perlu impor SQL ke Mission, Pentest, atau GSS.
+5. Console PowerShell pertama:
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\START_STAGE6_8_EXECUTION.ps1
+6. Console PowerShell kedua:
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE6_8_ACCEPTANCE.ps1
+
+Jika Stage 6.8 sudah terpasang, gunakan langkah 1-6 yang sama untuk menimpa
+source dan restart Execution. Acceptance sekarang mewajibkan 2793 canonical
+tests, termasuk 12 completion-race tests baru (92 focused / 784 continuity).
+Health harus memuat runtime_completion_fence_enabled=true; acceptance menolak
+proses lama yang belum direstart.
+Tes cepat untuk kegagalan yang dilaporkan, sebelum acceptance lengkap:
+   python -m pytest -q tests/test_stage6_8_runtime_completion_fence.py tests/test_stage6_7_vep_construction_integrity.py::test_sql_insert_failure_is_atomic_and_does_not_redispatch
+Hasil yang diharapkan: 13 passed. Tetap jalankan acceptance lengkap.
+
+Startup mengupgrade database Execution migration 1-7 secara atomik ke 8.
+Owner runtime tetap eksklusif. Gunakan runner execution_cleanup.py; runner
+predecessor menolak migration 8. Parameter database, GovernanceUrl, dan
+CredentialLeasesFile dapat diteruskan melalui startup script.
+
+Cleanup lokal otomatis saat terminasi attempt baru. POST /api/execution/post-actions
+membangun laporan setelah VEP tersedia, dengan exact VEP, envelope, evidence dan
+terminal-head references. Lihat contoh README_STAGE6_8.md.
+
+Status CLOSED_LOCAL_RESOURCES hanya membuktikan resource lokal exact attempt.
+BLOCKED_REQUIRES_REVIEW mempertahankan alasan yang belum terbukti; HTTP 201/200
+tidak menyatakan bahwa attempt telah closed. Attempt lama tanpa receipt tidak
+dibackfill. Recovery tidak redispatch dan tidak menghapus orphan tanpa ownership.
+Revocation lokal tidak membuktikan pencabutan token pada issuer; lease yang pernah
+di-acquire memblokir closure selama bukti issuer revocation tidak tersedia.
+
+Audit opsional laporan yang sudah ada, read-only:
+   .\STAGE6_8_ACCEPTANCE.ps1 -LiveAttemptId 'xattempt-...' -LivePostActionId 'xcleanup-...'
+Audit VEP lama tetap tersedia melalui -LiveVepId dengan exact -LiveAttemptId.
+
+Rollback instalasi:
+   Hentikan runtime Stage 6.8, pulihkan backup database dan source predecessor,
+   lalu jalankan runner predecessor. Jangan menurunkan metadata migration atau
+   menghapus tabel revocation secara manual.
+
+Next: Stage 6.9 - Closed-Loop CTI <-> Pentest Integration.

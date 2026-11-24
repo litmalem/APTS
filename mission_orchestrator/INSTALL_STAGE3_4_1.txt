@@ -1,0 +1,60 @@
+Stage 3.4.1 - Canonical Subsystem Registry & Capability Contract
+Installation / Regression Steps
+===============================================================
+
+Target repository:
+  D:\mission_orchestrator
+
+1. Stop the Mission Orchestrator before replacing files.
+2. Back up the repository and production database.
+3. Extract the Stage-3.4.1 patch over D:\mission_orchestrator preserving paths.
+4. Database migration:
+   - Existing required level: 17.
+   - Apply:
+       migrations\018_stage3_4_1_canonical_subsystem_registry_capability_contract.sql
+     to the production MySQL database.
+   - Expected repository migration level after migration: 18.
+   - SQLite test/dev repositories create and seed equivalent stores automatically.
+5. Compile:
+     cd D:\mission_orchestrator
+     python -m compileall -q mission_orchestrator tests
+6. Full regression:
+     python -m pytest -q
+   Expected: 524 passed
+7. Start/restart Mission Orchestrator:
+     python .\run\run_mission_orchestrator.py
+8. Verify health from another PowerShell:
+     Invoke-RestMethod http://127.0.0.1:8780/health
+   Expected:
+     control_version = stage3.4.1-canonical-subsystem-registry-capability-contract
+     mission_repository_migration_level = 18
+     canonical_registered_subsystems = CTI, PENTEST
+     governance_authorization_authority = EXTERNAL_APTS_GSS
+9. Verify registry:
+     Invoke-RestMethod http://127.0.0.1:8780/api/subsystem-registry
+     Invoke-RestMethod http://127.0.0.1:8780/api/subsystems
+     Invoke-RestMethod http://127.0.0.1:8780/api/subsystems/CTI/capabilities
+     Invoke-RestMethod http://127.0.0.1:8780/api/subsystems/PENTEST/capabilities
+10. Run live acceptance:
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE3_4_1_ACCEPTANCE.ps1
+11. Expected final result:
+     STAGE 3.4.1 ACCEPTANCE: PASS
+
+Authority invariants:
+  REGISTRATION != AVAILABILITY
+  CAPABILITY   != PERMISSION
+  REGISTRY     != AUTHORIZATION
+  ROUTE        != EXECUTION
+  Governance authority = EXTERNAL_APTS_GSS
+  runtime endpoint binding = false
+  subsystem health probing = false
+  candidate resolution = false
+  route selection = false
+  task delegation = false
+  target-action dispatch = false
+  target actuation = false
+
+Important:
+  Stage 3.4.1 registers PENTEST canonically but does NOT widen the historical
+  Stage-3.1.5 supported_routing_subsystems runtime declaration, which remains CTI-only.

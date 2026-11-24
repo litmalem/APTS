@@ -1,0 +1,33 @@
+Stage 3.9.7 overlay installation and acceptance
+================================================
+
+1. Extract the Stage 3.9.7 overlay into D:\mission_orchestrator, preserving
+   directories. The overlay contains source, tests, documentation, and the
+   acceptance script only. It contains no data/mission_orchestrator.db and no
+   environment configuration.
+2. Repository migration remains at level 53. No migration step is added.
+3. Restart Mission Orchestrator using the established host procedure.
+4. Confirm /health reports:
+     control_version = stage3.9.7-adaptation-replanning-e2e-scenario
+     mission_repository_migration_level = 53
+5. Run from D:\mission_orchestrator:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_9_7_ACCEPTANCE.ps1
+
+Expected semantic head of the canonical Stage 3.9.7 trajectory:
+  mission state              = RUNNING(v4)
+  source plan                = Plan v1
+  successor plan             = Plan v2 ACTIVE
+  completed source root      = collect-cti (not regenerated)
+  successor tasks            = analyze-cti, report-findings
+  replanning eligibility     = ELIGIBLE / authoritative Governance ALLOW
+  candidate validation       = VALIDATED_FOR_COMMIT
+  commit                     = COMMITTED_SUCCESSOR_PLAN
+  handoff                    = HANDOFF_READY
+  Stage 3.7.9 checkpoint     = NOT PERFORMED
+  event count                = 49 total / 9 replan-segment events
+  next stage                 = 3.9.8 Restart / Replay / Recovery
+
+The full regression is a deployment-host acceptance gate. No live host deployment
+or external target execution is performed by this overlay.

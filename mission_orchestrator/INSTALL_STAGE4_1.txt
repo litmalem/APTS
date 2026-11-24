@@ -1,0 +1,55 @@
+Stage 4.1 — Pentest Boundary & Canonical Contract
+=================================================
+
+Target root:
+  D:\mission_orchestrator
+
+1. Overlay the supplied files into the target root, preserving directories.
+
+2. No database migration is required.
+   - Mission Orchestrator repository remains migration 53.
+   - Pentest Subsystem Stage-4.1 has no durable repository; migration level = 0.
+
+3. Keep the existing Global Mission Orchestrator running on:
+     http://127.0.0.1:8780
+   It must remain at:
+     stage3.9.10-global-mission-orchestrator-acceptance-regression-gate
+
+4. Start the new Pentest Subsystem in a separate PowerShell window:
+
+     cd D:\mission_orchestrator
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\START_STAGE4_1_PENTEST.ps1
+
+   Default endpoint:
+     http://127.0.0.1:8790
+
+5. Verify manually if desired:
+
+     Invoke-RestMethod http://127.0.0.1:8790/health
+     Invoke-RestMethod http://127.0.0.1:8790/api/pentest/boundary-contract
+
+6. Run authoritative acceptance in another PowerShell window:
+
+     cd D:\mission_orchestrator
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE4_1_ACCEPTANCE.ps1
+
+Expected:
+  - Stage 3.9.10 predecessor preflight PASS
+  - Pentest Stage 4.1 runtime PASS
+  - canonical boundary contract PASS
+  - validation-only handoff PASS
+  - execution dispatch negative boundary PASS
+  - Python compilation PASS
+  - 1590 tests collected
+  - 15 focused Stage 4.1 tests PASS
+  - boundary-critical regression PASS
+  - full historical regression PASS
+
+Important Stage-4.1 invariant:
+  The Pentest Subsystem may validate the boundary contract, but Stage 4.1 does not
+  accept execution dispatches, persist Pentest tasks, invoke tools, or actuate targets.
+
+Next stage:
+  Stage 4.2 — PIP Ingestion, Validation & Binding

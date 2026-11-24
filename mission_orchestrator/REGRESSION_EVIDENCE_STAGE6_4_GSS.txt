@@ -1,0 +1,16 @@
+STAGE 6.4 GSS — REGRESSION EVIDENCE
+
+58 passed; 0 failed; 0 errors; 0 skipped.
+26 unchanged baseline tests + 32 authoritative execution-attestation tests.
+Evidence: evidence/stage6_4/full_regression.log and full_regression.xml.
+
+Tests use an isolated repository. Production MySQL and a live user mission are
+not exercised. Paired Mission evidence additionally checks this GSS service code
+over real HTTP for ALLOW, revocation, and emergency-stop-at-boundary scenarios.
+Those checks use a repository test double and a loopback target.
+
+PowerShell is not available in the Linux build. Run STAGE6_4_GSS_ACCEPTANCE.ps1
+on the deployment host to verify protocol health and the complete test suite.
+
+COLD OVERLAY: PASS. Original aptsGSS ZIP + paired source patch ZIP.
+Compilation, inventory 58, and all 58 tests pass. Patched source hashes match.

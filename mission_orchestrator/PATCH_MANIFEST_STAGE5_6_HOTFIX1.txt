@@ -1,0 +1,12 @@
+Stage 5.6 HOTFIX1 files
+=======================
+
+tests/_localhost_http.py
+tests/test_stage4_10_pentest_foundation_acceptance_gate.py
+tests/test_stage5_6_exploitation_agent.py
+STAGE5_6_HOTFIX1_VERIFY.ps1
+PATCH_NOTES_STAGE5_6_HOTFIX1_WINDOWS_HTTP_REGRESSION_STABILITY.md
+README_STAGE5_6_HOTFIX1_WINDOWS_HTTP_REGRESSION_STABILITY.md
+INSTALL_STAGE5_6_HOTFIX1.txt
+PATCH_MANIFEST_STAGE5_6_HOTFIX1.txt
+SHA256_STAGE5_6_HOTFIX1.txt

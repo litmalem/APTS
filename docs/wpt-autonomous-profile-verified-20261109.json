@@ -1,0 +1,58 @@
+{
+  "mission_id": "mission-gmo-b4811cc9-7c67-4b38-b4e4-e3faff07f53c",
+  "job_id": "wpt-c5ac891459cd4a01bdc8d3052e2bb2aa",
+  "intake_id": "wptreq-auto-963b7ee2411fffefbfc61203e451c3838f8d2086",
+  "execution_id": "exec-37e7ccb866ec78a23448ba115ca01fdc",
+  "attempt_id": "xattempt-dbee279eaf65f3a369855809f8a07d87",
+  "runtime_state": "SUCCEEDED",
+  "wpt_status": "COMPLETED",
+  "recon_status": "DELIVERED",
+  "recon_runs": [
+    {
+      "recon_run_id": "reconrun-6c691d55061c9807b26d521ac00fb5c11bbb83e0a6a26981",
+      "run_status": "COMPLETED",
+      "output_sha256": "f84d9fd42ec0d59a60e625d05027f8e0066487fd5d92ca746d8de423ecb2bfcf",
+      "evidence_bundle_sha256": "6b0e62703e97c88ca6ea38127064ea3c32ba87d990a58e082f913c8fea55e28b"
+    }
+  ],
+  "attempt_count": 1,
+  "result_sha256": "c74e61754d50f717867308069ed4b54d15f0d6471111c0547a51da62de8dc538",
+  "evidence": {
+    "capture_status": "SEALED",
+    "evidence_ref": "stage6-evidence://xevidence-d4e7feb39e9f6a3df17a0af4b1c85014",
+    "manifest_sha256": "6d7cc5bf47fd63c70e214fc83df3f27973d07270a8b591d53ec257af20ae493e"
+  },
+  "scan_metrics": {
+    "evidence_strength_index_max": 70,
+    "favicon_fingerprints": 1,
+    "fingerprints_matched": 3,
+    "headers_observed": 6,
+    "html_responses": 0,
+    "redirects_blocked": 1,
+    "redirects_observed": 1,
+    "request_budget": 6,
+    "request_errors": 0,
+    "requests_performed": 2,
+    "requests_planned": 2,
+    "response_rate_percent": 100,
+    "responses_received": 2,
+    "scan_status": "PARTIAL",
+    "tls_sessions": 0
+  },
+  "technology_findings": [
+    "Apache/2.4.58 (Win64) OpenSSL/3.1.3 PHP/8.0.30",
+    "PHP",
+    "PHP/8.0.30"
+  ],
+  "runtime_timeout_fix_deployed": true,
+  "scope_without_expiry_fix_deployed": true,
+  "validation": {
+    "scope_runtime_tests_passed": 33,
+    "governance_tests_passed_prior_turn": 47,
+    "supplementary_runtime_tests": {
+      "passed": 20,
+      "failed": 6,
+      "failure": "VEP execution/evidence lineage; one representative failure reproduced with baseline timeout code"
+    }
+  }
+}

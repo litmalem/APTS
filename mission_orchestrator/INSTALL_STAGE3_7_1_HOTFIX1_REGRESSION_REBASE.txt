@@ -1,0 +1,55 @@
+Stage 3.7.1 Hotfix 1 — Regression Baseline Rebase
+=================================================
+
+Purpose
+-------
+Correct the single stale Stage 3.4.10 regression expectation discovered by the
+Stage 3.7.1 authoritative host acceptance run.
+
+This is TEST-ONLY. No service restart and no database migration are required.
+
+Install
+-------
+1. Keep D:\mission_orchestrator at the already deployed Stage 3.7.1 runtime.
+2. Extract STAGE3_7_1_HOTFIX1_REGRESSION_REBASE.zip directly into:
+
+   D:\mission_orchestrator
+
+   and overwrite the matching file under tests\.
+
+PowerShell example:
+
+   Expand-Archive `
+       -Path .\STAGE3_7_1_HOTFIX1_REGRESSION_REBASE.zip `
+       -DestinationPath D:\mission_orchestrator `
+       -Force
+
+3. No service restart is required.
+
+Fast verification
+-----------------
+   cd D:\mission_orchestrator
+
+   python -m pytest -q `
+     tests/test_stage3_4_10_routing_delegation_acceptance_regression_gate.py::test_stage3410_health_declares_stage34_closure_without_new_authority_or_migration
+
+Expected:
+
+   1 passed
+
+Authoritative acceptance
+------------------------
+Run the existing Stage 3.7.1 acceptance script again:
+
+   Set-ExecutionPolicy `
+       -Scope Process `
+       -ExecutionPolicy Bypass `
+       -Force
+
+   .\STAGE3_7_1_ACCEPTANCE.ps1
+
+Formal Stage 3.7.1 acceptance is established only when the script ends with:
+
+   STAGE 3.7.1 ACCEPTANCE: PASS
+
+Expected canonical inventory remains exactly 1175 tests.

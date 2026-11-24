@@ -1,0 +1,280 @@
+[
+  {
+    "job_id": "wpt-01da3c0951ddc8311e660de2674a6f73",
+    "status": "COMPLETED",
+    "target": "http://127.0.0.1:80//dvwa",
+    "result": {
+      "collection_errors": [],
+      "evidence": {
+        "capture_status": "SEALED",
+        "evidence_ref": "stage6-evidence://xevidence-993cadbc883ba8e285f0191dd9d7f094",
+        "manifest_sha256": "d5c359521d9ebac6327955b0edbf4bfc81fef40715710fd2ed6de2ada968213d"
+      },
+      "favicon_status": "CAPTURED",
+      "fingerprint_status": "SIGNATURES_FOUND",
+      "mission_id": "mission-gmo-603b3035-ab85-407a-99aa-73e4fdd677fb",
+      "mode": "fingerprinting",
+      "network_binding": {
+        "byte_limit_reached": false,
+        "connected": true,
+        "http_status": 302,
+        "peer_ip": "127.0.0.1",
+        "response_bytes": 2397,
+        "response_sha256": "647ad21044a72522469db5956d13d3a52c61ea1bb16a76bf23ffe589b83d4ce4"
+      },
+      "observations": [
+        {
+          "cookie_names": [
+            "PHPSESSID",
+            "security"
+          ],
+          "final_url": "http://127.0.0.1:80//dvwa/",
+          "headers": {
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "content-type": "text/html; charset=UTF-8",
+            "server": "Apache/2.4.58 (Win64) OpenSSL/3.1.3 PHP/8.0.30",
+            "x-powered-by": "PHP/8.0.30"
+          },
+          "method": "GET",
+          "redirect_blocked": true,
+          "redirect_count": 0,
+          "status_code": 302,
+          "url": "http://127.0.0.1:80//dvwa/"
+        },
+        {
+          "favicon_fingerprint": {
+            "bytes_observed": 1406,
+            "media_type": "image/x-icon",
+            "sha256": "f59153c29cc0ce81abb6fd1b2f1019b0b12da079d810b4ef282a78b70751d3a1"
+          },
+          "final_url": "http://127.0.0.1:80//dvwa/favicon.ico",
+          "headers": {
+            "content-type": "image/x-icon",
+            "server": "Apache/2.4.58 (Win64) OpenSSL/3.1.3 PHP/8.0.30"
+          },
+          "method": "GET",
+          "redirect_blocked": false,
+          "redirect_count": 0,
+          "status_code": 200,
+          "url": "http://127.0.0.1:80/dvwa/favicon.ico"
+        }
+      ],
+      "profile": "fingerprinting",
+      "scan_metrics": {
+        "evidence_strength_index_max": 70,
+        "favicon_fingerprints": 1,
+        "fingerprints_matched": 3,
+        "headers_observed": 6,
+        "html_responses": 0,
+        "redirects_blocked": 1,
+        "redirects_observed": 1,
+        "request_budget": 2,
+        "request_errors": 0,
+        "requests_performed": 2,
+        "requests_planned": 2,
+        "response_rate_percent": 100,
+        "responses_received": 2,
+        "scan_status": "PARTIAL",
+        "tls_sessions": 0
+      },
+      "schema_version": "web-technology-observation-v4",
+      "status": "SUCCEEDED",
+      "target": "http://127.0.0.1:80//dvwa",
+      "task_id": "ptask-3720d558-12f1-4947-83ac-7ddc5b31f4fa",
+      "technology_findings": [
+        {
+          "confidence_level": "medium",
+          "evidence": [
+            {
+              "family": "http_header",
+              "signal": "http.server",
+              "value": "Apache/2.4.58 (Win64) OpenSSL/3.1.3 PHP/8.0.30",
+              "weight": 65
+            }
+          ],
+          "evidence_count": 1,
+          "evidence_strength_score": 65,
+          "independent_evidence_families": [
+            "http_header"
+          ],
+          "technology": "Apache/2.4.58 (Win64) OpenSSL/3.1.3 PHP/8.0.30"
+        },
+        {
+          "confidence_level": "medium",
+          "evidence": [
+            {
+              "family": "cookie_name",
+              "signal": "http.cookie_name",
+              "value": "PHPSESSID",
+              "weight": 58
+            }
+          ],
+          "evidence_count": 1,
+          "evidence_strength_score": 58,
+          "independent_evidence_families": [
+            "cookie_name"
+          ],
+          "technology": "PHP",
+          "technology_type": "server_runtime"
+        },
+        {
+          "confidence_level": "medium",
+          "evidence": [
+            {
+              "family": "http_header",
+              "signal": "http.x-powered-by",
+              "value": "PHP/8.0.30",
+              "weight": 70
+            }
+          ],
+          "evidence_count": 1,
+          "evidence_strength_score": 70,
+          "independent_evidence_families": [
+            "http_header"
+          ],
+          "technology": "PHP/8.0.30"
+        }
+      ],
+      "tls_status": "NOT_APPLICABLE_HTTP"
+    }
+  },
+  {
+    "job_id": "wpt-beb2a1276546ecfba676871678661f64",
+    "status": "COMPLETED",
+    "target": "http://127.0.0.1//dvwa",
+    "result": {
+      "collection_errors": [],
+      "evidence": {
+        "capture_status": "SEALED",
+        "evidence_ref": "stage6-evidence://xevidence-c9ab91d4445dac642010d6b43c96bff6",
+        "manifest_sha256": "13e86a8d37b78a2272bd292c99601cc3cd1aa60f6a106e9008c8c1417343fd87"
+      },
+      "favicon_status": "CAPTURED",
+      "fingerprint_status": "SIGNATURES_FOUND",
+      "mission_id": "mission-gmo-e1fbfb98-2600-4aa4-851b-51261d7e3b0b",
+      "mode": "fingerprinting",
+      "network_binding": {
+        "byte_limit_reached": false,
+        "connected": true,
+        "http_status": 302,
+        "peer_ip": "127.0.0.1",
+        "response_bytes": 2397,
+        "response_sha256": "f911f3e23bc40e8ba71e8f0de861ffa712a601cdf39cd07b5b9b47afd7d91466"
+      },
+      "observations": [
+        {
+          "cookie_names": [
+            "PHPSESSID",
+            "security"
+          ],
+          "final_url": "http://127.0.0.1//dvwa/",
+          "headers": {
+            "cache-control": "no-store, no-cache, must-revalidate",
+            "content-type": "text/html; charset=UTF-8",
+            "server": "Apache/2.4.58 (Win64) OpenSSL/3.1.3 PHP/8.0.30",
+            "x-powered-by": "PHP/8.0.30"
+          },
+          "method": "GET",
+          "redirect_blocked": true,
+          "redirect_count": 0,
+          "status_code": 302,
+          "url": "http://127.0.0.1//dvwa/"
+        },
+        {
+          "favicon_fingerprint": {
+            "bytes_observed": 1406,
+            "media_type": "image/x-icon",
+            "sha256": "f59153c29cc0ce81abb6fd1b2f1019b0b12da079d810b4ef282a78b70751d3a1"
+          },
+          "final_url": "http://127.0.0.1//dvwa/favicon.ico",
+          "headers": {
+            "content-type": "image/x-icon",
+            "server": "Apache/2.4.58 (Win64) OpenSSL/3.1.3 PHP/8.0.30"
+          },
+          "method": "GET",
+          "redirect_blocked": false,
+          "redirect_count": 0,
+          "status_code": 200,
+          "url": "http://127.0.0.1/dvwa/favicon.ico"
+        }
+      ],
+      "profile": "fingerprinting",
+      "scan_metrics": {
+        "evidence_strength_index_max": 70,
+        "favicon_fingerprints": 1,
+        "fingerprints_matched": 3,
+        "headers_observed": 6,
+        "html_responses": 0,
+        "redirects_blocked": 1,
+        "redirects_observed": 1,
+        "request_budget": 6,
+        "request_errors": 0,
+        "requests_performed": 2,
+        "requests_planned": 2,
+        "response_rate_percent": 100,
+        "responses_received": 2,
+        "scan_status": "PARTIAL",
+        "tls_sessions": 0
+      },
+      "schema_version": "web-technology-observation-v4",
+      "status": "SUCCEEDED",
+      "target": "http://127.0.0.1//dvwa",
+      "task_id": "ptask-c12c2cab-5e96-4dc3-9cba-8455d38d2e61",
+      "technology_findings": [
+        {
+          "confidence_level": "medium",
+          "evidence": [
+            {
+              "family": "http_header",
+              "signal": "http.server",
+              "value": "Apache/2.4.58 (Win64) OpenSSL/3.1.3 PHP/8.0.30",
+              "weight": 65
+            }
+          ],
+          "evidence_count": 1,
+          "evidence_strength_score": 65,
+          "independent_evidence_families": [
+            "http_header"
+          ],
+          "technology": "Apache/2.4.58 (Win64) OpenSSL/3.1.3 PHP/8.0.30"
+        },
+        {
+          "confidence_level": "medium",
+          "evidence": [
+            {
+              "family": "cookie_name",
+              "signal": "http.cookie_name",
+              "value": "PHPSESSID",
+              "weight": 58
+            }
+          ],
+          "evidence_count": 1,
+          "evidence_strength_score": 58,
+          "independent_evidence_families": [
+            "cookie_name"
+          ],
+          "technology": "PHP",
+          "technology_type": "server_runtime"
+        },
+        {
+          "confidence_level": "medium",
+          "evidence": [
+            {
+              "family": "http_header",
+              "signal": "http.x-powered-by",
+              "value": "PHP/8.0.30",
+              "weight": 70
+            }
+          ],
+          "evidence_count": 1,
+          "evidence_strength_score": 70,
+          "independent_evidence_families": [
+            "http_header"
+          ],
+          "technology": "PHP/8.0.30"
+        }
+      ],
+      "tls_status": "NOT_APPLICABLE_HTTP"
+    }
+  }
+]

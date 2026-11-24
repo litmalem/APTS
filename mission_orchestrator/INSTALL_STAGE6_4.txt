@@ -1,0 +1,18 @@
+STAGE 6.4 — AUTHORIZED TOOL ADAPTERS & SANDBOXING
+
+Mission patch destination: D:\mission_orchestrator
+aptsGSS patch destination: existing aptsGSS project root (contains app\main.py).
+
+1. Overlay both source patches onto the supplied baselines. No database, SQL dump,
+   credential file, environment file, or dependency directory is included.
+2. Restart aptsGSS with its usual runner. Verify /health reports
+   execution_revalidation_schema_version=apts-gss-execution-revalidation-v1.
+3. Stop the old Execution process on 8791 and back up execution_subsystem.db.
+4. Run START_STAGE6_4_EXECUTION.ps1 from D:\mission_orchestrator.
+5. In another PowerShell window run STAGE6_4_ACCEPTANCE.ps1.
+6. From the GSS project root run STAGE6_4_GSS_ACCEPTANCE.ps1.
+
+Execution DB migrates atomically from 1/2/3 to 4. Mission remains 53, Pentest 16.
+New gateway path: /api/execution/gateway/tool-invocations.
+Read README_STAGE6_4.md for supported techniques, exact target/port handling,
+credential leases, failure semantics, and the boundaries of the fixed-worker sandbox.

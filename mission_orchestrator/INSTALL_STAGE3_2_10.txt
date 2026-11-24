@@ -1,0 +1,32 @@
+Stage 3.2.10 - Lifecycle Acceptance & Regression Gate
+Installation / Regression Steps
+====================================================
+
+Target repository:
+  D:\mission_orchestrator
+
+1. Stop the Mission Orchestrator process before replacing files.
+2. Back up the existing repository/database.
+3. Extract the Stage-3.2.10 patch over D:\mission_orchestrator preserving paths.
+4. Database migration: NONE.
+   Required existing migration level: 8.
+   Latest migration remains migrations\008_stage3_1_9_mission_event_lineage_foundation.sql.
+   Do NOT create/apply migration 009 for Stage 3.2.10.
+5. Compile:
+     cd D:\mission_orchestrator
+     python -m compileall -q mission_orchestrator tests
+6. Regression:
+     python -m pytest -q
+   Expected: 267 passed
+7. Start/restart Mission Orchestrator and verify:
+     Invoke-RestMethod http://127.0.0.1:8780/health
+   Expected control_version:
+     stage3.2.10-lifecycle-acceptance-regression-gate
+8. Run live closure gate:
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE3_2_10_ACCEPTANCE.ps1
+9. Expected final result:
+     STAGE 3.2.10 ACCEPTANCE: PASS
+
+The acceptance gate must not enable planner authority, Governance authorization,
+target-action dispatch, target actuation, or an external event-delivery worker.

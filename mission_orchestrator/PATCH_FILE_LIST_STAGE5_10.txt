@@ -1,0 +1,14 @@
+pentest_subsystem/agentic_pentest_acceptance_gate.py
+pentest_subsystem/agentic_pentest_acceptance_service.py
+pentest_subsystem/api_service.py
+pentest_subsystem/__init__.py
+run/pentest_subsystem.py
+tests/test_stage5_10_agentic_pentest_acceptance_regression_gate.py
+STAGE5_10_ACCEPTANCE.ps1
+README_STAGE5_10.md
+PATCH_NOTES_STAGE5_10.md
+INSTALL_STAGE5_10.txt
+REGRESSION_EVIDENCE_STAGE5_10.txt
+PATCH_FILE_LIST_STAGE5_10.txt
+PATCH_MANIFEST_STAGE5_10.txt
+SHA256_STAGE5_10.txt

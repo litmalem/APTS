@@ -1,0 +1,65 @@
+STAGE 3.6.4 — DEPENDENCY-AWARE TASK COMPLETION
+INSTALLATION / ACCEPTANCE
+======================================================================
+
+BASELINE
+--------
+Apply this patch only over an accepted Stage-3.6.3 Mission Orchestrator tree.
+Expected predecessor control:
+  stage3.6.3-evidence-binding-verification
+Expected predecessor repository migration level:
+  38
+
+TARGET
+------
+control_version:
+  stage3.6.4-dependency-aware-task-completion
+server_version:
+  APTSMissionOrchestrator/3.6.4
+repository migration level:
+  39
+new durable store:
+  mission_task_completion_commits
+identity prefix:
+  tcomp-
+canonical test inventory:
+  1042
+focused Stage-3.6.4 tests:
+  20
+
+IMPORTANT DATA RULE
+-------------------
+Do NOT replace or delete the live data/mission_orchestrator.db.
+Do NOT overwrite operator-managed secrets/configuration.
+The patch ZIP contains source/tests/docs/migration only; live repository data is intentionally excluded.
+
+INSTALL
+-------
+1. Stop/restart according to the existing Mission Orchestrator deployment procedure.
+2. Overlay the Stage-3.6.4 patch at D:\mission_orchestrator.
+3. Apply migration 039 using the same deployment migration procedure used for prior stages.
+4. Restart the Mission Orchestrator.
+5. Verify /health reports:
+     control_version = stage3.6.4-dependency-aware-task-completion
+     mission_repository_migration_level = 39
+6. Run:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_6_4_ACCEPTANCE.ps1
+
+ACCEPTANCE SUCCESS
+------------------
+The stage is accepted only when the script prints:
+
+  STAGE 3.6.4 ACCEPTANCE: PASS
+
+The script requires:
+- runtime control/version and migration 39 preflight PASS;
+- explicit Stage-3.6.4 authority-boundary health fields PASS;
+- Python compile PASS;
+- exactly 1042 tests collected;
+- complete Stage-3.1 through Stage-3.6.4 regression PASS;
+- Stage-3.6.1..3.6.4 chain = exactly 79 passed;
+- focused Stage-3.6.4 suite = exactly 20 passed;
+- migration/module/API registration PASS.

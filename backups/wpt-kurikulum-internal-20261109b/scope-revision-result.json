@@ -1,0 +1,160 @@
+{
+  "scope_contract": {
+    "id": 195,
+    "scope_contract_id": "scope-6553576a-6e12-4a27-af10-297ea0600bf5",
+    "mission_id": "mission-gmo-887dae4f-1611-4b07-8ee7-7f184b7379be",
+    "name": "Pentest pada https://kurikulum.del.ac.id:443",
+    "status": "ACTIVE",
+    "policy_set_id": "default-policy",
+    "version": 2,
+    "valid_from": "2026-11-09T04:46:40.561334",
+    "valid_until": "2026-11-30T11:46:00",
+    "created_by": "local-test-operator",
+    "approved_by": "local-test-operator",
+    "approved_at": "2026-11-09T04:49:53.878570",
+    "contract_hash": "6f9286488e7c15c8c0d882ad2b825e40717920fd87d62f48661e8ccc08644883",
+    "created_at": "2026-11-09T04:49:53",
+    "updated_at": "2026-11-09T04:49:53",
+    "metadata": {
+      "gss_workflow_profile": {
+        "profile_id": "WPT_FINGERPRINT_AUTONOMOUS_V1",
+        "profile_label": "Fingerprinting WPT otonom terbatas",
+        "version": 1,
+        "execution_authorized": false,
+        "target_actuation": false,
+        "delegation_capabilities": [
+          "PENTEST:pentest.recon"
+        ],
+        "recon_techniques": [
+          "WEB_TECHNOLOGY_FINGERPRINT"
+        ],
+        "max_network_requests": 6
+      },
+      "supersedes_scope_id": "scope-4093ea23-a882-4da7-8005-8bd79000d867",
+      "revision_reason": "User explicitly selected internal server 172.21.2.2 and approved this exact IP in scope in Codex chat on 2026-11-09. Preserve existing six-GET read-only WPT action permissions.",
+      "revision_actor": "local-test-operator"
+    },
+    "targets": [
+      {
+        "id": 179,
+        "scope_target_id": "stgt-c1a37302-f1bd-4bdf-8947-296a08a3f7d0",
+        "scope_contract_id": "scope-6553576a-6e12-4a27-af10-297ea0600bf5",
+        "target_type": "URL",
+        "target_value": "https://kurikulum.del.ac.id:443",
+        "normalized_value": "https://kurikulum.del.ac.id:443",
+        "environment": "LAB",
+        "allowed": 1,
+        "notes": null,
+        "created_at": "2026-11-09T04:49:53"
+      },
+      {
+        "id": 180,
+        "scope_target_id": "stgt-9c3d601b-cb96-4a31-9fcb-ca5ec4abb2aa",
+        "scope_contract_id": "scope-6553576a-6e12-4a27-af10-297ea0600bf5",
+        "target_type": "IP",
+        "target_value": "172.21.2.2",
+        "normalized_value": "172.21.2.2",
+        "environment": "LAB",
+        "allowed": 1,
+        "notes": "Exact internal DNS destination explicitly approved by user for kurikulum WPT recovery on 2026-11-09.",
+        "created_at": "2026-11-09T04:49:53"
+      }
+    ],
+    "sources": [],
+    "action_constraints": [
+      {
+        "id": 521,
+        "constraint_id": "sact-33f4a281-ede7-4939-997f-06eb84a26283",
+        "scope_contract_id": "scope-6553576a-6e12-4a27-af10-297ea0600bf5",
+        "action_class": "TARGET_RECON",
+        "action_name": "recon",
+        "effect": "ALLOW",
+        "max_risk_level": "LOW",
+        "requires_approval": false,
+        "created_at": "2026-11-09T04:49:53",
+        "constraints": {
+          "max_network_requests": 6,
+          "max_requests": 6,
+          "allowed_methods": [
+            "GET"
+          ],
+          "allowed_techniques": [
+            "WEB_TECHNOLOGY_FINGERPRINT"
+          ],
+          "read_only": true,
+          "state_changing_requests": false,
+          "workflow_profile": "WPT_FINGERPRINT_AUTONOMOUS_V1"
+        }
+      },
+      {
+        "id": 522,
+        "constraint_id": "sact-d137b99c-800b-4a21-9662-be52b52c2cd9",
+        "scope_contract_id": "scope-6553576a-6e12-4a27-af10-297ea0600bf5",
+        "action_class": "TARGET_RECON",
+        "action_name": "web_technology_fingerprinting",
+        "effect": "ALLOW",
+        "max_risk_level": "LOW",
+        "requires_approval": false,
+        "created_at": "2026-11-09T04:49:53",
+        "constraints": {
+          "max_network_requests": 6,
+          "max_requests": 6,
+          "allowed_methods": [
+            "GET"
+          ],
+          "allowed_techniques": [
+            "WEB_TECHNOLOGY_FINGERPRINT"
+          ],
+          "read_only": true,
+          "state_changing_requests": false,
+          "workflow_profile": "WPT_FINGERPRINT_AUTONOMOUS_V1"
+        }
+      },
+      {
+        "id": 523,
+        "constraint_id": "sact-9903709e-9f1d-47aa-9e8a-b349a66accec",
+        "scope_contract_id": "scope-6553576a-6e12-4a27-af10-297ea0600bf5",
+        "action_class": "TARGET_RECON",
+        "action_name": "AUTHORIZE_TARGET_EXECUTION",
+        "effect": "ALLOW",
+        "max_risk_level": "LOW",
+        "requires_approval": false,
+        "created_at": "2026-11-09T04:49:53",
+        "constraints": {
+          "max_network_requests": 6,
+          "max_requests": 6,
+          "allowed_methods": [
+            "GET"
+          ],
+          "allowed_techniques": [
+            "WEB_TECHNOLOGY_FINGERPRINT"
+          ],
+          "read_only": true,
+          "state_changing_requests": false,
+          "workflow_profile": "WPT_FINGERPRINT_AUTONOMOUS_V1"
+        }
+      },
+      {
+        "id": 524,
+        "constraint_id": "sact-4b787c54-7c0e-45ad-affc-0960d571118f",
+        "scope_contract_id": "scope-6553576a-6e12-4a27-af10-297ea0600bf5",
+        "action_class": "TASK_DELEGATION",
+        "action_name": "delegate_planned_task",
+        "effect": "ALLOW",
+        "max_risk_level": "LOW",
+        "requires_approval": false,
+        "created_at": "2026-11-09T04:49:53",
+        "constraints": {
+          "allowed_capabilities": [
+            "PENTEST:pentest.recon"
+          ],
+          "execution_authorized": false,
+          "target_actuation": false,
+          "authorized_subject_component": "APTS-MO01",
+          "authorization_purpose": "PRE_DELEGATION_ONLY",
+          "workflow_profile": "WPT_FINGERPRINT_AUTONOMOUS_V1"
+        }
+      }
+    ]
+  }
+}

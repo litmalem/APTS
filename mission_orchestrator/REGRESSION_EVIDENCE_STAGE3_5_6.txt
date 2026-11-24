@@ -1,0 +1,65 @@
+Stage 3.5.6 — Running Execution State & Heartbeat Projection
+Generated: 2026-09-15
+
+CONTROL
+  stage3.5.6-running-execution-state-heartbeat-projection
+
+HTTP SERVER
+  APTSMissionOrchestrator/3.5.6
+
+REPOSITORY MIGRATION
+  32
+
+CANONICAL PYTEST INVENTORY
+  893 tests collected in 0.23s
+
+PYTHON COMPILE
+  python -m compileall -q mission_orchestrator tests
+  PASS
+
+FOCUSED STAGE-3.5.6 PROOF
+  tests/test_stage3_5_6_running_execution_state_heartbeat_projection.py
+  18 passed in 20.56s
+
+FULL REGRESSION
+  python -m pytest -q
+  893 passed in 426.88s (0:07:06)
+
+REGRESSION REPAIR DURING FINALIZATION
+  The first full-suite finalization run exposed one stale Stage-3.4.10
+  supported-control-tail assertion after the Stage-3.5.6 control was appended.
+  The assertion was corrected to include Stage 3.5.5 followed by Stage 3.5.6
+  and to require a 16-control tail. The corrected focused assertion passed,
+  then the complete 893-test suite passed.
+
+RUNTIME DECLARATION SMOKE CHECK
+  status=ok
+  control_version=stage3.5.6-running-execution-state-heartbeat-projection
+  mission_repository_migration_level=32
+  running_execution_database_migration_level=32
+  running_execution_schema_version=apts-running-execution-state-heartbeat-projection-v1
+  running_execution_identity_prefix=xrun-
+  running_execution_state=RUNNING
+  running_execution_attempt_status=RUNNING_HEARTBEAT_CONFIRMED
+  running_execution_heartbeat_status=ALIVE
+  running_execution_persistence_store=mission_execution_running_projections
+  running_execution_runtime_endpoint_resolution_performed=false
+  running_execution_runtime_health_probe_performed=true
+  running_execution_runtime_execution_state_query_performed=true
+  running_execution_governance_query_performed=false
+  running_execution_dispatch_redelivery_performed=false
+  running_execution_target_action_dispatch_performed=false
+  running_execution_target_actuation=false
+
+BOUNDARY EVIDENCE
+  - Stage 3.5.3 historical ALLOW evidence remains the dispatch authorization source.
+  - Stage 3.5.4 xattempt/xenv identity remains immutable.
+  - Stage 3.5.5 xack remains the delivery/intake acknowledgement boundary.
+  - Stage 3.5.6 performs observation/projection only.
+  - Exact Stage-3.5.5 runtime endpoint is reused; no endpoint re-resolution occurs.
+  - Heartbeat projections are append-only and sequence-monotonic per execution attempt.
+  - No new Governance query, dispatch redelivery, target-action dispatch, or target actuation.
+
+HOST ACCEPTANCE
+  STAGE3_5_6_ACCEPTANCE.ps1 remains the authoritative deployment-host closure gate.
+  It additionally verifies that the Stage-3.5.6 runtime is active on port 8780.

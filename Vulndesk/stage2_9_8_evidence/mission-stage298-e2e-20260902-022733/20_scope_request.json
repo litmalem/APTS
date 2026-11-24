@@ -1,0 +1,39 @@
+﻿{
+    "mission_id":  "mission-stage298-e2e-20260902-022733",
+    "name":  "Stage 2.9.8 End-to-End Acceptance",
+    "policy_set_id":  "default-policy",
+    "created_by":  "operator-stage298",
+    "approved_by":  "operator-stage298",
+    "targets":  [
+
+                ],
+    "sources":  [
+                    {
+                        "source_id":  "mitre-attack",
+                        "source_type":  "CTI",
+                        "allowed":  true,
+                        "constraints":  {
+                                            "read_only":  true
+                                        }
+                    }
+                ],
+    "action_constraints":  [
+                               {
+                                   "action_class":  "CTI_SOURCE_READ",
+                                   "action_name":  "*",
+                                   "effect":  "ALLOW",
+                                   "max_risk_level":  "LOW",
+                                   "requires_approval":  false,
+                                   "constraints":  {
+                                                       "read_only":  true,
+                                                       "target_actuation":  false,
+                                                       "max_pages":  1
+                                                   }
+                               }
+                           ],
+    "metadata":  {
+                     "stage":  "2.9.8",
+                     "purpose":  "end-to-end-acceptance",
+                     "acceptance_profile":  "governed-read-only-cti"
+                 }
+}

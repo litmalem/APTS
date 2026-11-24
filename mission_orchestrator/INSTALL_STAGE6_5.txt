@@ -1,0 +1,38 @@
+STAGE 6.5 - EXECUTION RUNTIME CONTROL
+
+Jika Stage 6.5 sudah aktif dan full regression gagal pada
+test_retry_rejects_completed_or_possible_io[TIMEOUT], gunakan hotfix tes:
+timpa tests\test_stage6_5_execution_runtime_control.py dan
+run\stage6_5_regression.py dari ZIP terbaru. Tidak perlu restart runtime
+atau mengubah database. Jalankan kembali STAGE6_5_ACCEPTANCE.ps1.
+Penjelasan dan probe: HOTFIX_STAGE6_5_TIMEOUT_RETRY.md.
+
+Untuk instalasi awal / upgrade dari Stage 6.4:
+
+1. Hentikan proses Execution Stage 6.4 pada port 8791.
+2. Backup database Execution setelah proses berhenti. Default:
+   D:\mission_orchestrator\data\execution_subsystem.db
+   Gunakan lokasi APTS_EXECUTION_DB / --execution-db jika dikonfigurasi.
+3. Ekstrak isi Mission_Stage6_5_Execution_Runtime_Control_PATCH.zip
+   langsung ke D:\mission_orchestrator, menimpa berkas source yang sama.
+4. Mission 8780, Pentest 8790, dan GSS 8770 tetap memakai layanan yang sudah aktif.
+   Stage 6.5 memakai protocol execution attestation GSS Stage 6.4 yang sudah dipasang.
+   Tidak perlu mengimpor ulang SQL dump atau mengubah skema Mission/Pentest/GSS.
+5. Jalankan dalam PowerShell pertama:
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\START_STAGE6_5_EXECUTION.ps1
+6. Jalankan dalam PowerShell kedua:
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE6_5_ACCEPTANCE.ps1
+
+Execution DB diupgrade atomik ke migration 5. Runner historis menolak DB v5.
+Jangan menurunkan metadata migration atau menjalankan proses Execution lama bersamaan.
+Gunakan backup untuk rollback, setelah menghentikan runtime baru.
+
+Sumber aptsGS(4).zip telah diverifikasi: 58 tes GSS, 22 skenario lintas layanan,
+dan 70 tes runtime ulang lulus. Kode GSS dan runtime tidak memerlukan perubahan
+tambahan. Proof memakai repository GSS terisolasi, real HTTP, dan target loopback;
+production MySQL dan Windows tetap memerlukan acceptance host.
+Lihat README_STAGE6_5.md untuk API, retry, kill latch, dan batas recovery.

@@ -1,0 +1,15 @@
+{
+  "mission_id": "mission-cti-001",
+  "scope_contract_id": "REPLACE_WITH_SCOPE_ID",
+  "subject_component": "CTI-A02",
+  "action_class": "CTI_SOURCE_READ",
+  "action_name": "INCREMENTAL_FETCH",
+  "resource_type": "CTI_SOURCE",
+  "resource_value": "nvd-cve",
+  "context": {
+    "environment": "LAB",
+    "reversible": true,
+    "blast_radius": 1
+  },
+  "evidence_refs": []
+}

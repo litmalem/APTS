@@ -1,0 +1,110 @@
+STAGE 3.6.1 — CANONICAL TASK OUTCOME CONTRACT & IDENTITY
+PACKAGE-CONSTRUCTION VERIFICATION EVIDENCE
+======================================================================
+
+Runtime/control target
+----------------------
+control_version            : stage3.6.1-canonical-task-outcome-contract-identity
+server_version             : APTSMissionOrchestrator/3.6.1
+repository migration       : 36
+new durable store          : mission_task_outcomes
+identity prefix            : toutcome-
+contract status            : MATERIALIZED_PENDING_TASK_OUTCOME_ACCEPTANCE
+
+Canonical test inventory
+------------------------
+Command:
+  python -m pytest --collect-only -q
+
+Observed:
+  982 tests collected in 0.22s
+
+Result:
+  PASS — exact expected inventory 982
+
+Python compilation
+------------------
+Command:
+  python -m compileall -q mission_orchestrator tests
+
+Result:
+  PASS
+
+Focused Stage 3.6.1
+-------------------
+Command:
+  python -m pytest -q tests/test_stage3_6_1_canonical_task_outcome_contract_identity.py
+
+Observed:
+  19 passed in 5.45s
+
+Result:
+  PASS
+
+Focused predecessor closure — Stage 3.5.10
+------------------------------------------
+Command:
+  python -m pytest -q tests/test_stage3_5_10_execution_dispatch_acceptance_regression_gate.py
+
+Observed:
+  12 passed in 15.48s
+
+Result:
+  PASS
+
+Additional broad subset attempt
+-------------------------------
+Command:
+  python -m pytest -q tests -k 'health or stage361'
+
+Observed:
+  The subset progressed without a reported failure before the package-construction
+  command reached its execution timeout. No PASS is asserted for this incomplete run.
+
+Full regression in package-construction environment
+---------------------------------------------------
+A complete sequential 982-test regression is NOT claimed by this artifact-generation run.
+The canonical target-host acceptance command is:
+
+  .\STAGE3_6_1_ACCEPTANCE.ps1
+
+That harness only prints STAGE 3.6.1 ACCEPTANCE: PASS after the entire 982-test regression,
+focused 19-test Stage-3.6.1 proof, runtime identity, migration, and authority-boundary checks
+all complete successfully.
+
+Key focused evidence
+--------------------
+- canonical toutcome-* contract and SHA-256 self-verification;
+- exact binding to active Plan + xattempt/xresult/xprop/xrecover Stage-3.5 artifacts;
+- stale version/hash and missing recovery checkpoint fail closed;
+- caller cannot supply acceptance/completion/dependency/Mission/runtime/Governance fields;
+- exact idempotent replay without duplicate outcome/event;
+- one immutable outcome identity per Plan task;
+- no Governance or runtime contact during materialization/replay;
+- restart preserves identical immutable outcome identity;
+- exactly-once MISSION_TASK_OUTCOME_MATERIALIZED lineage event;
+- repository manifest/integrity includes canonical_task_outcome_store;
+- persisted tampering is detected;
+- migration 036 and REST API surfaces are registered;
+- task acceptance, completion commit, dependency release, readiness recalculation,
+  Plan progression, Mission completion, redispatch, new execution attempt, external
+  network I/O, target actuation, and Mission state transition remain outside Stage 3.6.1.
+
+Clean patch-application verification
+------------------------------------
+Procedure:
+  1. copy the original supplied Stage-3.5.10 tree to a clean verification directory;
+  2. apply Mission_STAGE3_6_1_CANONICAL_TASK_OUTCOME_CONTRACT_IDENTITY_PATCH.zip;
+  3. compile source/tests;
+  4. collect canonical pytest inventory;
+  5. run Stage-3.6.1 focused tests;
+  6. rerun Stage-3.5.10 predecessor closure tests.
+
+Observed:
+  982 tests collected in 1.65s
+  Stage 3.6.1: 19 passed in 5.13s
+  Stage 3.5.10: 12 passed in 15.06s
+  Python compilation: PASS
+
+Result:
+  PASS — the delta patch is self-contained relative to the supplied Stage-3.5.10 baseline.

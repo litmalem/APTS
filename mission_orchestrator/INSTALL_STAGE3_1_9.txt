@@ -1,0 +1,97 @@
+Stage 3.1.9 - Mission Event & Lineage Foundation
+Installation / Regression Steps
+================================================
+
+Target repository:
+  D:\mission_orchestrator
+
+1. Stop the Mission Orchestrator service/process before replacing files.
+
+2. Back up the existing repository and database.
+   At minimum back up:
+     D:\mission_orchestrator
+     the configured Mission database
+
+3. Extract the Stage-3.1.9 patch over D:\mission_orchestrator, preserving paths.
+   The distributable patch does NOT contain data\mission_orchestrator.db.
+
+4. Database migration
+
+   SQLite:
+     No manual SQL command is required. On service startup,
+     MissionRepository.ensure_schema() creates mission_events and advances
+     repository metadata to migration level 8.
+
+   MariaDB/MySQL:
+     Apply:
+       migrations\008_stage3_1_9_mission_event_lineage_foundation.sql
+
+     Example from a MySQL client:
+       mysql -u <user> -p < migrations\008_stage3_1_9_mission_event_lineage_foundation.sql
+
+     The SQL uses database:
+       apts_mission_orchestrator
+
+     Verify mission_repository_metadata.migration_level = 8.
+
+5. Python compile check
+
+   cd D:\mission_orchestrator
+   python -m compileall -q mission_orchestrator tests
+
+6. Full regression
+
+   python -m pytest -q
+
+   Expected Stage-3.1.9 patch baseline:
+     101 passed
+
+7. Start/restart Mission Orchestrator.
+
+   Example:
+     python .\run\run_mission_orchestrator.py
+
+   Default endpoint:
+     http://127.0.0.1:8780
+
+8. Health check
+
+   Invoke-RestMethod http://127.0.0.1:8780/health
+
+   Required Stage-3.1.9 indicators include:
+     control_version = stage3.1.9-mission-event-lineage-foundation
+     mission_repository_migration_level = 8
+     mission_event_schema_version = apts-mission-event-v1
+     mission_lineage_schema_version = apts-mission-lineage-v1
+     mission_event_mode = DURABLE_APPEND_ONLY_HASH_CHAIN
+     mission_event_audit_hooks_enabled = True
+     mission_event_external_delivery_enabled = False
+     mission_event_external_authority_queries = False
+     mission_event_historical_backfill_mode = NO_SYNTHETIC_HISTORICAL_EVENTS
+     target_action_dispatch_enabled = False
+     target_actuation = False
+
+9. Run acceptance
+
+   cd D:\mission_orchestrator
+
+   Set-ExecutionPolicy `
+       -Scope Process `
+       -ExecutionPolicy Bypass `
+       -Force
+
+   .\STAGE3_1_9_ACCEPTANCE.ps1
+
+10. Expected final result
+
+   ==============================================================================
+   STAGE 3.1.9 ACCEPTANCE: PASS
+   ==============================================================================
+
+Notes
+-----
+- Stage 3.1.9 requires no source change in D:\aptsGS or D:\vulndesk.
+- aptsGSS remains authoritative for policy/approval/revocation/emergency-stop.
+- VulnDesk/CTI remains authoritative for CTI-local state/plan versions.
+- Stage 3.1.9 does not enable target-action dispatch or target actuation.
+- No synthetic historical event rows are created for pre-Stage-3.1.9 Missions.

@@ -1,0 +1,14 @@
+STAGE 6.4 GSS — EXECUTION REVALIDATION COMPATIBILITY
+
+Overlay aptsGSS_STAGE6_4_PATCH.zip onto the supplied aptsGSS baseline project root.
+This root contains app/main.py. Restart GSS using the existing project runner.
+No SQL migration or SQL dump import is required.
+
+The only replaced baseline files are app/governance_service.py and app/main.py.
+The new execution_revalidation.py derives and binds eight authoritative checks.
+GSS action constraints require an explicit allowed_techniques list for execution.
+Generic CTI/Stage 2 requests keep their historical path.
+
+Run STAGE6_4_GSS_ACCEPTANCE.ps1 to verify live protocol health and all 58 tests.
+Install the paired Mission patch before enabling Stage 6.4 target adapters.
+Read README_STAGE6_4_GSS.md for authority binding and build verification limits.

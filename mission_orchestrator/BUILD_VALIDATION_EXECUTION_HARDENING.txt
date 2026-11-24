@@ -1,0 +1,32 @@
+VulnDesk execution hardening build validation
+Date: 2026-08-14
+Control version: hybrid-event-driven-2.2-execution-hardening
+
+Changed runtime files:
+- cti_services/acquisition_freshness_agent.py
+- cti_services/cti_subsystem_orchestrator.py
+- cti_services/attack_path_reasoning_agent.py
+
+Added validation/support files:
+- tests/test_execution_hardening_stage2_d1_d2.py
+- sql_update_cti_harmonized/04_execution_hardening_state_repair.sql
+- PATCH_NOTES_EXECUTION_HARDENING_D1_D2.md
+
+Regression command executed:
+python -m unittest \
+  tests.test_execution_hardening_stage2_d1_d2 \
+  tests.test_governance_client \
+  tests.test_policydecision_taskcontract_stage2 \
+  tests.test_cti_event_driven_runtime \
+  tests.test_stage1_closure_fixes \
+  tests.test_cti_harmonized_architecture \
+  tests.test_interface_catalog
+
+Result:
+Ran 38 tests
+OK
+
+Full unittest discovery result:
+39 test modules/cases reached; one import error in tests.test_nvd_bulk_upsert because
+PyMySQL is not installed in the build container. requirements.txt already contains
+PyMySQL>=1.1. This is an environment dependency issue, not a failure of D1/D2.

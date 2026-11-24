@@ -1,0 +1,159 @@
+--- /mnt/data/STAGE2_9_8_E2E_ACCEPTANCE.ps1	2026-09-01 19:29:41.489396308 +0000
++++ /mnt/data/STAGE2_9_8_E2E_ACCEPTANCE_H1.ps1	2026-09-01 19:31:42.726681368 +0000
+@@ -151,6 +151,24 @@
+     return Get-Sha256Hex -Text $json
+ }
+ 
++function Get-OptionalNestedValue {
++    param(
++        $Object,
++        [string[]]$Path,
++        $Default = $null
++    )
++
++    $current = $Object
++    foreach ($segment in $Path) {
++        if ($null -eq $current) { return $Default }
++        $prop = $current.PSObject.Properties[$segment]
++        if ($null -eq $prop) { return $Default }
++        $current = $prop.Value
++    }
++    if ($null -eq $current) { return $Default }
++    return $current
++}
++
+ function Invoke-Regression {
+     if ($SkipRegression) {
+         Add-Check -Stage "REGRESSION" -Name "VulnDesk regression" -Status "SKIP" -Detail "Skipped by -SkipRegression." -Mandatory $false
+@@ -346,8 +364,18 @@
+     param($LineageResponse)
+     $facts = $LineageResponse.lineage.governance_correlation.correlation_facts
+     $meta = $LineageResponse.lineage.projection_metadata
++
++    # H1: mission-lineage responses do not guarantee lineage.mission_id as a top-level
++    # field. Resolve it defensively and fall back to the canonical MissionId supplied
++    # to this acceptance run. This keeps the semantic probe read-only and schema-safe.
++    $resolvedMissionId = Get-OptionalNestedValue -Object $LineageResponse -Path @("lineage", "mission_id")
++    if (-not (Test-HasText $resolvedMissionId)) {
++        $resolvedMissionId = Get-OptionalNestedValue -Object $LineageResponse -Path @("lineage", "identity", "mission_id")
++    }
++    if (-not (Test-HasText $resolvedMissionId)) { $resolvedMissionId = $MissionId }
++
+     return [ordered]@{
+-        mission_id = $LineageResponse.lineage.mission_id
++        mission_id = [string]$resolvedMissionId
+         quality = $meta.quality
+         task_count = $meta.task_count
+         event_count = $meta.event_count
+@@ -367,8 +395,11 @@
+ function Get-IntegritySemanticView {
+     param($IntegrityResponse)
+     $i = $IntegrityResponse.integrity
++    $resolvedMissionId = Get-OptionalNestedValue -Object $IntegrityResponse -Path @("integrity", "mission_id")
++    if (-not (Test-HasText $resolvedMissionId)) { $resolvedMissionId = $MissionId }
++
+     return [ordered]@{
+-        mission_id = $i.mission_id
++        mission_id = [string]$resolvedMissionId
+         status = $i.status
+         read_only = $i.read_only
+         verification_complete = $i.verification_complete
+@@ -383,8 +414,11 @@
+ function Get-TaskSemanticView {
+     param($TaskLineageResponse)
+     $l = $TaskLineageResponse.lineage
++    $resolvedMissionId = Get-OptionalNestedValue -Object $TaskLineageResponse -Path @("lineage", "identity", "mission_id")
++    if (-not (Test-HasText $resolvedMissionId)) { $resolvedMissionId = $MissionId }
++
+     return [ordered]@{
+-        mission_id = $l.identity.mission_id
++        mission_id = [string]$resolvedMissionId
+         task_id = $l.identity.task_id
+         projection_scope = $l.projection_scope
+         authorization_mode = $l.task_contract.authorization_mode
+@@ -425,7 +459,52 @@
+     $scopeContractId = $null
+ 
+     if ($ReuseExistingMission) {
+-        Add-Check -Stage "2.9.8" -Name "Mission creation" -Status "SKIP" -Detail "Reusing existing mission $MissionId." -Mandatory $false
++        Add-Check -Stage "2.9.8" -Name "Mission creation" -Status "SKIP" -Detail "Reusing existing mission $MissionId; validating persisted creation evidence." -Mandatory $false
++
++        # H1 replay mode: the first run may have reached the read-only probe before
++        # the acceptance-runner bug aborted it. Rehydrate the original scope/start
++        # evidence so closure can be completed without creating a second mission.
++        $scopeEvidencePath = Join-Path $script:EvidenceDir "21_scope_response.json"
++        $startEvidencePath = Join-Path $script:EvidenceDir "23_mission_start_response.json"
++
++        Require-Check -Stage "2.9.8" -Name "Persisted ScopeContract evidence present" `
++            -Condition (Test-Path -LiteralPath $scopeEvidencePath) `
++            -PassDetail "21_scope_response.json found." `
++            -FailDetail ("Missing {0}. Re-run without -ReuseExistingMission to create a fresh E2E mission." -f $scopeEvidencePath)
++
++        Require-Check -Stage "2.9.8" -Name "Persisted mission-start evidence present" `
++            -Condition (Test-Path -LiteralPath $startEvidencePath) `
++            -PassDetail "23_mission_start_response.json found." `
++            -FailDetail ("Missing {0}. Re-run without -ReuseExistingMission to create a fresh E2E mission." -f $startEvidencePath)
++
++        $scopeResponse = Get-Content -LiteralPath $scopeEvidencePath -Raw | ConvertFrom-Json
++        $startResponse = Get-Content -LiteralPath $startEvidencePath -Raw | ConvertFrom-Json
++        $scopeContractId = [string](Get-OptionalNestedValue -Object $scopeResponse -Path @("scope_contract", "scope_contract_id"))
++
++        Require-Check -Stage "2.9.8" -Name "ScopeContract recovered" `
++            -Condition (Test-HasText $scopeContractId) `
++            -PassDetail ("scope_contract_id={0}" -f $scopeContractId) `
++            -FailDetail "Persisted scope response does not contain scope_contract.scope_contract_id."
++
++        Require-Check -Stage "2.9.8" -Name "Scope mission binding" `
++            -Condition ([string](Get-OptionalNestedValue -Object $scopeResponse -Path @("scope_contract", "mission_id")) -eq $MissionId) `
++            -PassDetail "Persisted ScopeContract is bound to the canonical E2E mission identity." `
++            -FailDetail "Persisted ScopeContract mission_id does not match the requested mission."
++
++        Require-Check -Stage "2.9.8" -Name "Scope active" `
++            -Condition ([string](Get-OptionalNestedValue -Object $scopeResponse -Path @("scope_contract", "status")) -eq "ACTIVE") `
++            -PassDetail "Persisted ScopeContract status=ACTIVE." `
++            -FailDetail "Persisted ScopeContract status is not ACTIVE."
++
++        Require-Check -Stage "2.9.8" -Name "Mission accepted" `
++            -Condition ([string](Get-OptionalNestedValue -Object $startResponse -Path @("status")) -eq "accepted") `
++            -PassDetail "Persisted mission start status=accepted." `
++            -FailDetail "Persisted mission start status is not accepted."
++
++        Require-Check -Stage "2.9.8" -Name "Canonical mission identity preserved" `
++            -Condition ([string](Get-OptionalNestedValue -Object $startResponse -Path @("mission_id")) -eq $MissionId) `
++            -PassDetail $MissionId `
++            -FailDetail "Persisted mission start identity does not match the requested mission."
+     }
+     else {
+         Write-Section "Create governed E2E scope"
+@@ -681,7 +760,7 @@
+         -PassDetail "pre_dispatch_revalidation_status=VALID." `
+         -FailDetail ("pre_dispatch_revalidation_status={0}" -f $taskLineage.lineage.task_contract.pre_dispatch_revalidation_status)
+ 
+-    if (-not $ReuseExistingMission) {
++    if (Test-HasText $scopeContractId) {
+         Require-Check -Stage "2.9.2" -Name "Task bound to E2E ScopeContract" `
+             -Condition ([string]$taskLineage.lineage.task_contract.scope_contract_id -eq $scopeContractId) `
+             -PassDetail ("scope_contract_id={0}." -f $scopeContractId) `
+@@ -836,8 +915,12 @@
+ 
+     if ($mandatoryFailures -gt 0) { $script:FinalStatus = "FAIL" }
+ 
++    # H1: materialize the generic List[object] through the pipeline. Windows
++    # PowerShell 5.1 can raise "Argument types do not match" for @($genericList).
++    $checkSnapshot = @($script:Checks | ForEach-Object { $_ })
++
+     $summary = [ordered]@{
+-        schema_version = "stage2-9-8-e2e-acceptance-v1"
++        schema_version = "stage2-9-8-e2e-acceptance-v1.1-h1"
+         stage = "2.9.8"
+         title = "End-to-End Acceptance"
+         status = $script:FinalStatus
+@@ -853,7 +936,7 @@
+         warn_count = $warnCount
+         skip_count = $skipCount
+         mandatory_fail_count = $mandatoryFailures
+-        checks = @($script:Checks)
++        checks = $checkSnapshot
+     }
+ 
+     if ($script:EvidenceDir) {

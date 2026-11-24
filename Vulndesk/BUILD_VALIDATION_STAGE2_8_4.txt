@@ -1,0 +1,28 @@
+VulnDesk Stage 2.8.4 build validation
+=====================================
+
+Control version:
+  hybrid-event-driven-2.7-task-committed-lineage
+
+Focused Stage 2.8.1-2.8.4 tests:
+  9 passed
+
+Stage 2.x regression set (2.5/2.6/2.7/2.8 foundation/2.8.4):
+  31 passed
+
+Broad regression excluding NVD bulk-upsert integration test:
+  64 passed
+
+Full suite in build container:
+  not collected successfully because the build container does not provide pymysql.
+  This is an environment dependency, not a Stage 2.8.4 regression.
+  The user's Windows VulnDesk environment already demonstrated the NVD test path with
+  64/64 tests before Stage 2.8.4; after adding the four Stage 2.8.4 tests, a local full
+  run is expected to contain four additional passing tests if the same test baseline is used.
+
+Stage 2.8.4 invariants covered by focused tests:
+  - internal TaskContract emits TASK_COMMITTED with stable trace/proposal/task identity
+  - authorized TaskContract emits exact policy_decision_id/request_id/scope references
+  - internal TaskContract does not manufacture external authority
+  - invalid REQUIRED TaskContract emits no TASK_COMMITTED event
+  - full PolicyDecision/hash/constraints are not copied into TASK_COMMITTED payload

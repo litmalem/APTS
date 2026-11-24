@@ -1,0 +1,53 @@
+﻿{
+    "mission_id":  "mission-cti-d1d2-20260814-192025",
+    "name":  "CTI Execution Hardening D1-D2 Test",
+    "policy_set_id":  "default-policy",
+    "created_by":  "operator-01",
+    "approved_by":  "operator-01",
+    "targets":  [
+
+                ],
+    "sources":  [
+                    {
+                        "source_id":  "nvd-cve",
+                        "source_type":  "CTI",
+                        "allowed":  true,
+                        "constraints":  {
+                                            "read_only":  true
+                                        }
+                    },
+                    {
+                        "source_id":  "nvd-cpe",
+                        "source_type":  "CTI",
+                        "allowed":  true,
+                        "constraints":  {
+                                            "read_only":  true
+                                        }
+                    },
+                    {
+                        "source_id":  "mitre-attack",
+                        "source_type":  "CTI",
+                        "allowed":  true,
+                        "constraints":  {
+                                            "read_only":  true
+                                        }
+                    }
+                ],
+    "action_constraints":  [
+                               {
+                                   "action_class":  "CTI_SOURCE_READ",
+                                   "action_name":  "*",
+                                   "effect":  "ALLOW",
+                                   "max_risk_level":  "LOW",
+                                   "requires_approval":  false,
+                                   "constraints":  {
+                                                       "read_only":  true,
+                                                       "target_actuation":  false,
+                                                       "max_pages":  1
+                                                   }
+                               }
+                           ],
+    "metadata":  {
+                     "purpose":  "Execution Hardening D1-D2 bounded CTI acquisition validation"
+                 }
+}

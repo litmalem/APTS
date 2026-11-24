@@ -1,0 +1,31 @@
+VulnDesk Stage 2.9.3 — Mission Lineage Reconstruction installation
+
+1. Stop VulnDesk.
+2. Back up D:\vulndesk.
+3. Extract/copy the Stage 2.9.3 patch over D:\vulndesk, preserving directories.
+4. No VulnDesk SQL migration is required.
+5. No aptsGSS SQL migration or source-code update is required.
+6. Activate D:\vulndesk\.venv and run:
+
+     python -m compileall -q cti_services tests
+     python -m pytest -q tests/test_mission_lineage_reconstruction_stage2_9_3.py
+     python -m pytest -q tests/test_canonical_lineage_projection_stage2_9_1.py tests/test_task_lineage_probe_stage2_9_2.py tests/test_mission_lineage_reconstruction_stage2_9_3.py
+     python -m pytest -q tests --ignore=tests/test_nvd_bulk_upsert.py
+
+7. Restart VulnDesk normally.
+8. Verify:
+
+     Invoke-RestMethod "http://127.0.0.1:8765/health" | ConvertTo-Json -Depth 20
+
+   Expected control_version:
+
+     hybrid-event-driven-2.14-mission-lineage-reconstruction
+
+9. Select a fresh mission_id that has persisted TaskContracts/events and run:
+
+     .\STAGE2_9_3_ACCEPTANCE.ps1 -MissionId "<fresh-mission-id>"
+
+10. Put the same mission_id into STAGE2_9_3_ACCEPTANCE.sql and execute it against
+    the VulnDesk database. Compare the source counts/edges with the HTTP projection.
+
+11. Do not run any aptsGSS correlation acceptance yet. That belongs to Stage 2.9.4.

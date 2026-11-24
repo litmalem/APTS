@@ -1,0 +1,30 @@
+STAGE 3.5.4 INSTALL / VERIFY
+============================
+
+1. Replace the Mission Orchestrator source tree with this full package.
+2. Apply MySQL/MariaDB migration:
+   migrations/030_stage3_5_4_idempotent_dispatch_execution_attempt_identity.sql
+3. Ensure Stage 3.5.3 authoritative Governance integration remains configured and available
+   for creation of the prerequisite latest xreval-* ALLOW evidence.
+4. Restart Mission Orchestrator on port 8780.
+5. Verify /health:
+   control_version = stage3.5.4-idempotent-dispatch-execution-attempt-identity
+   mission_repository_migration_level = 30
+   execution_attempt_database_migration_level = 30
+   execution_attempt_persistence_store = mission_execution_attempts
+6. Run:
+   python -m compileall -q mission_orchestrator tests
+   python -m pytest -q tests/test_stage3_5_4_idempotent_dispatch_execution_attempt_identity.py
+   python -m pytest -q
+7. On Windows PowerShell, use:
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_5_4_ACCEPTANCE.ps1
+
+IMPORTANT EXECUTION BOUNDARY
+----------------------------
+Stage 3.5.4 creates the durable idempotent dispatch commit and stable xattempt-*/xenv-*
+identities only. It consumes the latest Stage-3.5.3 ALLOW authorization without issuing
+another Governance query. It performs no runtime endpoint resolution, health probe,
+resource assignment, target delivery, delivery acknowledgement, execution start,
+external target network I/O, target action dispatch, or target actuation. Those concerns
+remain deferred to Stage 3.5.5.

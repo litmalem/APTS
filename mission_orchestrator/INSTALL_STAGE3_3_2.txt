@@ -1,0 +1,66 @@
+Stage 3.3.2 - Planner Input Snapshot & Context Binding
+Installation / Regression Steps
+====================================================
+
+Target repository:
+  D:\mission_orchestrator
+
+1. Stop the Mission Orchestrator process before replacing files.
+2. Back up the existing repository and database.
+3. Extract the Stage-3.3.2 patch over D:\mission_orchestrator preserving paths.
+4. Database migration:
+     NEW: migrations\010_stage3_3_2_planner_input_snapshot_context_binding.sql
+   Repository migration level advances:
+     9 -> 10
+   New durable store:
+     mission_planner_input_snapshots
+   The runtime ensure_schema path creates/validates the store on startup. For
+   managed MySQL/MariaDB deployment, apply migration 010 using the existing
+   deployment procedure before accepting traffic.
+5. Compile:
+     cd D:\mission_orchestrator
+     python -m compileall -q mission_orchestrator tests
+6. Full regression:
+     python -m pytest -q
+   Expected:
+     296 passed
+7. Optional focused regression:
+     python -m pytest -q tests\test_stage3_3_2_planner_input_snapshot_context_binding.py
+   Expected:
+     16 passed
+8. Start/restart Mission Orchestrator using the normal service procedure.
+9. Confirm health:
+     GET http://127.0.0.1:8780/health
+   Required highlights:
+     control_version = stage3.3.2-planner-input-snapshot-context-binding
+     mission_repository_migration_level = 10
+     planner_input_snapshot_schema_version = apts-planner-input-snapshot-v1
+     planner_input_snapshot_planner_invocation_performed = false
+     planner_input_snapshot_task_decomposition_performed = false
+     governance_authorization_authority = EXTERNAL_APTS_GSS
+     target_action_dispatch_enabled = false
+     target_actuation = false
+10. Run live acceptance:
+      Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+      .\STAGE3_3_2_ACCEPTANCE.ps1
+    Expected final result:
+      STAGE 3.3.2 ACCEPTANCE: PASS
+
+Operational sequence for Stage 3.3.2:
+  A. Mission must already satisfy guarded Stage-3.2.4 START_PLANNING.
+  B. Stage-3.3.1 canonical Plan must already be registered.
+  C. Read the current Plan id/version/hash and Mission state version.
+  D. POST /api/missions/{mission_id}/planner-input-snapshot using those exact tokens.
+  E. Treat the resulting snapshot as immutable planner input only.
+
+Do not interpret the snapshot as execution authorization. Stage 3.3.2 performs no
+planner invocation, task decomposition, Governance authorization query, target dispatch,
+or target actuation.
+
+Canonical invariants:
+  SNAPSHOT != AUTHORIZATION
+  CONTEXT != PERMISSION
+  PLAN != AUTHORIZATION
+  TASK != DISPATCH
+  READINESS != PERMISSION
+  PLANNER != GOVERNANCE

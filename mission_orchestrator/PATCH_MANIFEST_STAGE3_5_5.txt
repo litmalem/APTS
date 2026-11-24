@@ -1,0 +1,31 @@
+Stage 3.5.5 — Dispatch Delivery & Execution Acknowledgement
+Control: stage3.5.5-dispatch-delivery-execution-acknowledgement
+Repository migration: 31
+Canonical test inventory: 875
+
+PRIMARY SOURCE CHANGES
+----------------------
+mission_orchestrator/execution_delivery.py
+mission_orchestrator/errors.py
+mission_orchestrator/mission_events.py
+mission_orchestrator/repository.py
+mission_orchestrator/repository_model.py
+mission_orchestrator/service.py
+mission_orchestrator/api_service.py
+migrations/031_stage3_5_5_dispatch_delivery_execution_acknowledgement.sql
+
+tests/test_stage3_5_5_dispatch_delivery_execution_acknowledgement.py
+
+VERSION-REBASE TEST CHANGES
+---------------------------
+Existing Stage 3.1–3.5.4 tests were rebased to the current Stage-3.5.5 control/server/repository migration and supported-control tail where required. Historical Stage-specific migration declarations remain unchanged (for example Stage 3.5.4 remains migration 30).
+
+DOCUMENTATION / ACCEPTANCE
+--------------------------
+README_STAGE3_5_5.md
+PATCH_NOTES_STAGE3_5_5.md
+INSTALL_STAGE3_5_5.txt
+PATCH_MANIFEST_STAGE3_5_5.txt
+REGRESSION_EVIDENCE_STAGE3_5_5.txt
+SHA256_STAGE3_5_5.txt
+STAGE3_5_5_ACCEPTANCE.ps1

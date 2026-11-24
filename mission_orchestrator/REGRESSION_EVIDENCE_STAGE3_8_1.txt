@@ -1,0 +1,27 @@
+Stage 3.8.1 build-workspace evidence
+====================================
+
+Python compile:
+  PASS — mission_orchestrator/*.py and run/*.py
+
+Canonical pytest collection:
+  1368 tests collected
+
+Focused Stage 3.8.1:
+  12 passed
+
+Focused Stage 3.7.10 predecessor:
+  12 passed
+
+Full 1368-test build-workspace regression:
+  NOT CLAIMED. The sandbox run exceeded the available execution window before completion.
+  The target-host STAGE3_8_1_ACCEPTANCE.ps1 is authoritative and performs the complete 1368-test run.
+
+Database migration:
+  unchanged at 53; no migration 054
+
+New durable store:
+  none
+
+Operational side effects added by Stage 3.8.1:
+  none; read-only deterministic trace identity projection only

@@ -1,0 +1,26 @@
+Stage 3.9.6 overlay installation and acceptance
+===============================================
+
+1. Extract this overlay into D:\mission_orchestrator, preserving directories.
+   It contains source, tests, documentation, and the acceptance script only.
+   It contains no data/mission_orchestrator.db or environment configuration.
+2. Repository migration remains at level 53. No migration step is added.
+3. Restart Mission Orchestrator using the established host procedure.
+4. Confirm /health reports:
+     control_version = stage3.9.6-task-completion-mission-outcome-closure
+     mission_repository_migration_level = 53
+5. Run from D:\mission_orchestrator:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_9_6_ACCEPTANCE.ps1
+
+Expected semantic head of the canonical Stage 3.9.6 trajectory:
+  mission state              = RUNNING(v4)
+  root task completion       = COMPLETED_DEPENDENCY_CONSISTENT
+  mission success evaluation = SUCCESS_CRITERIA_NOT_SATISFIED
+  completion readiness       = BLOCKED
+  verified completion        = NOT PERFORMED
+  next stage                 = 3.9.7 Adaptation & Replanning
+
+The full regression is a deployment-host acceptance gate. No live host
+deployment or external target execution is performed by this overlay.

@@ -1,0 +1,44 @@
+Stage 3.1.7 - Mission Persistence & Repository Model Patch Manifest
+=================================================================
+
+New files
+---------
+README_STAGE3_1_7.md
+PATCH_NOTES_STAGE3_1_7.md
+INSTALL_STAGE3_1_7.txt
+PATCH_MANIFEST_STAGE3_1_7.txt
+STAGE3_1_7_ACCEPTANCE.ps1
+migrations/007_stage3_1_7_mission_persistence_repository_model.sql
+mission_orchestrator/repository_model.py
+tests/test_stage3_1_7_mission_persistence_repository_model.py
+
+Modified files
+--------------
+mission_orchestrator/api_service.py
+mission_orchestrator/errors.py
+mission_orchestrator/mission_versioning.py
+mission_orchestrator/repository.py
+mission_orchestrator/service.py
+mission_orchestrator/__init__.py
+tests/test_stage3_1_6_mission_versioning_concurrency.py
+
+Unchanged subsystem source
+--------------------------
+aptsGSS: no Stage-3.1.7 source change required
+VulnDesk: no Stage-3.1.7 source change required
+
+Validation
+----------
+python -m compileall -q mission_orchestrator tests : PASS
+python -m pytest -q                              : 82 passed
+HTTP health + repository endpoint smoke          : PASS
+
+Database
+--------
+SQLite: mission_repository_metadata auto-created/updated at repository startup.
+MariaDB/MySQL: apply migrations/007_stage3_1_7_mission_persistence_repository_model.sql.
+
+Data safety
+-----------
+Distributable ZIP excludes data/mission_orchestrator.db, .pytest_cache,
+and __pycache__ so an existing runtime database is not overwritten.

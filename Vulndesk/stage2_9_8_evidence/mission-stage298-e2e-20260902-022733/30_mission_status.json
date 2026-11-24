@@ -1,0 +1,27 @@
+﻿{
+    "status":  "completed",
+    "mission":  {
+                    "mission_id":  "mission-stage298-e2e-20260902-022733",
+                    "status":  "COMPLETED",
+                    "plan_id":  "plan-7bf110aa-a09a-4426-9441-384589c14373",
+                    "state_version":  10,
+                    "plan_version":  1,
+                    "policy_version":  "1",
+                    "task_states":  {
+                                        "cti_acquisition_freshness_agent":  "COMPLETED",
+                                        "normalization_provenance_service":  "NOT_REQUIRED",
+                                        "asset_profiling_cpe_resolution_service":  "COMPLETED",
+                                        "vulnerability_correlation_service":  "COMPLETED",
+                                        "attack_mapping_service":  "COMPLETED",
+                                        "attack_path_reasoning_agent":  "COMPLETED",
+                                        "threat_context_service":  "COMPLETED",
+                                        "risk_prioritization_agent":  "COMPLETED",
+                                        "pip_assembly_validation_service":  "COMPLETED"
+                                    },
+                    "acquisition_actions":  1,
+                    "acquisition_sources":  [
+                                                "mitre-attack"
+                                            ],
+                    "last_error":  null
+                }
+}

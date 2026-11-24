@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "attempt_id",
+    "attempt_sha256",
+    "command_request_id",
+    "idempotency_key",
+    "reason",
+    "requested_by",
+    "schema_version"
+  ],
+  "properties": {
+    "attempt_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "requested_by": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "attempt_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "command_request_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$"
+    },
+    "schema_version": {
+      "const": "apts-execution-runtime-cancel-v1"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$"
+    }
+  }
+}

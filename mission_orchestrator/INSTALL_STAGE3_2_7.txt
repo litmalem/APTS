@@ -1,0 +1,38 @@
+Stage 3.2.7 installation
+========================
+
+Baseline required: Stage 3.2.6 — Pause, Resume & Replanning Control (accepted)
+
+1. Stop Mission Orchestrator.
+2. Back up the Mission Orchestrator database.
+3. Extract STAGE3_2_7_ABORT_FAILURE_EXPIRATION_SEMANTICS_PATCH.zip directly into D:\mission_orchestrator with overwrite enabled.
+4. Do NOT create migration 009. Repository migration level remains 8.
+5. Run:
+
+   cd D:\mission_orchestrator
+   python -m compileall -q mission_orchestrator tests
+   python -m pytest -q
+
+   Expected: 216 passed
+
+6. Start Mission Orchestrator and verify /health reports:
+
+   control_version = stage3.2.7-abort-failure-expiration-semantics
+   mission_terminal_semantics_schema_version = apts-mission-terminal-semantics-v1
+   mission_terminal_semantics_mode = DURABLE_TYPED_TERMINATION_CAUSE_WITH_IMMUTABLE_FINALITY_FAIL_CLOSED
+   mission_terminal_commands.ABORT = ABORTED
+   mission_terminal_commands.FAIL = FAILED
+   mission_terminal_commands.EXPIRE = EXPIRED
+   mission_terminal_recovery_semantics = NEW_MISSION_OR_EXPLICIT_REVISION_REQUIRED_NO_RESUME
+   mission_terminal_state_immutability_enforced = True
+   mission_terminal_evidence_refs_required = False
+   mission_terminal_pip_binding_required = False
+   mission_terminal_governance_query_performed = False
+   mission_lifecycle_stage3_2_7_terminal_semantics_enabled = True
+   mission_lifecycle_stage3_2_8_completion_gate_enabled = False
+   mission_repository_migration_level = 8
+   governance_authorization_authority = EXTERNAL_APTS_GSS
+   target_action_dispatch_enabled = False
+   target_actuation = False
+
+7. Run STAGE3_2_7_ACCEPTANCE.ps1.

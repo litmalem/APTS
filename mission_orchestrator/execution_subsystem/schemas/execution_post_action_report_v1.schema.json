@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "attempt_id",
+    "blocking_reasons",
+    "cleanup_verified",
+    "closure_scope",
+    "contract_sha256",
+    "control_version",
+    "credentials",
+    "effect_verification",
+    "envelope_sha256",
+    "evaluated_at",
+    "evidence_sha256",
+    "execution_closed",
+    "execution_id",
+    "integrity",
+    "mission_id",
+    "pentest_id",
+    "phases",
+    "post_action_id",
+    "receipt_result_binding",
+    "receipt_sha256",
+    "revocation_sha256",
+    "rollback",
+    "schema_version",
+    "semantics",
+    "state",
+    "terminal_event_sha256",
+    "vep_id",
+    "vep_sha256"
+  ],
+  "properties": {
+    "post_action_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$"
+    },
+    "attempt_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$"
+    },
+    "execution_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$"
+    },
+    "mission_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$"
+    },
+    "pentest_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$"
+    },
+    "vep_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$"
+    },
+    "vep_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "envelope_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "evidence_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "terminal_event_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "contract_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "receipt_sha256": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      ]
+    },
+    "revocation_sha256": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      ]
+    },
+    "schema_version": {
+      "const": "apts-execution-post-action-report-v1"
+    },
+    "control_version": {
+      "const": "stage6.8-cleanup-rollback-post-action-verification"
+    },
+    "receipt_result_binding": {
+      "enum": [
+        "ABSENT",
+        "PRETERMINAL_RESULT_NOT_DURABLE",
+        "EXACT_DURABLE_RESULT"
+      ]
+    },
+    "state": {
+      "enum": [
+        "CLOSED_LOCAL_RESOURCES",
+        "BLOCKED_REQUIRES_REVIEW"
+      ]
+    },
+    "execution_closed": {
+      "type": "boolean"
+    },
+    "cleanup_verified": {
+      "type": "boolean"
+    },
+    "closure_scope": {
+      "const": "EXACT_ATTEMPT_LOCAL_RESOURCES"
+    },
+    "blocking_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "effect_verification": {
+      "type": "object"
+    },
+    "rollback": {
+      "type": "object"
+    },
+    "credentials": {
+      "type": "object"
+    },
+    "phases": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6
+    },
+    "evaluated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "semantics": {
+      "const": {
+        "execution_authorized": false,
+        "authorization_current": false,
+        "usable_for_dispatch": false,
+        "additional_target_io": false,
+        "replay_performs_io": false,
+        "mission_pentest_writes": false,
+        "evidence_deleted": false,
+        "vep_modified": false,
+        "target_state_verified": false,
+        "target_rollback_performed": false,
+        "issuer_credential_revocation_proven": false,
+        "vulnerability_confirmed": false,
+        "impact_confirmed": false,
+        "cti_feedback_written": false
+      }
+    },
+    "integrity": {
+      "type": "object"
+    }
+  },
+  "description": "Interchange structure only. verify_report and verify_post_action_export check exact nested fields, derived state, source binding and retained bytes."
+}

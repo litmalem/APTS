@@ -1,0 +1,16 @@
+Stage 3.4.1 - Canonical Subsystem Registry & Capability Contract
+Patch-only manifest
+
+NEW / UPDATED FILES
+- mission_orchestrator/subsystem_registry.py
+- mission_orchestrator/service.py
+- mission_orchestrator/repository.py
+- migrations/018_stage3_4_1_canonical_subsystem_registry_capability_contract.sql
+- tests/test_stage3_4_1_canonical_subsystem_registry_capability_contract.py
+- README_STAGE3_4_1.md
+- PATCH_NOTES_STAGE3_4_1.md
+- INSTALL_STAGE3_4_1.txt
+- STAGE3_4_1_ACCEPTANCE.ps1
+
+Apply this patch over the Stage 3.3.10 baseline / Mission(20260908-093050).zip repository.
+The patch does not replace Governance authority or subsystem execution authority.

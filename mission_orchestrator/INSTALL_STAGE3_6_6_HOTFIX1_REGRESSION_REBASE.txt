@@ -1,0 +1,42 @@
+Stage 3.6.6 HOTFIX1 — Regression Baseline Rebase
+================================================
+
+Prerequisite:
+- PATCH_STAGE3_6_6.zip has already been applied.
+- Runtime health already reports:
+  stage3.6.6-mission-success-criteria-evaluation
+
+Installation (PowerShell):
+
+1. Stop the acceptance run if one is still active.
+
+2. Back up the tests directory if desired:
+
+   cd D:\mission_orchestrator
+   Copy-Item .\tests .\tests.backup-before-stage366-hotfix1 -Recurse
+
+3. Extract this hotfix directly over D:\mission_orchestrator so that the included
+   `tests\...` files replace the stale regression files.
+
+   Example if the zip is in Downloads:
+
+   Expand-Archive `
+       -Path "$HOME\Downloads\PATCH_STAGE3_6_6_HOTFIX1_REGRESSION_REBASE.zip" `
+       -DestinationPath "D:\mission_orchestrator" `
+       -Force
+
+4. No database migration and no runtime restart are required by this hotfix itself.
+   A restart is harmless, but the hotfix changes tests only.
+
+5. Re-run acceptance:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_6_6_ACCEPTANCE.ps1
+
+Expected preflight remains:
+- control_version: stage3.6.6-mission-success-criteria-evaluation
+- repository migration: 41
+- canonical pytest inventory: 1082
+
+Do not declare Stage 3.6.6 PASS until the full regression and all later acceptance sections pass on the target host.

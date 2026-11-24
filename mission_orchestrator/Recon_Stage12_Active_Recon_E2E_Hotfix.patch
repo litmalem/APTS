@@ -1,0 +1,54 @@
+--- a/tests/test_stage4_4_pentest_lifecycle_state.py
++++ b/tests/test_stage4_4_pentest_lifecycle_state.py
+@@ -90,10 +90,13 @@
+             "max_actions": 10,
+             "risk_threshold": "MODERATE",
+             "data_handling_policy": {"retain_sensitive_output": False},
++            "resource_budget": {"max_network_requests": 1},
+         },
+         "roe": {
+             "allowed_action_classes": ["TARGET_RECON", "VULNERABILITY_VALIDATION"],
++            "allowed_techniques": ["TCP_CONNECT_SCAN"],
+             "prohibited_action_classes": ["DESTRUCTIVE_ACTION"],
++            "maximum_concurrency": 1,
+             "destructive_actions_allowed": False,
+         },
+         "authorization_reference": {
+--- a/tests/test_stage4_8_governance_scope_roe_enforcement.py
++++ b/tests/test_stage4_8_governance_scope_roe_enforcement.py
+@@ -51,6 +51,7 @@
+         "boundary": boundary,
+         "capability_id": "reconnaissance",
+         "action_class": "TARGET_RECON",
++        "technique": "TCP_CONNECT_SCAN",
+         "target": deepcopy(boundary["scope"]["targets"][0]),
+         "requested_at": "2026-09-02T12:00:00Z",
+         "estimated_impact": "LOW",
+--- a/tests/test_stage12_recon_active_e2e_acceptance.py
++++ b/tests/test_stage12_recon_active_e2e_acceptance.py
+@@ -9,6 +9,7 @@
+ from execution_subsystem.evidence_repository import ExecutionEvidenceRepository
+ from execution_subsystem.evidence_service import ExecutionEvidenceService
+ from execution_subsystem.execution_result_contract import build_recon_execution_result, verify_recon_execution_result
++from execution_subsystem.gateway_contract import GATEWAY_INTAKE_SCHEMA
+ from execution_subsystem.runtime_contract import START_SCHEMA
+ from tests import test_stage4_6_pentest_workflow_orchestrator_skeleton as materialize_module
+ from tests.test_stage5_9_governance_bound_multi_agent_pentest_e2e import _pipeline
+@@ -97,6 +98,17 @@
+         "requested_by": "stage12-acceptance-test",
+     }
+     try:
++        gateway_receipt = service.submit_execution({
++            "schema_version": GATEWAY_INTAKE_SCHEMA,
++            "submission_id": "gwreq-stage12-e2e",
++            "idempotency_key": "idem-gateway-stage12-e2e",
++            "execution_id": request["execution_id"],
++            "envelope_sha256": request["envelope"]["integrity"]["canonical_sha256"],
++            "requested_by": "stage12-acceptance-test",
++        })
++        assert gateway_receipt["gateway_admitted"] is True
++        assert gateway_receipt["execution_authorized"] is False
++
+         attempt = service.start_execution(start)
+         item = wait_for(service, attempt["attempt_id"])
+         assert item["state"] == "SUCCEEDED", service._failures

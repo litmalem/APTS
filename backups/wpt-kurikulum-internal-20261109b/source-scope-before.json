@@ -1,0 +1,145 @@
+{
+  "id": 193,
+  "scope_contract_id": "scope-4093ea23-a882-4da7-8005-8bd79000d867",
+  "mission_id": "mission-gmo-887dae4f-1611-4b07-8ee7-7f184b7379be",
+  "name": "Pentest pada https://kurikulum.del.ac.id:443",
+  "status": "ACTIVE",
+  "policy_set_id": "default-policy",
+  "version": 1,
+  "valid_from": "2026-11-09T04:46:40.561334",
+  "valid_until": "2026-11-30T11:46:00",
+  "created_by": "local-test-operator",
+  "approved_by": "local-test-operator",
+  "approved_at": "2026-11-09T04:46:40.561524",
+  "contract_hash": "79be354ab0c70a7c86cd9253d75d3e2c18b366252ca2a38d28d070aec7cfbe59",
+  "created_at": "2026-11-09T04:46:40",
+  "updated_at": "2026-11-09T04:46:40",
+  "metadata": {
+    "revision_reason": "https://kurikulum.del.ac.id:443",
+    "revision_actor": "local-test-operator",
+    "gss_workflow_profile": {
+      "profile_id": "WPT_FINGERPRINT_AUTONOMOUS_V1",
+      "profile_label": "Fingerprinting WPT otonom terbatas",
+      "version": 1,
+      "execution_authorized": false,
+      "target_actuation": false,
+      "delegation_capabilities": [
+        "PENTEST:pentest.recon"
+      ],
+      "recon_techniques": [
+        "WEB_TECHNOLOGY_FINGERPRINT"
+      ],
+      "max_network_requests": 6
+    }
+  },
+  "targets": [
+    {
+      "id": 177,
+      "scope_target_id": "stgt-d47105cc-c257-4d78-bd7a-7384bbc7dc1c",
+      "scope_contract_id": "scope-4093ea23-a882-4da7-8005-8bd79000d867",
+      "target_type": "URL",
+      "target_value": "https://kurikulum.del.ac.id:443",
+      "normalized_value": "https://kurikulum.del.ac.id:443",
+      "environment": "LAB",
+      "allowed": 1,
+      "notes": null,
+      "created_at": "2026-11-09T04:46:40"
+    }
+  ],
+  "sources": [],
+  "action_constraints": [
+    {
+      "id": 513,
+      "constraint_id": "sact-2fe23218-0cf9-4a89-8b16-09af4f70c30b",
+      "scope_contract_id": "scope-4093ea23-a882-4da7-8005-8bd79000d867",
+      "action_class": "TARGET_RECON",
+      "action_name": "recon",
+      "effect": "ALLOW",
+      "max_risk_level": "LOW",
+      "requires_approval": false,
+      "created_at": "2026-11-09T04:46:40",
+      "constraints": {
+        "max_network_requests": 6,
+        "max_requests": 6,
+        "allowed_methods": [
+          "GET"
+        ],
+        "allowed_techniques": [
+          "WEB_TECHNOLOGY_FINGERPRINT"
+        ],
+        "read_only": true,
+        "state_changing_requests": false,
+        "workflow_profile": "WPT_FINGERPRINT_AUTONOMOUS_V1"
+      }
+    },
+    {
+      "id": 514,
+      "constraint_id": "sact-051afaeb-ed8c-436e-8374-d17149966ee9",
+      "scope_contract_id": "scope-4093ea23-a882-4da7-8005-8bd79000d867",
+      "action_class": "TARGET_RECON",
+      "action_name": "web_technology_fingerprinting",
+      "effect": "ALLOW",
+      "max_risk_level": "LOW",
+      "requires_approval": false,
+      "created_at": "2026-11-09T04:46:40",
+      "constraints": {
+        "max_network_requests": 6,
+        "max_requests": 6,
+        "allowed_methods": [
+          "GET"
+        ],
+        "allowed_techniques": [
+          "WEB_TECHNOLOGY_FINGERPRINT"
+        ],
+        "read_only": true,
+        "state_changing_requests": false,
+        "workflow_profile": "WPT_FINGERPRINT_AUTONOMOUS_V1"
+      }
+    },
+    {
+      "id": 515,
+      "constraint_id": "sact-145969de-eaad-41e3-a148-e8c81dce1733",
+      "scope_contract_id": "scope-4093ea23-a882-4da7-8005-8bd79000d867",
+      "action_class": "TARGET_RECON",
+      "action_name": "AUTHORIZE_TARGET_EXECUTION",
+      "effect": "ALLOW",
+      "max_risk_level": "LOW",
+      "requires_approval": false,
+      "created_at": "2026-11-09T04:46:40",
+      "constraints": {
+        "max_network_requests": 6,
+        "max_requests": 6,
+        "allowed_methods": [
+          "GET"
+        ],
+        "allowed_techniques": [
+          "WEB_TECHNOLOGY_FINGERPRINT"
+        ],
+        "read_only": true,
+        "state_changing_requests": false,
+        "workflow_profile": "WPT_FINGERPRINT_AUTONOMOUS_V1"
+      }
+    },
+    {
+      "id": 516,
+      "constraint_id": "sact-7268b11b-5f6b-46cd-9b6a-bb2a300c325e",
+      "scope_contract_id": "scope-4093ea23-a882-4da7-8005-8bd79000d867",
+      "action_class": "TASK_DELEGATION",
+      "action_name": "delegate_planned_task",
+      "effect": "ALLOW",
+      "max_risk_level": "LOW",
+      "requires_approval": false,
+      "created_at": "2026-11-09T04:46:40",
+      "constraints": {
+        "allowed_capabilities": [
+          "PENTEST:pentest.recon"
+        ],
+        "execution_authorized": false,
+        "target_actuation": false,
+        "authorized_subject_component": "APTS-MO01",
+        "authorization_purpose": "PRE_DELEGATION_ONLY",
+        "workflow_profile": "WPT_FINGERPRINT_AUTONOMOUS_V1"
+      }
+    }
+  ]
+}

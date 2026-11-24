@@ -1,0 +1,24 @@
+STAGE 3.8.3 — GLOBAL CAUSAL LINEAGE GRAPH
+
+CONTROL_VERSION=stage3.8.3-global-causal-lineage-graph
+SERVER_VERSION=APTSMissionOrchestrator/3.8.3
+MISSION_REPOSITORY_MIGRATION_LEVEL=53
+GRAPH_SCHEMA=apts-global-causal-lineage-graph-v1
+NODE_SCHEMA=apts-global-causal-lineage-node-v1
+EDGE_SCHEMA=apts-global-causal-lineage-edge-v1
+GRAPH_ID_PREFIX=cgraph-
+SOURCE=STAGE3_8_2_VERIFIED_NORMALIZED_MISSION_EVENT_LEDGER
+
+LOCAL QUALIFICATION
+- Python compileall: PASS
+- Canonical pytest collection: 1382 tests collected
+- Focused Stage 3.8.1 + 3.8.2 + 3.8.3: 26 passed in 1.04s
+- Full 1382-test deployment-host regression: PENDING HOST ACCEPTANCE
+
+BOUNDARY
+- Deterministic read-only derived graph; no new database migration or durable store.
+- Node, edge, and graph integrity hashes are domain separated.
+- Parent edges are fail-closed for dangling/non-causal references.
+- DAG verifier rejects cycles, unreachable nodes, dangling edges, and integrity tamper.
+- Unresolved causation IDs are retained as non-authoritative external references, not promoted to event identity or authority.
+- No Governance query, runtime probe, network I/O, telemetry export, routing, delegation, dispatch, execution attempt, lifecycle transition, target dispatch, or actuation.

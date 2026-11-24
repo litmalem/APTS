@@ -1,0 +1,809 @@
+diff --git a/execution_subsystem/execution_contract.py b/execution_subsystem/execution_contract.py
+--- a/execution_subsystem/execution_contract.py
++++ b/execution_subsystem/execution_contract.py
+@@ -16,6 +16,7 @@
+ EXECUTION_REQUEST_CONTRACT_SCHEMA_VERSION = "apts-stage6.1-canonical-execution-request-contract-v1"
+ EXECUTION_REQUEST_SCHEMA_VERSION = "apts-execution-request-v1"
+ EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION = "apts-execution-request-intake-v1"
++RECON_EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION = "apts-execution-request-intake-v2"
+ CANONICAL_ACTION_ENVELOPE_SCHEMA_VERSION = "apts-canonical-action-envelope-v1"
+ EXECUTION_REQUEST_HASH_DOMAIN = "APTS_STAGE6_1_EXECUTION_REQUEST_V1"
+ EXECUTION_REQUEST_CONTRACT_HASH_DOMAIN = "APTS_STAGE6_1_EXECUTION_REQUEST_CONTRACT_V1"
+@@ -140,19 +141,28 @@
+ 
+ 
+ def normalize_execution_request_intake(payload: Any) -> dict[str, Any]:
+-    fields = {"schema_version", "request_id", "idempotency_key", "exploitation_run_id",
+-              "exploit_action_proposal_id", "proposal_sha256"}
+-    obj = require_object(payload, fields, "execution request intake")
+-    if obj["schema_version"] != EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION:
+-        raise ExecutionRequestValidationError("unsupported execution request intake schema_version")
+-    return {
+-        "schema_version": EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION,
+-        "request_id": require_id(obj["request_id"], "request_id", "ereq-"),
+-        "idempotency_key": require_id(obj["idempotency_key"], "idempotency_key"),
+-        "exploitation_run_id": require_id(obj["exploitation_run_id"], "exploitation_run_id", "xplrun-"),
+-        "exploit_action_proposal_id": require_id(obj["exploit_action_proposal_id"], "exploit_action_proposal_id", "xplprop-"),
+-        "proposal_sha256": require_sha(obj["proposal_sha256"], "proposal_sha256"),
+-    }
++    if not isinstance(payload, dict):
++        raise ExecutionRequestValidationError("execution request intake must be an object")
++    common = {"schema_version", "request_id", "idempotency_key"}
++    version = payload.get("schema_version")
++    if version == EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION:
++        obj = require_object(payload, common | {"exploitation_run_id", "exploit_action_proposal_id", "proposal_sha256"}, "execution request intake")
++        return {"schema_version": version,
++                "request_id": require_id(obj["request_id"], "request_id", "ereq-"),
++                "idempotency_key": require_id(obj["idempotency_key"], "idempotency_key"),
++                "exploitation_run_id": require_id(obj["exploitation_run_id"], "exploitation_run_id", "xplrun-"),
++                "exploit_action_proposal_id": require_id(obj["exploit_action_proposal_id"], "exploit_action_proposal_id", "xplprop-"),
++                "proposal_sha256": require_sha(obj["proposal_sha256"], "proposal_sha256")}
++    if version == RECON_EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION:
++        obj = require_object(payload, common | {"source_type", "recon_action_id", "recon_request_sha256"}, "Recon execution request intake")
++        if obj["source_type"] != "STAGE5_2_RECON_ACTION_REQUEST":
++            raise ExecutionRequestValidationError("unsupported Stage 6.1 source_type")
++        return {"schema_version": version, "source_type": obj["source_type"],
++                "request_id": require_id(obj["request_id"], "request_id", "ereq-"),
++                "idempotency_key": require_id(obj["idempotency_key"], "idempotency_key"),
++                "recon_action_id": require_id(obj["recon_action_id"], "recon_action_id", "rareq-"),
++                "recon_request_sha256": require_sha(obj["recon_request_sha256"], "recon_request_sha256")}
++    raise ExecutionRequestValidationError("unsupported execution request intake schema_version")
+ 
+ 
+ def deterministic_execution_id(mission_id: str, task_id: str, pentest_id: str, idempotency_key: str) -> str:
+@@ -186,15 +196,21 @@
+         "target_type": require_id(target["target_type"], "target.target_type"),
+         "target_value": require_text(target["target_value"], "target.target_value"),
+     }
+-    params = require_object(obj["parameters"], {"validation_task_id", "expected_evidence", "estimated_impact"}, "parameters")
++    params = obj["parameters"]
++    if not isinstance(params, dict) or set(params) not in (
++            {"validation_task_id", "expected_evidence", "estimated_impact"},
++            {"source_action_id", "expected_evidence", "estimated_impact"}):
++        raise ExecutionRequestValidationError("parameters must bind either a validation task or a Recon source action")
+     expected = params["expected_evidence"]
+     if not isinstance(expected, list) or len(expected) > 100:
+         raise ExecutionRequestValidationError("parameters.expected_evidence must be a bounded array")
+     if (not isinstance(params["estimated_impact"], str)
+             or params["estimated_impact"] not in {"NONE", "LOW", "MODERATE", "HIGH", "CRITICAL", "DESTRUCTIVE"}):
+         raise ExecutionRequestValidationError("parameters.estimated_impact is unsupported")
++    parameter_source_field = "validation_task_id" if "validation_task_id" in params else "source_action_id"
+     result["parameters"] = {
+-        "validation_task_id": require_id(params["validation_task_id"], "parameters.validation_task_id", "valtask-"),
++        parameter_source_field: require_id(params[parameter_source_field], f"parameters.{parameter_source_field}",
++                                           "valtask-" if parameter_source_field == "validation_task_id" else "rareq-"),
+         "expected_evidence": [require_text(x, "parameters.expected_evidence[]") for x in expected],
+         "estimated_impact": params["estimated_impact"],
+     }
+@@ -268,11 +284,13 @@
+         "proposing_agent": obj({key: ident for key in ("agent_id", "role", "orchestration_id", "subtask_id")}),
+         "action": obj({"action_class": ident, "capability_id": ident, "technique": text}),
+         "target": obj({"target_type": ident, "target_value": text}),
+-        "parameters": obj({
+-            "validation_task_id": prefixed("valtask-"),
+-            "expected_evidence": {"type": "array", "maxItems": 100, "items": text},
+-            "estimated_impact": {"enum": ["NONE", "LOW", "MODERATE", "HIGH", "CRITICAL", "DESTRUCTIVE"]},
+-        }),
++        "parameters": {"oneOf": [
++            obj({"validation_task_id": prefixed("valtask-"),
++                 "expected_evidence": {"type": "array", "maxItems": 100, "items": text},
++                 "estimated_impact": {"enum": ["NONE", "LOW", "MODERATE", "HIGH", "CRITICAL", "DESTRUCTIVE"]}}),
++            obj({"source_action_id": prefixed("rareq-"),
++                 "expected_evidence": {"type": "array", "maxItems": 100, "items": text},
++                 "estimated_impact": {"enum": ["NONE", "LOW", "MODERATE", "HIGH", "CRITICAL", "DESTRUCTIVE"]}})]},
+         "evidence_basis": {"type": "array", "minItems": 1, "maxItems": 500, "uniqueItems": True,
+                            "items": obj({"evidence_id": prefixed("evi-"), "canonical_sha256": digest})},
+         "authorization_requirement": obj({
+@@ -306,9 +324,13 @@
+     schema = obj({
+         "schema_version": {"const": CANONICAL_ACTION_ENVELOPE_SCHEMA_VERSION},
+         "control_version": {"const": EXECUTION_REQUEST_CONTROL_VERSION}, "contract_sha256": digest,
+-        "intake": obj({"schema_version": {"const": EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION},
+-                       "request_id": ident, "idempotency_key": ident, "exploitation_run_id": ident,
+-                       "exploit_action_proposal_id": ident, "proposal_sha256": digest}),
++        "intake": {"oneOf": [
++            obj({"schema_version": {"const": EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION},
++                 "request_id": ident, "idempotency_key": ident, "exploitation_run_id": ident,
++                 "exploit_action_proposal_id": ident, "proposal_sha256": digest}),
++            obj({"schema_version": {"const": RECON_EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION},
++                 "source_type": {"const": "STAGE5_2_RECON_ACTION_REQUEST"}, "request_id": ident,
++                 "idempotency_key": ident, "recon_action_id": ident, "recon_request_sha256": digest})]},
+         "execution_request": request, "source_binding": obj(binding),
+         "status": {"const": EXECUTION_REQUEST_STATUS},
+         "semantics": {"const": dict(REQUEST_SEMANTICS)}, "integrity": integrity(ACTION_ENVELOPE_HASH_DOMAIN),
+@@ -377,6 +399,8 @@
+     return {"schema_version": c["schema_version"], "control_version": c["control_version"],
+             "request_schema_version": EXECUTION_REQUEST_SCHEMA_VERSION,
+             "envelope_schema_version": CANONICAL_ACTION_ENVELOPE_SCHEMA_VERSION,
++            "intake_schema_versions": [EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION,
++                                       RECON_EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION],
+             "required_execution_request_fields": list(EXECUTION_REQUEST_FIELDS),
+             "predecessor_control": c["predecessor"]["control"],
+             "predecessor_contract_sha256": c["predecessor"]["contract_sha256"],
+@@ -425,6 +449,10 @@
+             and canonical_json(envelope["semantics"]) == canonical_json(REQUEST_SEMANTICS)
+             and binding["stage5_closure_contract_sha256"] == c["predecessor"]["contract_sha256"]
+             and binding["policy_reference_sha256"] == request["authorization_requirement"]["policy_reference"]["reference_sha256"]
++            and ((intake["schema_version"] == RECON_EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION
++                  and request["parameters"].get("source_action_id") == intake["recon_action_id"])
++                 or (intake["schema_version"] == EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION
++                     and "validation_task_id" in request["parameters"]))
+             and request["execution_id"] == deterministic_execution_id(
+                 request["mission_id"], request["task_id"], request["pentest_id"], intake["idempotency_key"])
+         )
+diff --git a/execution_subsystem/proposal_source.py b/execution_subsystem/proposal_source.py
+--- a/execution_subsystem/proposal_source.py
++++ b/execution_subsystem/proposal_source.py
+@@ -15,6 +15,16 @@
+ from pentest_subsystem.task_contract import verify_pentest_task_artifact, verify_pentest_task_binding
+ from pentest_subsystem.task_repository import PentestTaskRepository, default_pentest_repository_path
+ from pentest_subsystem.vulnerability_hypothesis import _assert_boundary_matches_task
++from pentest_subsystem.reconnaissance import (
++    RECON_ACTION_REQUEST_SCHEMA_VERSION, ReconnaissanceAgentRepository,
++    normalize_recon_action_request,
++)
++from pentest_subsystem.lifecycle_contract import build_lifecycle_state_projection
++from pentest_subsystem.lineage_contract import verify_pentest_lineage_object
++from pentest_subsystem.orchestration.task_graph import graph_node
++from pentest_subsystem.capability_contract import (
++    build_pentest_capability_registry_snapshot, verify_pentest_capability_registry_snapshot,
++)
+ 
+ from .execution_contract import (
+     ExecutionRequestIntegrityError, ExecutionSourceNotFound, ExecutionSourceRejected,
+@@ -94,6 +104,8 @@
+             raise ExecutionRequestIntegrityError("persisted Pentest proposal context failed verification") from exc
+ 
+     def _build(self, conn: sqlite3.Connection, intake: dict[str, Any]) -> dict[str, Any]:
++        if intake["schema_version"] == "apts-execution-request-intake-v2":
++            return self._build_recon(conn, intake)
+         run_row = self._one(conn, "pentest_exploitation_runs", "exploitation_run_id", intake["exploitation_run_id"])
+         run = ExploitationAgentRepository._exploitation_run_row(run_row)
+         output = run["output"]
+@@ -264,3 +276,165 @@
+             "stage5_closure_contract_sha256": canonical_execution_request_contract()["predecessor"]["contract_sha256"],
+         }
+         return build_canonical_action_envelope(intake=intake, request=request, source_binding=source_binding)
++
++    def _build_recon(self, conn: sqlite3.Connection, intake: dict[str, Any]) -> dict[str, Any]:
++        """Build a Stage 6.1 envelope from a persisted, lifecycle-bound Stage 5.2 request."""
++        row = self._one(conn, "pentest_recon_runs", "recon_run_id",
++                        self._recon_run_id_for_action(conn, intake["recon_action_id"]))
++        run = ReconnaissanceAgentRepository._run_row(row)
++        if run["run_status"] != "COMPLETED":
++            raise ExecutionSourceRejected("only a completed Stage 5.2 Recon run can be a Stage 6.1 source")
++        requests = [item for item in run["output"].get("action_requests", [])
++                    if item.get("action_id") == intake["recon_action_id"]]
++        if len(requests) != 1:
++            raise ExecutionSourceNotFound("Recon Action Request is absent or ambiguous in its persisted run")
++        action_request = normalize_recon_action_request(requests[0])
++        if action_request["schema_version"] != RECON_ACTION_REQUEST_SCHEMA_VERSION:
++            raise ExecutionSourceRejected("unsupported Recon Action Request schema version")
++        if action_request["integrity"]["canonical_sha256"] != intake["recon_request_sha256"]:
++            raise ExecutionRequestIntegrityError("Recon Action Request hash does not match the persisted request")
++        for key, actual in (("recon_run_id", run["recon_run_id"]),
++                            ("orchestration_id", run["orchestration_id"]),
++                            ("task_id", run["pentest_task_id"]),
++                            ("mission_id", run["mission_id"]), ("pentest_id", run["pentest_id"]),
++                            ("subtask_id", run["subtask_id"]), ("agent_id", run["agent_id"])):
++            if action_request[key] != actual:
++                raise ExecutionRequestIntegrityError(f"Recon Action Request run binding mismatch: {key}")
++
++        task_row = self._one(conn, "pentest_tasks", "pentest_task_id", run["pentest_task_id"])
++        task_record = PentestTaskRepository._row_to_record(task_row)
++        task, binding = task_record["task"], task_record["binding"]
++        if (not verify_pentest_task_artifact(task) or not verify_pentest_task_binding(binding)
++                or binding["task"] != task
++                or task["integrity"]["canonical_sha256"] != task_row["task_contract_sha256"]
++                or binding["integrity"]["canonical_sha256"] != task_row["task_binding_sha256"]):
++            raise ExecutionRequestIntegrityError("Recon source task artifact/binding integrity mismatch")
++        if any(task[key] != run[key] for key in ("mission_id", "pentest_id", "pentest_task_id")):
++            raise ExecutionRequestIntegrityError("Recon source task/run identity mismatch")
++        if task["upstream_task_id"] != task_record["upstream_task_id"]:
++            raise ExecutionRequestIntegrityError("Recon source global task binding mismatch")
++        _assert_boundary_matches_task(run["request"]["boundary"], task)
++
++        orch_row = self._one(conn, "pentest_agentic_orchestrations", "orchestration_id", run["orchestration_id"])
++        orch = AgenticPentestOrchestratorRepository._orchestration_row(orch_row)
++        graph_snapshot_sha = action_request["binding"]["orchestration_graph_sha256"]
++        if (orch["orchestration_status"] != "ACTIVE" or orch["pentest_task_id"] != task["pentest_task_id"]
++                or orch["mission_id"] != task["mission_id"] or orch["pentest_id"] != task["pentest_id"]):
++            raise ExecutionSourceRejected("Recon orchestration is inactive or its task/graph binding changed")
++        node = graph_node(orch["task_graph"], action_request["subtask_id"])
++        if (node is None or node.get("capability_id") != action_request["capability_id"]
++                or node.get("specialist", {}).get("agent_id") != action_request["agent_id"]
++                or node.get("status") not in {"READY", "RUNNING", "SUCCEEDED"}):
++            raise ExecutionRequestIntegrityError("Recon Action Request no longer matches its assigned orchestration node")
++        lifecycle_row = conn.execute("SELECT * FROM pentest_task_lifecycle WHERE pentest_task_id=?",
++                                     (task["pentest_task_id"],)).fetchone()
++        if lifecycle_row is None:
++            raise ExecutionSourceRejected("current Pentest lifecycle is unavailable for Recon intake")
++        lifecycle = build_lifecycle_state_projection(dict(lifecycle_row))
++        if lifecycle["state"] != "RUNNING":
++            raise ExecutionSourceRejected("Recon Action Request requires the current Pentest lifecycle to remain RUNNING")
++
++        current_hashes = {
++            "task_contract_sha256": task_record["task_contract_sha256"],
++            "scope_sha256": sha256_hex(task["scope"]),
++            "constraints_sha256": sha256_hex(task["constraints"]),
++            "authorization_reference_sha256": sha256_hex(task["authorization_reference"]),
++        }
++        for key, value in current_hashes.items():
++            if action_request["binding"][key] != value:
++                raise ExecutionSourceRejected(f"Recon Action Request snapshot is stale: {key}")
++        registry = build_pentest_capability_registry_snapshot()
++        if (not verify_pentest_capability_registry_snapshot(registry)
++                or registry["integrity"]["canonical_sha256"] != action_request["binding"]["capability_registry_sha256"]):
++            raise ExecutionSourceRejected("Recon capability registry snapshot is stale")
++        proposal = self._lineage(conn, action_request["proposal_ref"], "ACTION_PROPOSAL", task)
++        if (not verify_pentest_lineage_object(proposal)
++                or proposal["integrity"]["canonical_sha256"] != action_request["input_sha256"]
++                or proposal["provenance"]["source_id"] != run["recon_run_id"]
++                or proposal["provenance"]["actor_id"] != action_request["agent_id"]
++                or proposal["data"]["target"] != {"target_type": action_request["target_ref"]["target_type"],
++                                                   "target_value": action_request["target_ref"]["target_value"]}
++                or proposal["data"]["capability_id"] != action_request["capability_id"]
++                or proposal["data"]["technique"] != action_request["technique"]):
++            raise ExecutionRequestIntegrityError("Recon Action Request proposal lineage binding mismatch")
++        if (proposal["provenance"]["metadata"].get("proposal_lifecycle_status") != "AWAITING_STAGE6_INTAKE"
++                or proposal["provenance"]["metadata"].get("execution_deferred_to_stage6") is not True):
++            raise ExecutionSourceRejected("Recon proposal is not eligible for Stage 6 intake")
++
++        action_proposals = [p for p in run["output"].get("action_proposals", [])
++                            if p.get("action_proposal_ref") == action_request["proposal_ref"]]
++        if len(action_proposals) != 1:
++            raise ExecutionRequestIntegrityError("Recon proposal is absent or ambiguous in run output")
++        proposal_output = action_proposals[0]
++        evidence_basis = []
++        source_refs = {item["source_observation_id"]: item for item in run["evidence_bundle"]["lineage_items"]}
++        for observation_id in proposal_output.get("supporting_observation_ids", []):
++            item = source_refs.get(observation_id)
++            if item:
++                evidence = self._lineage(conn, item["evidence_ref"], "EVIDENCE", task)
++                if evidence["integrity"]["canonical_sha256"] != item["evidence_sha256"]:
++                    raise ExecutionRequestIntegrityError("Recon evidence lineage hash mismatch")
++                evidence_basis.append({"evidence_id": item["evidence_ref"],
++                                       "canonical_sha256": item["evidence_sha256"]})
++        if not evidence_basis:
++            raise ExecutionSourceRejected("Recon proposal has no verified evidence basis")
++        impacts = {"NONE": "NONE", "LOW": "LOW", "MODERATE": "MODERATE",
++                   "HIGH": "HIGH", "DESTRUCTIVE": "DESTRUCTIVE"}
++        impact = impacts.get(proposal_output["estimated_impact"])
++        if impact is None:
++            raise ExecutionSourceRejected("Recon proposal impact is unsupported by Stage 6.1")
++        policy = task["authorization_reference"]
++        action_id = action_request["action_id"]
++        request = seal_execution_request({
++            "schema_version": EXECUTION_REQUEST_SCHEMA_VERSION,
++            "execution_id": deterministic_execution_id(task["mission_id"], task["upstream_task_id"],
++                                                       task["pentest_id"], intake["idempotency_key"]),
++            "mission_id": task["mission_id"], "task_id": task["upstream_task_id"], "pentest_id": task["pentest_id"],
++            "proposing_agent": {"agent_id": action_request["agent_id"], "role": "RECONNAISSANCE",
++                                "orchestration_id": action_request["orchestration_id"],
++                                "subtask_id": action_request["subtask_id"]},
++            "action": {"action_class": "TARGET_RECON", "capability_id": action_request["capability_id"],
++                       "technique": action_request["technique"]},
++            "target": {"target_type": action_request["target_ref"]["target_type"],
++                       "target_value": action_request["target_ref"]["target_value"]},
++            "parameters": {"source_action_id": action_id,
++                           "expected_evidence": action_request["expected_evidence"],
++                           "estimated_impact": impact},
++            "evidence_basis": evidence_basis,
++            "authorization_requirement": {"authority": "EXTERNAL_APTS_GSS", "revalidation_required": True,
++                "required_checks": list(REQUIRED_AUTHORIZATION_CHECKS), "human_review_required": False,
++                "policy_reference": {"policy_decision_id": policy["policy_decision_id"],
++                    "policy_decision_hash": policy["policy_decision_hash"], "policy_version": policy["policy_version"],
++                    "reference_sha256": sha256_hex(policy)}},
++        })
++        source_binding = {
++            "pentest_task_id": task["pentest_task_id"],
++            "task_artifact_sha256": task["integrity"]["canonical_sha256"],
++            "task_binding_sha256": binding["integrity"]["canonical_sha256"],
++            "source_run_output_sha256": run["output"]["integrity"]["canonical_sha256"],
++            "source_run_evidence_bundle_sha256": run["evidence_bundle"]["integrity"]["canonical_sha256"],
++            "action_proposal_ref": proposal["identity"]["record_id"],
++            "action_proposal_sha256": proposal["integrity"]["canonical_sha256"],
++            "orchestration_graph_sha256": graph_snapshot_sha,
++            "scope_sha256": current_hashes["scope_sha256"],
++            "roe_sha256": sha256_hex(run["request"]["boundary"]["roe"]),
++            "constraints_sha256": current_hashes["constraints_sha256"],
++            "policy_reference_sha256": sha256_hex(policy),
++            "validation_decision_sha256": sha256_hex({"source": "STAGE5_2_RECON", "decision": proposal_output["governance_decision_ref"]}),
++            "exploitation_decision_sha256": sha256_hex({"source": "STAGE5_2_RECON", "decision": "NOT_APPLICABLE"}),
++            "stage5_closure_contract_sha256": canonical_execution_request_contract()["predecessor"]["contract_sha256"],
++        }
++        return build_canonical_action_envelope(intake=intake, request=request, source_binding=source_binding)
++
++    @staticmethod
++    def _recon_run_id_for_action(conn: sqlite3.Connection, action_id: str) -> str:
++        rows = conn.execute("SELECT recon_run_id FROM pentest_recon_runs ORDER BY recon_run_id").fetchall()
++        matches = []
++        for row in rows:
++            run = ReconnaissanceAgentRepository._run_row(
++                PentestProposalSource._one(conn, "pentest_recon_runs", "recon_run_id", row["recon_run_id"]))
++            if any(x.get("action_id") == action_id for x in run["output"].get("action_requests", [])):
++                matches.append(run["recon_run_id"])
++        if len(matches) != 1:
++            raise ExecutionSourceNotFound("Recon Action Request is absent or not uniquely stored")
++        return matches[0]
+diff --git a/execution_subsystem/authorization_source.py b/execution_subsystem/authorization_source.py
+--- a/execution_subsystem/authorization_source.py
++++ b/execution_subsystem/authorization_source.py
+@@ -22,6 +22,10 @@
+ 
+ class ExecutionAuthorizationProposalSource(PentestProposalSource):
+     def current_context(self, envelope: dict[str, Any]) -> dict[str, Any]:
++        if envelope.get("intake", {}).get("schema_version") == "apts-execution-request-intake-v2":
++            raise ExecutionSourceRejected(
++                "Stage 6.2 Recon source revalidation is not enabled; no GSS decision can be requested from this Stage 6.1 envelope yet"
++            )
+         try:
+             with closing(self._connect()) as conn:
+                 self._migration(conn)
+diff --git a/execution_subsystem/vep_source.py b/execution_subsystem/vep_source.py
+--- a/execution_subsystem/vep_source.py
++++ b/execution_subsystem/vep_source.py
+@@ -13,7 +13,7 @@
+ from pentest_subsystem.task_repository import PentestTaskRepository
+ 
+ from .execution_contract import (ExecutionRequestIntegrityError, ExecutionSourceUnavailable,
+-    verify_canonical_action_envelope, verify_integrity, with_integrity)
++    ExecutionSourceRejected, verify_canonical_action_envelope, verify_integrity, with_integrity)
+ from .proposal_source import PentestProposalSource
+ 
+ SOURCE_DOMAIN = "APTS_VEP_PENTEST_SOURCE_SNAPSHOT_V1"
+@@ -112,6 +112,10 @@
+ 
+ class PentestVEPSource(PentestProposalSource):
+     def snapshot(self, envelope):
++        if envelope.get("intake", {}).get("schema_version") == "apts-execution-request-intake-v2":
++            raise ExecutionSourceRejected(
++                "Stage 6.7 VEP source snapshots for Recon requests are not enabled; the request remains unauthorised and undispatched"
++            )
+         # Historical source records survive Mission stops and authorization expiry.
+         # No current_context(), GSS, repository initializer, or target adapter is called.
+         try:
+diff --git a/execution_subsystem/schemas/execution_request_v1.schema.json b/execution_subsystem/schemas/execution_request_v1.schema.json
+--- a/execution_subsystem/schemas/execution_request_v1.schema.json
++++ b/execution_subsystem/schemas/execution_request_v1.schema.json
+@@ -122,40 +122,80 @@
+       }
+     },
+     "parameters": {
+-      "type": "object",
+-      "additionalProperties": false,
+-      "required": [
+-        "validation_task_id",
+-        "expected_evidence",
+-        "estimated_impact"
+-      ],
+-      "properties": {
+-        "validation_task_id": {
+-          "type": "string",
+-          "pattern": "^valtask-[A-Za-z0-9._:@\\-]*$",
+-          "maxLength": 200
+-        },
+-        "expected_evidence": {
+-          "type": "array",
+-          "maxItems": 100,
+-          "items": {
+-            "type": "string",
+-            "minLength": 1,
+-            "maxLength": 2000,
+-            "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
+-          }
+-        },
+-        "estimated_impact": {
+-          "enum": [
+-            "NONE",
+-            "LOW",
+-            "MODERATE",
+-            "HIGH",
+-            "CRITICAL",
+-            "DESTRUCTIVE"
+-          ]
+-        }
+-      }
++      "oneOf": [
++        {
++          "type": "object",
++          "additionalProperties": false,
++          "required": [
++            "validation_task_id",
++            "expected_evidence",
++            "estimated_impact"
++          ],
++          "properties": {
++            "validation_task_id": {
++              "type": "string",
++              "pattern": "^valtask-[A-Za-z0-9._:@\\-]*$",
++              "maxLength": 200
++            },
++            "expected_evidence": {
++              "type": "array",
++              "maxItems": 100,
++              "items": {
++                "type": "string",
++                "minLength": 1,
++                "maxLength": 2000,
++                "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
++              }
++            },
++            "estimated_impact": {
++              "enum": [
++                "NONE",
++                "LOW",
++                "MODERATE",
++                "HIGH",
++                "CRITICAL",
++                "DESTRUCTIVE"
++              ]
++            }
++          }
++        },
++        {
++          "type": "object",
++          "additionalProperties": false,
++          "required": [
++            "source_action_id",
++            "expected_evidence",
++            "estimated_impact"
++          ],
++          "properties": {
++            "source_action_id": {
++              "type": "string",
++              "pattern": "^rareq-[A-Za-z0-9._:@\\-]*$",
++              "maxLength": 200
++            },
++            "expected_evidence": {
++              "type": "array",
++              "maxItems": 100,
++              "items": {
++                "type": "string",
++                "minLength": 1,
++                "maxLength": 2000,
++                "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
++              }
++            },
++            "estimated_impact": {
++              "enum": [
++                "NONE",
++                "LOW",
++                "MODERATE",
++                "HIGH",
++                "CRITICAL",
++                "DESTRUCTIVE"
++              ]
++            }
++          }
++        }
++      ]
+     },
+     "evidence_basis": {
+       "type": "array",
+diff --git a/execution_subsystem/schemas/canonical_action_envelope_v1.schema.json b/execution_subsystem/schemas/canonical_action_envelope_v1.schema.json
+--- a/execution_subsystem/schemas/canonical_action_envelope_v1.schema.json
++++ b/execution_subsystem/schemas/canonical_action_envelope_v1.schema.json
+@@ -27,45 +27,88 @@
+       "pattern": "^[0-9a-f]{64}$"
+     },
+     "intake": {
+-      "type": "object",
+-      "additionalProperties": false,
+-      "required": [
+-        "schema_version",
+-        "request_id",
+-        "idempotency_key",
+-        "exploitation_run_id",
+-        "exploit_action_proposal_id",
+-        "proposal_sha256"
+-      ],
+-      "properties": {
+-        "schema_version": {
+-          "const": "apts-execution-request-intake-v1"
+-        },
+-        "request_id": {
+-          "type": "string",
+-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-          "maxLength": 200
+-        },
+-        "idempotency_key": {
+-          "type": "string",
+-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-          "maxLength": 200
+-        },
+-        "exploitation_run_id": {
+-          "type": "string",
+-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-          "maxLength": 200
+-        },
+-        "exploit_action_proposal_id": {
+-          "type": "string",
+-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
+-          "maxLength": 200
+-        },
+-        "proposal_sha256": {
+-          "type": "string",
+-          "pattern": "^[0-9a-f]{64}$"
++      "oneOf": [
++        {
++          "type": "object",
++          "additionalProperties": false,
++          "required": [
++            "schema_version",
++            "request_id",
++            "idempotency_key",
++            "exploitation_run_id",
++            "exploit_action_proposal_id",
++            "proposal_sha256"
++          ],
++          "properties": {
++            "schema_version": {
++              "const": "apts-execution-request-intake-v1"
++            },
++            "request_id": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "idempotency_key": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "exploitation_run_id": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "exploit_action_proposal_id": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "proposal_sha256": {
++              "type": "string",
++              "pattern": "^[0-9a-f]{64}$"
++            }
++          }
++        },
++        {
++          "type": "object",
++          "additionalProperties": false,
++          "required": [
++            "schema_version",
++            "source_type",
++            "request_id",
++            "idempotency_key",
++            "recon_action_id",
++            "recon_request_sha256"
++          ],
++          "properties": {
++            "schema_version": {
++              "const": "apts-execution-request-intake-v2"
++            },
++            "source_type": {
++              "const": "STAGE5_2_RECON_ACTION_REQUEST"
++            },
++            "request_id": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "idempotency_key": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "recon_action_id": {
++              "type": "string",
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$",
++              "maxLength": 200
++            },
++            "recon_request_sha256": {
++              "type": "string",
++              "pattern": "^[0-9a-f]{64}$"
++            }
++          }
+         }
+-      }
++      ]
+     },
+     "execution_request": {
+       "title": "APTS ExecutionRequest core",
+@@ -190,40 +233,80 @@
+           }
+         },
+         "parameters": {
+-          "type": "object",
+-          "additionalProperties": false,
+-          "required": [
+-            "validation_task_id",
+-            "expected_evidence",
+-            "estimated_impact"
+-          ],
+-          "properties": {
+-            "validation_task_id": {
+-              "type": "string",
+-              "pattern": "^valtask-[A-Za-z0-9._:@\\-]*$",
+-              "maxLength": 200
+-            },
+-            "expected_evidence": {
+-              "type": "array",
+-              "maxItems": 100,
+-              "items": {
+-                "type": "string",
+-                "minLength": 1,
+-                "maxLength": 2000,
+-                "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
++          "oneOf": [
++            {
++              "type": "object",
++              "additionalProperties": false,
++              "required": [
++                "validation_task_id",
++                "expected_evidence",
++                "estimated_impact"
++              ],
++              "properties": {
++                "validation_task_id": {
++                  "type": "string",
++                  "pattern": "^valtask-[A-Za-z0-9._:@\\-]*$",
++                  "maxLength": 200
++                },
++                "expected_evidence": {
++                  "type": "array",
++                  "maxItems": 100,
++                  "items": {
++                    "type": "string",
++                    "minLength": 1,
++                    "maxLength": 2000,
++                    "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
++                  }
++                },
++                "estimated_impact": {
++                  "enum": [
++                    "NONE",
++                    "LOW",
++                    "MODERATE",
++                    "HIGH",
++                    "CRITICAL",
++                    "DESTRUCTIVE"
++                  ]
++                }
+               }
+             },
+-            "estimated_impact": {
+-              "enum": [
+-                "NONE",
+-                "LOW",
+-                "MODERATE",
+-                "HIGH",
+-                "CRITICAL",
+-                "DESTRUCTIVE"
+-              ]
+-            }
+-          }
++            {
++              "type": "object",
++              "additionalProperties": false,
++              "required": [
++                "source_action_id",
++                "expected_evidence",
++                "estimated_impact"
++              ],
++              "properties": {
++                "source_action_id": {
++                  "type": "string",
++                  "pattern": "^rareq-[A-Za-z0-9._:@\\-]*$",
++                  "maxLength": 200
++                },
++                "expected_evidence": {
++                  "type": "array",
++                  "maxItems": 100,
++                  "items": {
++                    "type": "string",
++                    "minLength": 1,
++                    "maxLength": 2000,
++                    "pattern": "^[^\\s\\x00-\\x1f\\ud800-\\udfff](?:[^\\x00-\\x1f\\ud800-\\udfff]*[^\\s\\x00-\\x1f\\ud800-\\udfff])?$"
++                  }
++                },
++                "estimated_impact": {
++                  "enum": [
++                    "NONE",
++                    "LOW",
++                    "MODERATE",
++                    "HIGH",
++                    "CRITICAL",
++                    "DESTRUCTIVE"
++                  ]
++                }
++              }
++            }
++          ]
+         },
+         "evidence_basis": {
+           "type": "array",
+diff --git a/tests/test_stage6_1_recon_action_request_source.py b/tests/test_stage6_1_recon_action_request_source.py
+new file mode 100644
+--- /dev/null
++++ b/tests/test_stage6_1_recon_action_request_source.py
+@@ -0,0 +1,78 @@
++from __future__ import annotations
++
++from copy import deepcopy
++import shutil
++
++import pytest
++
++from execution_subsystem.authorization_source import ExecutionAuthorizationProposalSource
++from execution_subsystem.execution_contract import (
++    RECON_EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION, ExecutionRequestIntegrityError,
++    ExecutionSourceRejected, verify_canonical_action_envelope,
++)
++from execution_subsystem.proposal_source import PentestProposalSource
++from execution_subsystem.request_repository import ExecutionRequestRepository
++from execution_subsystem.request_service import ExecutionRequestService
++from execution_subsystem.vep_source import PentestVEPSource
++from tests.test_stage5_9_governance_bound_multi_agent_pentest_e2e import _pipeline
++
++
++@pytest.fixture
++def recon_source(tmp_path):
++    repo, _, _, _, runs = _pipeline(tmp_path, "stage61recon", through_stage="5.2")
++    source_path = tmp_path / "source.db"
++    shutil.copy2(repo.sqlite_path, source_path)
++    run = runs["5.2"]
++    action_request = run["output"]["action_requests"][0]
++    intake = {
++        "schema_version": RECON_EXECUTION_REQUEST_INTAKE_SCHEMA_VERSION,
++        "source_type": "STAGE5_2_RECON_ACTION_REQUEST",
++        "request_id": "ereq-stage61-recon",
++        "idempotency_key": "idem-stage61-recon",
++        "recon_action_id": action_request["action_id"],
++        "recon_request_sha256": action_request["integrity"]["canonical_sha256"],
++    }
++    execution_service = ExecutionRequestService(
++        ExecutionRequestRepository(tmp_path / "execution.db"), PentestProposalSource(source_path))
++    return source_path, action_request, intake, execution_service
++
++
++def test_recon_action_request_becomes_stage61_envelope_without_authorization_or_io(recon_source):
++    _, source_request, intake, service = recon_source
++    result = service.create_request(intake)
++    envelope = result["envelope"]
++    request = envelope["execution_request"]
++    assert result["created"] is True
++    assert verify_canonical_action_envelope(envelope)
++    assert request["proposing_agent"]["agent_id"] == source_request["agent_id"]
++    assert request["action"] == {
++        "action_class": "TARGET_RECON",
++        "capability_id": source_request["capability_id"],
++        "technique": source_request["technique"],
++    }
++    assert request["parameters"]["source_action_id"] == source_request["action_id"]
++    assert request["target"]["target_value"] == source_request["target_ref"]["target_value"]
++    assert request["authorization_requirement"]["authority"] == "EXTERNAL_APTS_GSS"
++    assert envelope["status"] == "AWAITING_AUTHORIZATION"
++    assert envelope["semantics"]["authorization_minted"] is False
++    assert envelope["semantics"]["external_network_io_performed"] is False
++    replay = service.create_request(intake)
++    assert replay["created"] is False
++    assert replay["execution_id"] == result["execution_id"]
++
++
++def test_recon_source_hash_tampering_is_rejected_without_materializing_a_request(recon_source):
++    _, _, intake, service = recon_source
++    forged = {**intake, "recon_request_sha256": "a" * 64}
++    with pytest.raises(ExecutionRequestIntegrityError):
++        service.create_request(forged)
++    assert service.repository.list_requests() == []
++
++
++def test_recon_envelope_fails_closed_at_unimplemented_later_stage_gates(recon_source):
++    _, _, intake, service = recon_source
++    envelope = service.create_request(intake)["envelope"]
++    with pytest.raises(ExecutionSourceRejected, match="Stage 6.2 Recon source revalidation is not enabled"):
++        ExecutionAuthorizationProposalSource(service.proposal_source.sqlite_path).current_context(envelope)
++    with pytest.raises(ExecutionSourceRejected, match="Stage 6.7 VEP source snapshots for Recon requests are not enabled"):
++        PentestVEPSource(service.proposal_source.sqlite_path).snapshot(envelope)

@@ -1,0 +1,66 @@
+Stage 5.5 implementation-environment regression evidence
+Date: 2026-10-01
+
+Control:
+  stage5.5-attack-path-planning-agent
+
+Pentest migration:
+  12
+
+Python compilation:
+  PASS
+
+Canonical pytest inventory:
+  1929 tests collected
+
+Focused Stage 5.5:
+  28 passed in 5.59s
+
+Stage 5.1 -> Stage 5.5 specialist predecessor chain:
+  130 passed in 20.15s
+
+Stage 4.1 -> Stage 5.5 Pentest qualification chain:
+  354 passed in 32.59s
+
+Critical Stage 3.9.10 -> Stage 4.10 -> Stage 5.1 -> Stage 5.5 regression:
+  160 passed in 27.91s
+
+Full historical suite:
+  not executed inside the packaging environment because the repository-wide suite is long-running.
+  The deployment-host STAGE5_5_ACCEPTANCE.ps1 is the final PASS/FAIL authority and executes all
+  1929 collected tests after focused and predecessor-chain qualification.
+
+Implemented Stage 5.5 capabilities:
+  bounded PENTEST_ATTACK_PATH_PLANNING_AGENT specialist
+  strict run-request contract with executable-step injection rejection
+  deterministic Attack-Path Planning run identity
+  exact Stage-5.4 hypothesis-run/output/evidence hash binding
+  four-stage conditional candidate-path model
+  INITIAL_ACCESS binding to OPEN/UNVALIDATED Stage-5.4 hypothesis
+  conditional PRIVILEGE_OPPORTUNITY planning checkpoint
+  conditional CREDENTIAL_OR_TRUST_RELATIONSHIP planning checkpoint
+  TARGET_OBJECTIVE binding to immutable Pentest objective
+  SHA-bound candidate-path integrity
+  SHA-bound directed Attack-Path Graph
+  deterministic Candidate Path Ranking
+  ranking semantics = validation priority, not exploit-success probability
+  configurable deterministic max-candidate-path limit
+  Path Provenance binding hypothesis + knowledge + supporting evidence + enumerated-asset integrity
+  SHA-bound Stage-5.5 evidence bundle
+  no candidate fabrication when Stage-5.4 has zero hypotheses
+  idempotent replay and restart-safe persistence
+  Stage-5.1 progress handoff that releases Stage-5.6 validation
+
+Authority boundary:
+  no caller-supplied executable attack steps
+  no raw tool access
+  no direct external target-network I/O
+  no target actuation
+  no vulnerability validation execution
+  no confirmed FINDING creation
+  no execution-request creation
+  no PolicyDecision minting
+  Stage 6 remains controlled execution authority
+
+Next:
+  Stage 5.6 — Exploitation Agent

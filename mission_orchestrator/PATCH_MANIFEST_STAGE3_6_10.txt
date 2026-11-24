@@ -1,0 +1,86 @@
+======================================================================
+STAGE 3.6.10 PATCH MANIFEST
+Outcome Acceptance / Regression Gate
+======================================================================
+
+RUNTIME IDENTITY
+----------------
+control_version            = stage3.6.10-outcome-acceptance-regression-gate
+server_version             = APTSMissionOrchestrator/3.6.10
+repository_migration_level = 44
+new migration              = NONE
+new durable store          = NONE
+closure schema             = apts-mission-stage3.6-outcome-acceptance-gate-v1
+closure baseline           = STAGE_3_6_1_THROUGH_3_6_9
+expected test inventory    = 1156
+focused Stage-3.6.10       = 12
+Stage-3.6 chain            = 193
+
+VALIDATION EVIDENCE IN BUILD ENVIRONMENT
+----------------------------------------
+Python compile                         = PASS
+pytest collection                      = 1156 tests
+focused Stage-3.6.10                   = 12/12 PASS in 4.07s
+Stage-3.5.10 current-head tail proof   = 1/1 PASS in 2.42s
+Stage-3.4.10 current-head tail proof   = 1/1 PASS in 0.15s
+full canonical regression              = NOT CLAIMED IN BUILD SANDBOX
+
+A broader regression invocation produced only passing progress markers before
+its sandbox execution window expired, so no final PASS summary was available.
+STAGE3_6_10_ACCEPTANCE.ps1 is therefore the authoritative target-host gate and
+must PASS against the activated runtime before Stage 3.6 is formally closed.
+
+PRIMARY STAGE 3.6.10 CONTENTS
+-----------------------------
++ INSTALL_STAGE3_6_10.txt
++ PATCH_MANIFEST_STAGE3_6_10.txt
++ PATCH_NOTES_STAGE3_6_10.md
++ README_STAGE3_6_10.md
++ REGRESSION_EVIDENCE_STAGE3_6_10.txt
++ STAGE3_6_10_ACCEPTANCE.ps1
++ mission_orchestrator/outcome_acceptance_gate.py
++ tests/test_stage3_6_10_outcome_acceptance_regression_gate.py
+
+CORE INTEGRATION FILES
+----------------------
++ mission_orchestrator/service.py
++ mission_orchestrator/api_service.py
+
+REGRESSION HEAD REBASE
+----------------------
+Current-head assertions under historical Stage 3.1 through Stage 3.6.9 tests
+were rebased from:
+
+  stage3.6.9-outcome-lineage-replay-recovery
+  APTSMissionOrchestrator/3.6.9
+
+to:
+
+  stage3.6.10-outcome-acceptance-regression-gate
+  APTSMissionOrchestrator/3.6.10
+
+Positional supported_controls tail assertions in the Stage-3.4.10 and
+Stage-3.5.10 closure tests were extended to include Stage 3.6.9 followed by
+Stage 3.6.10. Historical runtime semantics are intentionally unchanged.
+
+PERSISTENCE CLOSURE
+-------------------
+Newest migration remains:
+  044_stage3_6_9_outcome_lineage_replay_recovery.sql
+
+No migration 045 is introduced and no Stage-3.6.10 durable store is added.
+
+AUTHORITY CLOSURE
+-----------------
+Stage 3.6.8 remains the sole Stage-3.6 Mission-success completion authority.
+Stage 3.6.9 remains read-only/non-actuating replay and durable reconstruction.
+Stage 3.6.10 is declaration/acceptance only and cannot self-certify PASS.
+
+PATCH FILE COUNT
+----------------
+new Stage-3.6.10 payload files (excluding SHA file) = 9
+changed existing files                              = 56
+total payload files (excluding SHA file)            = 65
+
+See PATCH_FILE_LIST.txt for the exact payload inventory and
+SHA256_STAGE3_6_10.txt for per-file digests.

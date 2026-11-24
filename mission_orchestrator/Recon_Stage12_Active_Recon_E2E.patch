@@ -1,0 +1,535 @@
+diff --git a/execution_subsystem/proposal_source.py b/execution_subsystem/proposal_source.py
+index 3ed4f2c06a660eda3aad4000bf37fb39ee028cce..04988d7683e06d87fa70d4a1b45f9507d85b2fb1 100644
+--- a/execution_subsystem/proposal_source.py
++++ b/execution_subsystem/proposal_source.py
+@@ -291,6 +291,8 @@ class PentestProposalSource:
+         action_request = normalize_recon_action_request(requests[0])
+         if action_request["schema_version"] != RECON_ACTION_REQUEST_SCHEMA_VERSION:
+             raise ExecutionSourceRejected("unsupported Recon Action Request schema version")
++        if action_request["technique"] != "TCP_CONNECT_SCAN":
++            raise ExecutionSourceRejected("Recon intake requires an explicit registered active technique")
+         if action_request["integrity"]["canonical_sha256"] != intake["recon_request_sha256"]:
+             raise ExecutionRequestIntegrityError("Recon Action Request hash does not match the persisted request")
+         for key, actual in (("recon_run_id", run["recon_run_id"]),
+@@ -314,6 +316,13 @@ class PentestProposalSource:
+         if task["upstream_task_id"] != task_record["upstream_task_id"]:
+             raise ExecutionRequestIntegrityError("Recon source global task binding mismatch")
+         _assert_boundary_matches_task(run["request"]["boundary"], task)
++        boundary = run["request"]["boundary"]
++        if (sha256_hex(boundary["roe"]) != action_request["binding"]["roe_sha256"]
++                or "TCP_CONNECT_SCAN" not in boundary["roe"].get("allowed_techniques", [])
++                or "TARGET_RECON" not in boundary["roe"].get("allowed_action_classes", [])
++                or int(boundary["roe"].get("maximum_concurrency", 0)) < 1
++                or int(boundary["constraints"].get("resource_budget", {}).get("max_network_requests", 0)) < 1):
++            raise ExecutionSourceRejected("Recon intake is not bound to the current explicit TCP_CONNECT_SCAN RoE and budget")
+ 
+         orch_row = self._one(conn, "pentest_agentic_orchestrations", "orchestration_id", run["orchestration_id"])
+         orch = AgenticPentestOrchestratorRepository._orchestration_row(orch_row)
+@@ -338,6 +347,7 @@ class PentestProposalSource:
+             "task_contract_sha256": task_record["task_contract_sha256"],
+             "scope_sha256": sha256_hex(task["scope"]),
+             "constraints_sha256": sha256_hex(task["constraints"]),
++            "roe_sha256": sha256_hex(boundary["roe"]),
+             "authorization_reference_sha256": sha256_hex(task["authorization_reference"]),
+         }
+         for key, value in current_hashes.items():
+diff --git a/execution_subsystem/tool_registry.py b/execution_subsystem/tool_registry.py
+index 149719523304d571b750872611db854441bdeee7..696c9726ba7f3dfa7d4a38de3b80c386fbf8e78e 100644
+--- a/execution_subsystem/tool_registry.py
++++ b/execution_subsystem/tool_registry.py
+@@ -26,7 +26,7 @@ class ToolAdapter:
+ 
+ ADAPTERS = (
+     ToolAdapter("scanner.tcp-connect.v1", "SCANNER", "TCP_CONNECT", "reconnaissance", "TARGET_RECON",
+-                "TCP_CONNECT_SCAN", ("IP", "HOST", "DOMAIN"), 80),
++                "TCP_CONNECT_SCAN", ("URL", "IP", "HOST", "DOMAIN"), 80),
+     ToolAdapter("network.tcp-banner.v1", "NETWORK_TOOL", "TCP_BANNER", "enumeration", "TARGET_RECON",
+                 "TCP_BANNER_READ", ("IP", "HOST", "DOMAIN"), 80),
+     ToolAdapter("web.http-head.v1", "WEB_TESTING", "HTTP_HEAD", "validation", "VULNERABILITY_VALIDATION",
+diff --git a/pentest_subsystem/capability_contract.py b/pentest_subsystem/capability_contract.py
+index 03c7355fff027463e74baa36e4a3d6b603f0768a..29965b7797f9eba8ee4f8f096a4372737bd5a814 100644
+--- a/pentest_subsystem/capability_contract.py
++++ b/pentest_subsystem/capability_contract.py
+@@ -123,10 +123,10 @@ def _capability_specs() -> list[dict[str, Any]]:
+         {
+             "capability_id": "reconnaissance",
+             "capability_kind": "PENTEST_RECONNAISSANCE",
+-            "description": "Discover authorized attack-surface context without granting execution authority.",
++            "description": "Identify authorized attack-surface gaps and propose bounded TCP connection checks without granting execution authority.",
+             "routing_aliases": ["pentest.recon"],
+-            "permission_requirement": "MISSION_SCOPE_AND_ROE_REQUIRED",
+-            "safety_class": "CONTROLLED_DISCOVERY",
++            "permission_requirement": "EXPLICIT_TECHNIQUE_ROE_AND_SCOPE_REQUIRED",
++            "safety_class": "CONTROLLED_ACTIVE_DISCOVERY",
+             "input_schema": _schema_contract(
+                 "apts-pentest-capability-input-reconnaissance-v1",
+                 list(common_context),
+@@ -138,7 +138,7 @@ def _capability_specs() -> list[dict[str, Any]]:
+                 {"observations": "array", "asset_refs": "array", "evidence_refs": "array", "confidence": "number"},
+             ),
+             "tool_requirements": [
+-                {"tool_id": "pentest.tool.passive_discovery", "requirement": "REQUIRED"},
++                {"tool_id": "pentest.tool.network_discovery", "requirement": "REQUIRED"},
+             ],
+         },
+         {
+diff --git a/pentest_subsystem/reconnaissance.py b/pentest_subsystem/reconnaissance.py
+index 563fbde6022027b96f55f60f26230a2b22f5a2af..95202358b4edfd8329781ce575c20031d48baa87 100644
+--- a/pentest_subsystem/reconnaissance.py
++++ b/pentest_subsystem/reconnaissance.py
+@@ -40,9 +40,9 @@ RECONNAISSANCE_RUN_REQUEST_SCHEMA_VERSION = "apts-stage5.2-reconnaissance-run-re
+ RECONNAISSANCE_RUN_REQUEST_LEGACY_SCHEMA_VERSION = "apts-stage5.2-reconnaissance-run-request-v1"
+ RECONNAISSANCE_OUTPUT_SCHEMA_VERSION = "apts-stage5.2-reconnaissance-output-v1"
+ RECONNAISSANCE_EVIDENCE_CONTRACT_SCHEMA_VERSION = "apts-stage5.2-recon-evidence-contract-v1"
+-RECON_ACTION_REQUEST_SCHEMA_VERSION = "apts-recon-action-request-v1"
+-RECON_ACTION_REQUEST_HASH_DOMAIN = "APTS_RECON_ACTION_REQUEST_V1"
+-RECON_ACTION_REQUEST_CONTRACT_SCHEMA_VERSION = "apts-stage5.2-recon-action-request-contract-v1"
++RECON_ACTION_REQUEST_SCHEMA_VERSION = "apts-recon-action-request-v2"
++RECON_ACTION_REQUEST_HASH_DOMAIN = "APTS_RECON_ACTION_REQUEST_V2"
++RECON_ACTION_REQUEST_CONTRACT_SCHEMA_VERSION = "apts-stage5.2-recon-action-request-contract-v2"
+ RECON_PROPOSAL_LIFECYCLE_SCHEMA_VERSION = "apts-stage5.2-recon-proposal-lifecycle-v1"
+ RECONNAISSANCE_AGENT_CONTRACT_HASH_DOMAIN = "APTS_STAGE5_2_RECONNAISSANCE_AGENT_V1"
+ RECONNAISSANCE_RUN_REQUEST_HASH_DOMAIN = "APTS_STAGE5_2_RECONNAISSANCE_RUN_REQUEST_V1"
+@@ -275,9 +275,9 @@ def _normalize_proposal(value: Any, index: int) -> dict[str, Any]:
+     stops = value.get("stop_signals", [])
+     if not isinstance(stops, list) or any(not isinstance(x, str) or not x for x in stops):
+         raise ReconnaissanceAgentValidationError(f"{field}.stop_signals must be an array of non-empty strings")
+-    technique = value.get("technique", "PASSIVE_DISCOVERY")
++    technique = value.get("technique", "TCP_CONNECT_SCAN")
+     technique = _canonical_id(technique, f"{field}.technique")
+-    if technique != "PASSIVE_DISCOVERY":
++    if technique not in {"PASSIVE_DISCOVERY", "TCP_CONNECT_SCAN"}:
+         raise ReconnaissanceAgentValidationError(f"{field}.technique is not enabled by the server-owned Recon capability contract")
+     normalized = {
+         "proposal_key": _canonical_id(value["proposal_key"], f"{field}.proposal_key"),
+@@ -458,10 +458,10 @@ def derive_recon_action_proposals(plan: Mapping[str, Any]) -> list[dict[str, Any
+     return [{
+         "proposal_key": proposal_key,
+         "target": deepcopy(plan["target"]),
+-        "technique": "PASSIVE_DISCOVERY",
+-        "estimated_impact": "NONE",
+-        "rate_cost": 0,
+-        "active_concurrency": 0,
++        "technique": "TCP_CONNECT_SCAN",
++        "estimated_impact": "LOW",
++        "rate_cost": 1,
++        "active_concurrency": 1,
+         # Stage-4.8 interprets a non-empty stop_signals list as a triggered
+         # condition, so stop policy is carried as request prerequisites instead.
+         "stop_signals": [],
+@@ -472,6 +472,28 @@ def derive_recon_action_proposals(plan: Mapping[str, Any]) -> list[dict[str, Any
+     }]
+ 
+ 
++def _explicit_tcp_connect_roe_allows(boundary: Mapping[str, Any], proposal: Mapping[str, Any]) -> bool:
++    """Active Recon requires a positive, explicit RoE grant and bounded budget."""
++    roe = boundary.get("roe", {})
++    budget = boundary.get("constraints", {}).get("resource_budget", {})
++    allowed_classes = set(roe.get("allowed_action_classes", []))
++    allowed_techniques = set(roe.get("allowed_techniques", []))
++    prohibited_classes = set(roe.get("prohibited_action_classes", []))
++    prohibited_techniques = set(roe.get("prohibited_techniques", []))
++    return (
++        RECONNAISSANCE_ACTION_CLASS in allowed_classes
++        and RECONNAISSANCE_ACTION_CLASS not in prohibited_classes
++        and proposal.get("technique") in allowed_techniques
++        and proposal.get("technique") not in prohibited_techniques
++        and isinstance(roe.get("maximum_concurrency"), int)
++        and not isinstance(roe.get("maximum_concurrency"), bool)
++        and roe["maximum_concurrency"] >= proposal.get("active_concurrency", 1)
++        and isinstance(budget.get("max_network_requests"), int)
++        and not isinstance(budget.get("max_network_requests"), bool)
++        and budget["max_network_requests"] >= proposal.get("rate_cost", 1)
++    )
++
++
+ def normalize_recon_action_request(value: Any) -> dict[str, Any]:
+     """Validate a server-built Recon Action Request; this contract is not authorization."""
+     if not isinstance(value, dict):
+@@ -507,7 +529,7 @@ def normalize_recon_action_request(value: Any) -> dict[str, Any]:
+         raise ReconnaissanceAgentValidationError("agent_id must identify the server-owned Reconnaissance Agent")
+     if value["capability_id"] != RECONNAISSANCE_CAPABILITY_ID:
+         raise ReconnaissanceAgentValidationError("capability_id must be selected from the server-owned Recon registry")
+-    if value["technique"] != "PASSIVE_DISCOVERY":
++    if value["technique"] != "TCP_CONNECT_SCAN":
+         raise ReconnaissanceAgentValidationError("technique is not enabled by the Stage 5.2 Recon capability contract")
+     if not isinstance(value["input_sha256"], str) or not _SHA256_RE.fullmatch(value["input_sha256"]):
+         raise ReconnaissanceAgentValidationError("input_sha256 must be a lowercase SHA-256 digest")
+@@ -531,7 +553,7 @@ def normalize_recon_action_request(value: Any) -> dict[str, Any]:
+     timeout = value["timeout_seconds"]
+     if isinstance(timeout, bool) or not isinstance(timeout, int) or not 1 <= timeout <= 300:
+         raise ReconnaissanceAgentValidationError("timeout_seconds must be an integer from 1 to 300")
+-    binding_fields = {"task_contract_sha256", "scope_sha256", "constraints_sha256", "authorization_reference_sha256", "orchestration_graph_sha256", "capability_registry_sha256"}
++    binding_fields = {"task_contract_sha256", "scope_sha256", "constraints_sha256", "roe_sha256", "authorization_reference_sha256", "orchestration_graph_sha256", "capability_registry_sha256"}
+     binding = value["binding"]
+     if not isinstance(binding, dict) or set(binding) != binding_fields:
+         raise ReconnaissanceAgentValidationError("binding must contain the complete immutable task/workflow snapshot")
+@@ -561,7 +583,7 @@ def normalize_recon_action_request(value: Any) -> dict[str, Any]:
+ def build_recon_action_request(
+     *, action_proposal: Mapping[str, Any], task_record: Mapping[str, Any],
+     orchestration: Mapping[str, Any], recon_run_id: str, subtask_id: str,
+-    created_at: str, capability_registry_sha256: str,
++    boundary: Mapping[str, Any], created_at: str, capability_registry_sha256: str,
+ ) -> dict[str, Any]:
+     """Build a deterministic, server-owned request from a persisted Stage 4.9 proposal."""
+     task = task_record["task"]
+@@ -577,7 +599,7 @@ def build_recon_action_request(
+         raise ReconnaissanceAgentValidationError("action proposal capability is not in the Recon server registry")
+     impact = action_proposal["estimated_impact"]
+     technique = _canonical_id(action_proposal["technique"], "action_proposal.technique")
+-    if technique != "PASSIVE_DISCOVERY":
++    if technique != "TCP_CONNECT_SCAN":
+         raise ReconnaissanceAgentValidationError("proposal technique is not enabled by the server-owned Recon registry")
+     risk_class = {"NONE": "LOW", "LOW": "LOW", "MODERATE": "MODERATE", "HIGH": "HIGH", "DESTRUCTIVE": "CRITICAL"}[impact]
+     request_seed = {"proposal_ref": proposal_ref, "proposal_sha256": proposal_sha,
+@@ -589,6 +611,7 @@ def build_recon_action_request(
+     scope_sha = sha256_hex(task["scope"])
+     constraints_sha = sha256_hex(task["constraints"])
+     auth_sha = sha256_hex(task["authorization_reference"])
++    roe_sha = sha256_hex(boundary["roe"])
+     correlation_id = f"racorr-{digest[:48]}"
+     core = {
+         "schema_version": RECON_ACTION_REQUEST_SCHEMA_VERSION,
+@@ -619,6 +642,7 @@ def build_recon_action_request(
+             "task_contract_sha256": task_record["task_contract_sha256"],
+             "scope_sha256": scope_sha,
+             "constraints_sha256": constraints_sha,
++            "roe_sha256": roe_sha,
+             "authorization_reference_sha256": auth_sha,
+             "orchestration_graph_sha256": graph_sha,
+             "capability_registry_sha256": capability_registry_sha256,
+@@ -643,9 +667,18 @@ def canonical_recon_action_request_contract() -> dict[str, Any]:
+         "schema_version": RECON_ACTION_REQUEST_CONTRACT_SCHEMA_VERSION,
+         "request_schema_version": RECON_ACTION_REQUEST_SCHEMA_VERSION,
+         "hash_domain": RECON_ACTION_REQUEST_HASH_DOMAIN,
+-        "required_binding": ["task_contract_sha256", "scope_sha256", "constraints_sha256", "authorization_reference_sha256", "orchestration_graph_sha256", "capability_registry_sha256"],
++        "required_binding": ["task_contract_sha256", "scope_sha256", "constraints_sha256", "roe_sha256", "authorization_reference_sha256", "orchestration_graph_sha256", "capability_registry_sha256"],
+         "capability_source": "SERVER_OWNED_REGISTRY_ONLY",
+         "target_source": "IMMUTABLE_TASK_SCOPE_REFERENCE",
++        "active_technique": {
++            "action_class": RECONNAISSANCE_ACTION_CLASS,
++            "technique": "TCP_CONNECT_SCAN",
++            "estimated_impact": "LOW",
++            "maximum_rate_cost": 1,
++            "maximum_concurrency": 1,
++            "explicit_roe_allowlist_required": True,
++            "roe_snapshot_bound": True,
++        },
+         "idempotency": "DETERMINISTIC_PROPOSAL_BOUND_NO_DUPLICATE_ACTION",
+         "proposal_lifecycle": {
+             "schema_version": RECON_PROPOSAL_LIFECYCLE_SCHEMA_VERSION,
+@@ -1457,7 +1490,7 @@ class ReconnaissanceAgentRepository(AgenticPentestOrchestratorRepository):
+         current_capabilities = self.get_capability_registry()
+         if current_capabilities["integrity"]["canonical_sha256"] != capability_registry_sha256:
+             raise ReconnaissanceAgentConflict("Capability registry changed before proposal publication")
+-        if proposal.get("technique") != "PASSIVE_DISCOVERY" or proposal.get("capability_id", RECONNAISSANCE_CAPABILITY_ID) != RECONNAISSANCE_CAPABILITY_ID:
++        if proposal.get("technique") != "TCP_CONNECT_SCAN" or proposal.get("capability_id", RECONNAISSANCE_CAPABILITY_ID) != RECONNAISSANCE_CAPABILITY_ID:
+             raise ReconnaissanceAgentValidationError("proposal capability/technique is not enabled for Recon")
+ 
+         graph_sha = sha256_hex(graph)
+@@ -1531,6 +1564,10 @@ class ReconnaissanceAgentRepository(AgenticPentestOrchestratorRepository):
+                 or sha256_hex(task["constraints"]) != request["binding"]["constraints_sha256"]
+                 or sha256_hex(task["authorization_reference"]) != request["binding"]["authorization_reference_sha256"]):
+             raise ReconnaissanceAgentConflict("Action Request scope, constraints, or authorization reference is stale")
++        boundary = run["request"]["boundary"]
++        if (sha256_hex(boundary["roe"]) != request["binding"]["roe_sha256"]
++                or not _explicit_tcp_connect_roe_allows(boundary, {"technique": request["technique"], "active_concurrency": 1, "rate_cost": 1})):
++            raise ReconnaissanceAgentConflict("Action Request lacks the current explicit TCP_CONNECT_SCAN RoE and budget grant")
+         node = graph_node(orchestration["task_graph"], request["subtask_id"])
+         if (node is None or node.get("capability_id") != RECONNAISSANCE_CAPABILITY_ID
+                 or node.get("specialist", {}).get("agent_id") != RECONNAISSANCE_AGENT_ID
+@@ -1580,6 +1617,7 @@ class ReconnaissanceAgentRepository(AgenticPentestOrchestratorRepository):
+     ) -> tuple[dict[str, Any], dict[str, Any] | None]:
+         task = task_record["task"]
+         in_scope = _target_in_task_scope(proposal["target"], task)
++        explicit_active_roe = _explicit_tcp_connect_roe_allows(boundary, proposal)
+         evaluation_id = _deterministic_record_id(
+             "reconeval-", run_id=run_id, key=proposal["proposal_key"], domain="APTS_STAGE5_2_RECON_GOVERNANCE_EVAL_ID_V1"
+         )
+@@ -1601,17 +1639,19 @@ class ReconnaissanceAgentRepository(AgenticPentestOrchestratorRepository):
+                 "stage5_2_recon_run_id": run_id,
+                 "proposal_key": proposal["proposal_key"],
+                 "local_task_scope_precheck": in_scope,
++                "explicit_active_roe_precheck": explicit_active_roe,
+                 "execution_requested": False,
+             },
+         }
+         request = normalize_scope_roe_evaluation_request(eval_payload)
+         capability = self.get_capability(RECONNAISSANCE_CAPABILITY_ID)
+         decision = evaluate_scope_roe(request, task_record=task_record, capability=capability)
+-        if not in_scope:
++        if not in_scope or not explicit_active_roe:
+             decision = deepcopy(decision)
+             core = {k: v for k, v in decision.items() if k != "integrity"}
+             core["status"] = "INELIGIBLE"
+-            core["failed_rule_ids"] = list(dict.fromkeys([*core.get("failed_rule_ids", []), "STAGE5_2_LOCAL_TASK_SCOPE"]))
++            failed_rule = "STAGE5_2_LOCAL_TASK_SCOPE" if not in_scope else "STAGE5_2_EXPLICIT_ACTIVE_TECHNIQUE_ROE"
++            core["failed_rule_ids"] = list(dict.fromkeys([*core.get("failed_rule_ids", []), failed_rule]))
+             core["human_review_required"] = False
+             core["semantics"]["scope_roe_eligible"] = False
+             decision = _with_integrity(core, domain=decision["integrity"]["hash_domain"])
+@@ -1624,9 +1664,10 @@ class ReconnaissanceAgentRepository(AgenticPentestOrchestratorRepository):
+             "status": decision["status"],
+             "scope_roe_eligible": decision["semantics"]["scope_roe_eligible"],
+             "local_task_scope_precheck": in_scope,
++            "explicit_active_roe_precheck": explicit_active_roe,
+             "decision_is_authorization": False,
+         }
+-        if decision["status"] not in {"ELIGIBLE", "REVIEW_REQUIRED"} or not in_scope:
++        if decision["status"] not in {"ELIGIBLE", "REVIEW_REQUIRED"} or not in_scope or not explicit_active_roe:
+             return governance_item, None
+ 
+         proposal_lifecycle = self._validate_proposal_lifecycle_binding(
+@@ -1874,6 +1915,7 @@ class ReconnaissanceAgentRepository(AgenticPentestOrchestratorRepository):
+                     orchestration=orchestration,
+                     recon_run_id=run_id,
+                     subtask_id=node["subtask_id"],
++                    boundary=request["boundary"],
+                     created_at=assessment_timestamp,
+                     capability_registry_sha256=capability_registry_sha256,
+                 ))
+diff --git a/tests/test_stage12_recon_active_e2e_acceptance.py b/tests/test_stage12_recon_active_e2e_acceptance.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..74dcfb71c4e673bd2c645e3c2a5ef34ec213d90c
+--- /dev/null
++++ b/tests/test_stage12_recon_active_e2e_acceptance.py
+@@ -0,0 +1,136 @@
++from __future__ import annotations
++
++from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
++from threading import Thread
++
++import pytest
++
++from execution_subsystem.authorization_source import ExecutionAuthorizationProposalSource, MissionAuthorizationSource
++from execution_subsystem.evidence_repository import ExecutionEvidenceRepository
++from execution_subsystem.evidence_service import ExecutionEvidenceService
++from execution_subsystem.execution_result_contract import build_recon_execution_result, verify_recon_execution_result
++from execution_subsystem.runtime_contract import START_SCHEMA
++from tests import test_stage4_6_pentest_workflow_orchestrator_skeleton as materialize_module
++from tests.test_stage5_9_governance_bound_multi_agent_pentest_e2e import _pipeline
++from tests.test_stage6_2_authoritative_execution_authorization import NOW, seed_mission
++from tests.test_stage6_3_controlled_execution_gateway import UniqueAuthority
++from tests.test_stage6_5_execution_runtime_control import wait_for
++from pentest_subsystem.reconnaissance import ReconnaissanceAgentService
++
++
++@pytest.fixture
++def target_server():
++    calls = []
++
++    class Handler(BaseHTTPRequestHandler):
++        def do_HEAD(self):
++            calls.append(self.path)
++            self.send_response(200)
++            self.end_headers()
++
++        def log_message(self, *_args):
++            pass
++
++    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
++    thread = Thread(target=server.serve_forever, daemon=True)
++    thread.start()
++    try:
++        yield f"http://127.0.0.1:{server.server_address[1]}/status", calls
++    finally:
++        server.shutdown()
++        server.server_close()
++        thread.join(timeout=5)
++
++
++def test_stage12_active_recon_acceptance_through_stage66_and_iteration(tmp_path, target_server):
++    """A single explicitly authorized loopback TCP connect completes the full handoff."""
++    original = materialize_module.sample_boundary
++
++    def lab_boundary():
++        boundary = original()
++        boundary["scope"]["targets"][0] = {"target_type": "URL", "target_value": target_server[0]}
++        boundary["roe"]["allowed_action_classes"] = ["TARGET_RECON"]
++        boundary["roe"]["allowed_techniques"] = ["TCP_CONNECT_SCAN"]
++        boundary["roe"]["maximum_concurrency"] = 1
++        boundary["constraints"]["resource_budget"] = {"max_network_requests": 1}
++        return boundary
++
++    materialize_module.sample_boundary = lab_boundary
++    try:
++        pentest_repo, boundary, task, orchestration_id, runs = _pipeline(
++            tmp_path, "stage12-e2e", through_stage="5.2")
++    finally:
++        materialize_module.sample_boundary = original
++
++    parent = runs["5.2"]
++    action = parent["output"]["action_requests"][0]
++    assert action["technique"] == "TCP_CONNECT_SCAN"
++    assert action["target_ref"]["target_value"] == target_server[0]
++    assert action["binding"]["roe_sha256"]
++
++    mission_db = tmp_path / "mission.db"
++    seed_mission(mission_db, boundary)
++    authority = UniqueAuthority()
++    service = ExecutionEvidenceService(
++        ExecutionEvidenceRepository(tmp_path / "execution.db"),
++        ExecutionAuthorizationProposalSource(pentest_repo.sqlite_path),
++        MissionAuthorizationSource(mission_db), authority, clock=lambda: NOW)
++    intake_request = {
++        "schema_version": "apts-execution-request-intake-v2",
++        "source_type": "STAGE5_2_RECON_ACTION_REQUEST",
++        "request_id": "ereq-stage12-e2e",
++        "idempotency_key": "idem-stage12-e2e",
++        "recon_action_id": action["action_id"],
++        "recon_request_sha256": action["integrity"]["canonical_sha256"],
++    }
++    request = service.create_request(intake_request)
++    assert request["envelope"]["execution_request"]["action"] == {
++        "action_class": "TARGET_RECON", "capability_id": "reconnaissance",
++        "technique": "TCP_CONNECT_SCAN",
++    }
++    start = {
++        "schema_version": START_SCHEMA,
++        "invocation_request_id": "toolreq-stage12-e2e",
++        "idempotency_key": "idem-tool-stage12-e2e",
++        "execution_id": request["execution_id"],
++        "envelope_sha256": request["envelope"]["integrity"]["canonical_sha256"],
++        "requested_by": "stage12-acceptance-test",
++    }
++    try:
++        attempt = service.start_execution(start)
++        item = wait_for(service, attempt["attempt_id"])
++        assert item["state"] == "SUCCEEDED", service._failures
++        gss_evaluation = authority.calls[0]["context"]["execution_authorization_evaluation"]["execution_request"]
++        assert gss_evaluation["action"]["technique"] == "TCP_CONNECT_SCAN"
++        capture = service.get_evidence(attempt["attempt_id"])
++        assert capture["sealed"] is True and capture["status"] == "CAPTURED"
++        manifest = capture["manifest"]
++        assert manifest["recon_action_id"] == action["action_id"]
++        assert manifest["proposal_ref"] == action["proposal_ref"]
++
++        result = build_recon_execution_result(
++            action_id=action["action_id"], proposal_ref=action["proposal_ref"],
++            orchestration_id=orchestration_id, item=item, manifest=manifest)
++        assert verify_recon_execution_result(result)
++        provider = lambda action_id: {
++            "action_id": action_id, "results": [result], "latest_result": result,
++        }
++        recon = ReconnaissanceAgentService(pentest_repo, execution_result_provider=provider)
++        monitored = recon.get_stage6_execution_results(action["action_id"])
++        assert monitored["read_only"] is True
++        assert monitored["latest_result"] == result
++
++        iteration = recon.run_reconnaissance_iteration(orchestration_id, {
++            "schema_version": "apts-stage5.2-recon-iteration-request-v1",
++            "parent_recon_run_id": parent["recon_run_id"],
++            "action_id": action["action_id"],
++        })["run"]
++        assert iteration["parent_recon_run_id"] == parent["recon_run_id"]
++        assert iteration["source_action_id"] == action["action_id"]
++        assert iteration["source_result_sha256"] == result["integrity"]["canonical_sha256"]
++        assert iteration["request"]["observations"][-1]["source"]["source_kind"] == "STAGE6_EXECUTION_RESULT"
++        assert pentest_repo.get_recon_run(parent["recon_run_id"]) == parent
++        # TCP_CONNECT_SCAN must establish one local socket and send no HTTP request.
++        assert target_server[1] == []
++    finally:
++        service.close()
+diff --git a/tests/test_stage4_3_pentest_mission_task_contract.py b/tests/test_stage4_3_pentest_mission_task_contract.py
+index 47cfad2eabf25acc8116be306d3b6fe18814d5a2..58cb1b79a613ff9be48fe94d0b56be9ec254701e 100644
+--- a/tests/test_stage4_3_pentest_mission_task_contract.py
++++ b/tests/test_stage4_3_pentest_mission_task_contract.py
+@@ -91,10 +91,13 @@ def sample_boundary() -> dict:
+             "max_actions": 10,
+             "risk_threshold": "MODERATE",
+             "data_handling_policy": {"retain_sensitive_output": False},
++            "resource_budget": {"max_network_requests": 1},
+         },
+         "roe": {
+             "allowed_action_classes": ["TARGET_RECON", "VULNERABILITY_VALIDATION"],
++            "allowed_techniques": ["TCP_CONNECT_SCAN"],
+             "prohibited_action_classes": ["DESTRUCTIVE_ACTION"],
++            "maximum_concurrency": 1,
+             "destructive_actions_allowed": False,
+         },
+         "authorization_reference": {
+diff --git a/tests/test_stage5_2_reconnaissance_agent.py b/tests/test_stage5_2_reconnaissance_agent.py
+index 6bca738acbf0cb3a2b3db2a9440b56965b6c2b4b..1fae58fbf4e766683d522182805a2711bcaeaddd 100644
+--- a/tests/test_stage5_2_reconnaissance_agent.py
++++ b/tests/test_stage5_2_reconnaissance_agent.py
+@@ -406,7 +406,24 @@ def test_11b_recon_derives_proposals_from_missing_stale_and_low_confidence_cover
+     assert len(proposals) == 1
+     assert proposals[0]["target"] == task["target"]
+     assert set(proposals[0]["need_codes"]) == codes
+-    assert proposals[0]["technique"] == "PASSIVE_DISCOVERY"
++    assert proposals[0]["technique"] == "TCP_CONNECT_SCAN"
++
++
++@pytest.mark.parametrize("missing_grant", ["technique", "concurrency", "budget"])
++def test_active_recon_requires_explicit_technique_and_single_request_budget(tmp_path: Path, missing_grant: str):
++    repo, boundary, task, orch, _, _ = _start_repo(tmp_path, "explicit-active-roe-" + missing_grant)
++    if missing_grant == "technique":
++        boundary["roe"].pop("allowed_techniques", None)
++    elif missing_grant == "concurrency":
++        boundary["roe"].pop("maximum_concurrency", None)
++    else:
++        boundary["constraints"].pop("resource_budget", None)
++    payload = recon_request(boundary, task, "explicit-active-roe-" + missing_grant)
++    run, _ = repo.run_reconnaissance(orch["orchestration_id"], payload)
++    assert run["output"]["governance"][0]["status"] == "INELIGIBLE"
++    assert run["output"]["governance"][0]["explicit_active_roe_precheck"] is False
++    assert run["output"]["action_proposals"] == []
++    assert run["output"]["action_requests"] == []
+ 
+ 
+ def test_11c_recon_detects_conflicting_observations_and_suppresses_fully_met_needs(tmp_path: Path):
+diff --git a/tests/test_stage6_2_recon_action_request_authorization.py b/tests/test_stage6_2_recon_action_request_authorization.py
+index 0378fa95ad890e33d19adc60895ff20fb5652a80..a667e9e008081663cbfeafb335228ed26924f48e 100644
+--- a/tests/test_stage6_2_recon_action_request_authorization.py
++++ b/tests/test_stage6_2_recon_action_request_authorization.py
+@@ -60,6 +60,7 @@ def test_recon_action_request_gets_fresh_action_bound_gss_decision(recon_authori
+     assert result["governance_query_performed"] is True
+     assert evaluated["context"]["execution_authorization_evaluation"]["execution_request"] == request["envelope"]["execution_request"]
+     assert evaluated["action_class"] == "TARGET_RECON"
++    assert evaluated["technique"] == "TCP_CONNECT_SCAN"
+     assert evaluated["resource_value"] == request["envelope"]["execution_request"]["target"]["target_value"]
+     assert record["decision"] == "ALLOW"
+     assert record["checks"] == {key: "PASS" for key in record["checks"]}
+diff --git a/tests/test_stage6_3_4_recon_gateway_capability.py b/tests/test_stage6_3_4_recon_gateway_capability.py
+index 2237836a31328e92190a86c2d23ed941d8acf78d..17de0658c344602d02cae413481b90fc8e9eb0a8 100644
+--- a/tests/test_stage6_3_4_recon_gateway_capability.py
++++ b/tests/test_stage6_3_4_recon_gateway_capability.py
+@@ -74,26 +74,28 @@ def adapter_intake(request):
+     }
+ 
+ 
+-def test_stage63_rejects_recon_action_without_exact_registered_capability(recon_flow):
++def test_stage63_admits_exact_registered_recon_capability(recon_flow):
+     execution_db, pentest_db, mission_db, authority, request = recon_flow
+     admission = ExecutionGatewayService(
+         ExecutionGatewayRepository(execution_db), ExecutionAuthorizationProposalSource(pentest_db),
+         MissionAuthorizationSource(mission_db), authority, clock=lambda: NOW
+     )
+-    # Current Stage 5.2 emits PASSIVE_DISCOVERY, while the registered network
+-    # adapters require explicit TCP_CONNECT_SCAN or TCP_BANNER_READ. Do not
+-    # reinterpret a passive proposal as active probing or consume its budget.
+-    with pytest.raises(ExecutionSourceRejected, match="NO_EXACT_AUTHORIZED_TOOL_ADAPTER"):
+-        admission.submit_execution(gateway_intake(request))
+-    assert authority.calls == []
+-    assert admission.repository.list_gateway_submissions(request["execution_id"]) == []
++    execution_request = request["envelope"]["execution_request"]
++    assert execution_request["action"] == {
++        "action_class": "TARGET_RECON", "capability_id": "reconnaissance",
++        "technique": "TCP_CONNECT_SCAN",
++    }
++    submitted = admission.submit_execution(gateway_intake(request))
++    assert submitted["gateway_admitted"] is True
++    assert submitted["execution_authorized"] is False
++    assert authority.calls[0]["context"]["execution_authorization_evaluation"]["execution_request"]["action"]["technique"] == "TCP_CONNECT_SCAN"
+ 
+ 
+ def test_server_registry_resolves_only_exact_action_tuples(recon_flow):
+     _, _, _, _, request = recon_flow
+     recon_action = request["envelope"]["execution_request"]
+-    with pytest.raises(ExecutionSourceRejected, match="NO_EXACT_AUTHORIZED_TOOL_ADAPTER"):
+-        select_adapter(recon_action)
++    selected_actual = select_adapter(recon_action)
++    assert selected_actual.adapter_id == "scanner.tcp-connect.v1"
+     # A registered reconnaissance tuple resolves unambiguously; adapter choice
+     # is derived from the server registry, never accepted from the caller.
+     compatible = {

@@ -1,0 +1,72 @@
+STAGE 6.10 — BUILD ACCEPTANCE EVIDENCE
+
+Result: STAGE 6.10 BUILD ACCEPTANCE: PASS
+Scope: BUILD_ISOLATED
+Deployment exercised: false
+Live user mission execution proven: false
+Execution authorized by this result: false
+
+Baseline archives:
+  Mission(20261004-041322).zip
+  aptsGSS(20261004-041235).zip
+  Vulndesk(20261004-041313).zip
+
+Command executed from the patched Mission root:
+  python3 run/stage6_10_acceptance.py --gss-root /workspace/scratch/c18883e49cda/work/gss --vulndesk-root /workspace/scratch/c18883e49cda/work/vulndesk --build-only --workers 4 --output evidence/stage6_10/build-linux-20261004-release
+
+Environment: Python 3.12.14, Linux x86_64, kernel 6.18.44 / glibc 2.39.
+Native sandbox: SECCOMP_RLIMIT — PASS; probe performed no target I/O.
+Windows/PowerShell/Job Object deployment acceptance: NOT EXERCISED here.
+
+Full canonical corpus:
+  Mission: 2,944 passed (2,865 existing + 79 Stage 6.10 tests)
+  GSS:       130 passed (58 native GSS + 72 supplied Stage 6.9 tests)
+  VulnDesk:  136 passed
+  TOTAL:   3,210 passed
+  Failures: 0; errors: 0; skipped: 0
+  Batches: 70, exact JUnit identity coverage and zero exit codes
+  Batch-regression wall time: 380.097 seconds, 4 workers
+
+Source compilation: Mission 343 / GSS 52 / VulnDesk 102 = 497 Python files.
+Source snapshots unchanged before/after tests: true.
+All 14 roadmap gates: PASS.
+The harness verified the full report twice before publishing its final result.
+
+Connected native trajectory:
+  Native VulnDesk PIP publication + exact Stage 4.2 Pentest projection
+  Canonical Mission planned task + same Mission/PIP identity
+  Six specialist agents + production GSS admission/pre-I/O checks
+  Native loopback observation + retained bytes + VEP + verified closure
+  CTI knowledge revision + Mission adaptation + governed successor plan v2
+  Restart/replay + forensic reconstruction
+  Audit status: VERIFIED_CONNECTED_INTERNAL_LINEAGE
+  Native CTI PIP verified: true
+  Mission state: RUNNING; hypothesis: INCONCLUSIVE
+  Mission success declared: false; independent signature: false
+The native services use isolated authority repositories/intelligence fixtures.
+This result does not attest to a live external authority, target, or user mission.
+
+Baseline preservation after all tests:
+  Mission database/SQL files compared: 83, unchanged
+  GSS database/SQL files compared: 7, unchanged
+  VulnDesk database/SQL files compared: 23, unchanged
+  All original noncache GSS files: 252, unchanged
+  All original noncache VulnDesk files: 235, unchanged
+No production data or uploaded SQL dump was imported or replaced.
+
+Contract SHA-256:
+  2becc9a5152cbb2ebaa96884354d90615b39bb524908284427a0e37093dd4b7b
+Inventory lock SHA-256 (canonical JSON):
+  369f4808eb6f541ee719279b21541fe3d87af54259276a9225a7de4b5c9fd815
+Regression report SHA-256:
+  6f692d8fabf91bd1dc57ac45beddda74cb7860c74c26a1fdf8ce02cd92e3cb30
+
+Evidence included under:
+  evidence/stage6_10/build-linux-20261004-release/
+Contains final acceptance result, native probe, baseline-preservation check,
+source/collection inventory, source hashes, all 70 JUnit/log pairs, four native
+trajectory exports, trajectory audit, and regression report.
+
+Recheck against the supplied source baseline using run/stage6_10_regression.py
+--verify-only. For deployment on Windows, follow INSTALL_STAGE6_10.txt and run
+STAGE6_10_ACCEPTANCE.ps1 with the local GSS and VulnDesk source paths.

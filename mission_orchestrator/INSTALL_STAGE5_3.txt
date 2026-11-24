@@ -1,0 +1,32 @@
+Stage 5.3 installation / validation
+===================================
+
+1. Replace the working tree with this package or apply the listed Stage-5.3 files.
+2. The Pentest repository upgrades automatically from migration 9 to migration 10 on first Stage-5.3 startup.
+3. Start the Global Mission Orchestrator as usual on http://127.0.0.1:8780.
+4. Start the Pentest Subsystem:
+
+   cd D:\mission_orchestrator
+   python run\pentest_subsystem.py --host 127.0.0.1 --port 8790
+
+5. In another PowerShell:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE5_3_ACCEPTANCE.ps1
+
+Expected active Pentest control:
+  stage5.3-enumeration-agent
+
+Expected Pentest migration:
+  10
+
+Expected canonical inventory:
+  1873 tests
+
+Important authority boundary:
+  Stage 5.3 binds exact Stage-5.2 Recon output/evidence and processes imported
+  authorized enumeration observations into deterministic enumerated-asset models.
+  It may publish governed enumeration action proposals. It does NOT directly invoke
+  scanners/tools, open target network connections, actuate targets, or mint
+  PolicyDecision authorization. Controlled execution remains Stage 6 authority.

@@ -1,0 +1,15 @@
+Stage 3.9.3 installation / acceptance
+=====================================
+
+1. Replace the current mission_orchestrator tree with this package.
+2. No database migration is required; repository migration remains 53.
+3. Restart Mission Orchestrator normally.
+4. Verify /health reports:
+     control_version = stage3.9.3-planning-task-graph-dependency-verification
+     mission_repository_migration_level = 53
+5. From D:\mission_orchestrator run:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_9_3_ACCEPTANCE.ps1
+
+The acceptance script performs a live canonical Stage 3.9.3 HTTP qualification, compilation, exact 1473-test collection, focused/predecessor/planning regressions, and then the complete historical regression.

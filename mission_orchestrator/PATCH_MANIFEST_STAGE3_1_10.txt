@@ -1,0 +1,55 @@
+Stage 3.1.10 - Acceptance & Regression Gate Patch Manifest
+===========================================================
+
+New files
+---------
+README_STAGE3_1_10.md
+PATCH_NOTES_STAGE3_1_10.md
+INSTALL_STAGE3_1_10.txt
+PATCH_MANIFEST_STAGE3_1_10.txt
+STAGE3_1_10_ACCEPTANCE.ps1
+SHA256_STAGE3_1_10.txt
+mission_orchestrator/acceptance_gate.py
+tests/test_stage3_1_10_acceptance_regression_gate.py
+
+Modified files
+--------------
+mission_orchestrator/__init__.py
+mission_orchestrator/api_service.py
+mission_orchestrator/service.py
+tests/test_stage3_1_6_mission_versioning_concurrency.py
+tests/test_stage3_1_7_mission_persistence_repository_model.py
+tests/test_stage3_1_8_canonical_mission_api_validation_layer.py
+tests/test_stage3_1_9_mission_event_lineage_foundation.py
+
+Database
+--------
+No new Stage-3.1.10 migration.
+Repository migration level remains 8.
+Latest existing migration remains:
+  migrations/008_stage3_1_9_mission_event_lineage_foundation.sql
+
+Runtime scope
+-------------
+Release/acceptance metadata only.
+No new planner.
+No new authorization authority.
+No new target-action execution capability.
+No new event delivery bus.
+No new durable store.
+
+Unchanged subsystem source
+--------------------------
+aptsGSS: no Stage-3.1.10 source change required
+VulnDesk: no Stage-3.1.10 source change required
+
+Validation
+----------
+python -m compileall -q mission_orchestrator tests : PASS
+python -m pytest -q                              : 111 passed
+Live Stage-3.1.10 acceptance                     : operator-run against active services
+
+Data safety
+-----------
+Distributable ZIP excludes data/mission_orchestrator.db, .pytest_cache,
+__pycache__, local smoke databases, and external aptsGSS/VulnDesk repositories.

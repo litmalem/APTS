@@ -1,0 +1,72 @@
+Stage 3.4.7 — Delegation Delivery, Acknowledgement & Ownership
+==============================================================
+
+Target project
+--------------
+D:\mission_orchestrator
+
+Runtime identity after installation
+-----------------------------------
+control_version = stage3.4.7-delegation-delivery-acknowledgement-ownership
+server_version  = APTSMissionOrchestrator/3.4.7
+repository_migration_level = 24
+new_store = mission_delegation_deliveries
+new_event = MISSION_TASK_DELEGATION_OWNERSHIP_ACCEPTED
+
+Installation
+------------
+1. Stop the Mission Orchestrator process currently listening on port 8780.
+
+2. Back up D:\mission_orchestrator and its Mission repository database before replacing files.
+
+3. Apply the Stage-3.4.7 package over D:\mission_orchestrator. Preserve deployment-specific environment/configuration files.
+
+4. From PowerShell:
+
+   cd D:\mission_orchestrator
+
+5. Activate the same Python environment used by Stage 3.4.6.
+
+6. Compile preflight:
+
+   python -m compileall -q mission_orchestrator tests
+
+7. Start Mission Orchestrator through the same startup path used for Stage 3.4.6. Repository bootstrap must apply migration level 24 and create:
+
+   mission_delegation_deliveries
+
+8. Verify runtime health:
+
+   Invoke-RestMethod http://127.0.0.1:8780/health | ConvertTo-Json -Depth 12
+
+   Expected critical values:
+
+   control_version = stage3.4.7-delegation-delivery-acknowledgement-ownership
+   mission_repository_migration_level = 24
+   delegation_delivery_database_migration_level = 24
+   delegation_delivery_persistence_store = mission_delegation_deliveries
+   delegation_delivery_handoff_transmitted = true
+   delegation_delivery_handoff_acknowledged = true
+   delegation_delivery_ownership_accepted = true
+   delegation_delivery_runtime_endpoint_resolution_performed = false
+   delegation_delivery_external_network_io_performed = false
+   delegation_delivery_dispatch_performed = false
+   delegation_delivery_execution_authorized = false
+   delegation_delivery_pre_dispatch_governance_revalidation_required = true
+
+9. Run the acceptance harness:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_4_7_ACCEPTANCE.ps1
+
+10. Expected terminal result:
+
+   STAGE 3.4.7 ACCEPTANCE: PASS
+
+Operational boundary
+--------------------
+Stage 3.4.7 records delivery of the immutable Stage-3.4.6 handoff to its canonical logical recipient, records recipient acknowledgement, and records control-plane ownership acceptance. It does NOT discover a runtime endpoint, perform external network I/O, allocate a worker, dispatch work, authorize execution, or actuate a target.
+
+Governance boundary
+-------------------
+Stage 3.4.7 performs no new Governance query. The Stage-3.4.5 authorization remains a pre-delegation authorization only. A later dispatch/execution control must perform authoritative pre-dispatch Governance revalidation.

@@ -1,0 +1,73 @@
+Stage 3.3.2 - Planner Input Snapshot & Context Binding
+Patch Manifest
+====================================================
+
+NEW
+---
+mission_orchestrator/planner_input_snapshot.py
+migrations/010_stage3_3_2_planner_input_snapshot_context_binding.sql
+tests/test_stage3_3_2_planner_input_snapshot_context_binding.py
+README_STAGE3_3_2.md
+PATCH_NOTES_STAGE3_3_2.md
+INSTALL_STAGE3_3_2.txt
+PATCH_MANIFEST_STAGE3_3_2.txt
+STAGE3_3_2_ACCEPTANCE.ps1
+SHA256_STAGE3_3_2.txt
+
+MODIFIED
+--------
+mission_orchestrator/__init__.py
+mission_orchestrator/api_service.py
+mission_orchestrator/errors.py
+mission_orchestrator/mission_events.py
+mission_orchestrator/mission_versioning.py
+mission_orchestrator/repository.py
+mission_orchestrator/repository_model.py
+mission_orchestrator/service.py
+
+Historical regression tests advanced to the Stage-3.3.2 current-control, migration,
+and version-vector baseline:
+  tests/test_stage3_1_10_acceptance_regression_gate.py
+  tests/test_stage3_1_6_mission_versioning_concurrency.py
+  tests/test_stage3_1_7_mission_persistence_repository_model.py
+  tests/test_stage3_1_8_canonical_mission_api_validation_layer.py
+  tests/test_stage3_1_9_mission_event_lineage_foundation.py
+  tests/test_stage3_2_1_mission_lifecycle_command_contract.py
+  tests/test_stage3_2_2_lifecycle_transition_guard_matrix.py
+  tests/test_stage3_2_3_mission_pip_activation.py
+  tests/test_stage3_2_4_planning_run_activation.py
+  tests/test_stage3_2_5_waiting_dependency_control.py
+  tests/test_stage3_2_6_pause_resume_replanning_control.py
+  tests/test_stage3_2_7_abort_failure_expiration_semantics.py
+  tests/test_stage3_2_8_cleanup_verified_completion_gate.py
+  tests/test_stage3_2_9_event_driven_lifecycle_automation_reliability.py
+  tests/test_stage3_2_10_lifecycle_acceptance_regression_gate.py
+  tests/test_stage3_3_1_canonical_plan_contract_identity.py
+
+DATABASE
+--------
+Repository migration level: 9 -> 10
+New store: mission_planner_input_snapshots
+
+API
+---
+GET  /api/missions/{mission_id}/planner-input-snapshot-definition
+POST /api/missions/{mission_id}/planner-input-snapshot
+GET  /api/missions/{mission_id}/planner-input-snapshot
+
+EVENT
+-----
+MISSION_PLANNER_INPUT_SNAPSHOT_REGISTERED
+
+VERSION VECTOR
+--------------
+Adds planner_input_snapshot_version (0 before snapshot, 1 after Stage-3.3.2 snapshot).
+
+CONTROL
+-------
+stage3.3.2-planner-input-snapshot-context-binding
+
+VALIDATION BASELINE
+-------------------
+Focused Stage-3.3.2 tests: 16 passed
+Full regression: 296 passed

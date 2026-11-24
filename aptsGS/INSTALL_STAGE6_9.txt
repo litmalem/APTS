@@ -1,0 +1,75 @@
+STAGE 6.9 - CLOSED-LOOP CTI <-> PENTEST INTEGRATION
+
+Baseline: Mission(20261004-012953).zip, Stage 6.8 including completion fence.
+Execution control: stage6.9-closed-loop-cti-pentest-integration
+Migrations: Execution 9 / CTI feedback 1 / Mission 53 / Pentest 16.
+
+DEPLOY PAKET PATCH APTS_STAGE6_9_PATCH.zip
+
+1. Hentikan proses Mission 8780 dan Execution 8791.
+2. Backup source serta database setelah proses berhenti:
+   D:\mission_orchestrator\data\execution_subsystem.db
+   D:\mission_orchestrator\data\mission_orchestrator.db
+   D:\mission_orchestrator\data\cti_feedback_repository.db (bila sudah ada).
+   Gunakan path konfigurasi sebenarnya bila bukan default.
+3. Ekstrak isi APTS_STAGE6_9_PATCH.zip langsung ke D:\mission_orchestrator,
+   menimpa source yang sama. Tidak ada folder pembungkus.
+   Patch tidak membawa database runtime, lock, lease config, atau secret.
+4. Pertahankan Pentest 8790 dan external Governance yang sudah aktif.
+   Tidak perlu impor SQL ke Mission, Pentest, VulnDesk atau GSS.
+5. Console PowerShell pertama:
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\START_STAGE6_9_EXECUTION.ps1
+6. Console PowerShell kedua:
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\START_STAGE6_9_MISSION.ps1
+7. Console PowerShell ketiga:
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE6_9_ACCEPTANCE.ps1
+
+Mission dan Execution harus memakai file CTI feedback yang sama.
+Default: data\cti_feedback_repository.db di folder project.
+Path khusus: set APTS_CTI_FEEDBACK_DB untuk kedua proses, atau berikan
+parameter -CtiFeedbackDb 'D:\path\cti_feedback_repository.db' ke kedua script.
+Jangan menunjuk file Mission/Pentest/Execution/VulnDesk sebagai CTI DB.
+
+START_STAGE6_9_EXECUTION.ps1 menerima -GovernanceUrl, -CredentialLeasesFile,
+-ExecutionDb, -MissionDb, -PentestDb dan -CtiFeedbackDb. Konfigurasi environment
+baseline tetap digunakan jika parameter kosong. Mission tetap menggunakan
+MISSION_SQLITE_PATH / MISSION_DB_* / MISSION_GOVERNANCE_BASE_URL yang sudah ada.
+Dependensi baseline requirements.txt: Python, pytest 8.x dan PyMySQL.
+
+Execution mengupgrade migration 1-8 secara atomik ke 9 dan tetap memakai
+exclusive runtime owner. CTI owner membuat repository migration 1 secara
+terpisah. Gunakan runner execution_cti_feedback.py; runner predecessor akan
+menolak database migration 9. Consumer Mission read-only terhadap CTI DB;
+Mission migration tetap 53. Pentest migration tetap 16.
+
+Acceptance memeriksa restart kedua proses, external GSS, exact contracts,
+native sandbox, 2865 canonical tests, 72 focused tests, continuity 5.9-6.9,
+serta exact per-test JUnit coverage. Tidak membuat action pada mission pengguna.
+Opsional audit read-only record yang sudah ada:
+   .\STAGE6_9_ACCEPTANCE.ps1 -LiveAttemptId 'xattempt-...' -LiveFeedbackId 'ctifb-...'
+   .\STAGE6_9_ACCEPTANCE.ps1 -LiveMissionId 'mission-gmo-...' -LiveKnowledgeId 'ctik-...'
+Audit lama -LiveVepId / -LivePostActionId tetap tersedia dengan -LiveAttemptId.
+
+Feedback, knowledge import, dan Mission handoff dijalankan secara eksplisit
+melalui API README_STAGE6_9.md. Tidak ada automatic plan commit atau redispatch.
+Assessment adapter saat ini INCONCLUSIVE; prior confidence/estimated impact
+dipertahankan dan graph mendapat evidence annotation yang meminta validasi.
+Blocked cleanup mempertahankan review dan blocking reasons.
+
+Mission_STAGE6_9_Updated.zip adalah source snapshot lengkap, termasuk salinan
+data asli dari upload. Gunakan PATCH untuk deployment di atas data aktif;
+jangan menimpa database deployment dengan data dari source snapshot tersebut.
+
+Rollback instalasi:
+   Hentikan Mission/Execution, pulihkan source dan database backup yang sesuai,
+   lalu jalankan runner predecessor. Jangan menurunkan metadata migration atau
+   menghapus feedback/revocation secara manual. Simpan backup CTI baru bila
+   diperlukan untuk audit sebelum kembali ke source predecessor.
+
+Next: Stage 6.10 - Full APTS End-to-End Acceptance & Regression Gate.

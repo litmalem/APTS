@@ -1,0 +1,36 @@
+Stage 3.7.9 regression evidence generated in the implementation workspace
+==========================================================================
+
+Python compile:
+  PASS — mission_orchestrator and tests compile.
+
+Canonical collection:
+  PASS — 1344 tests collected.
+
+Focused Stage 3.7.9:
+  PASS — 22 passed in 10.12s.
+
+Focused Stage 3.7.8 predecessor:
+  PASS — 18 passed in 29.06s.
+
+Repository / end-to-end smoke:
+  PASS — full Stage-3.7.1 through Stage-3.7.9 flow constructed a HANDOFF_READY
+         trajectory, replayed the exact nine pre-checkpoint events, persisted a self-verifying
+         rplin-* checkpoint, emitted MISSION_REPLAN_RECOVERY_CHECKPOINTED, produced ten
+         post-checkpoint replay events, and recovered the same checkpoint from durable state.
+
+Integrity / boundary proof:
+  PASS — repository projection verifies checkpoint self-hash, exact handoff binding, recovery
+         event causation, and no-side-effect declarations; focused tests also prove fail-closed
+         rejection for stale Mission state/version, handoff hash, active successor head, event
+         count/tip drift, forbidden side-effect fields, duplicate checkpoint creation, and
+         persisted checkpoint tampering.
+
+Full regression in this sandbox:
+  ATTEMPTED, NOT AUTHORITATIVELY COMPLETED — the full 1344-test suite is long-running in
+  this sandbox and exceeded the available command window before completion. After migration
+  inventory rebasing, a fail-fast rerun progressed without observed failure until the command
+  timeout. The target-host acceptance script therefore remains the authoritative full regression gate.
+
+Authoritative host command:
+  .\STAGE3_7_9_ACCEPTANCE.ps1

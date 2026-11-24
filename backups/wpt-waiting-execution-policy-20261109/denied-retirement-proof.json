@@ -1,0 +1,38 @@
+{
+  "schema_version": "apts-wpt-intake-retirement-v1",
+  "intake_id": "wptreq-auto-7af3a08f81c753407cee26a9cab78cda1615dcd4",
+  "replacement_intake_id": "wptreq-auto-8629d29693694938db269f3fc51cc402e6c264fe",
+  "replacement_intake": {
+    "schema_version": "apts-wpt-governed-intake-v2",
+    "intake_id": "wptreq-auto-8629d29693694938db269f3fc51cc402e6c264fe",
+    "idempotency_key": "idem-wpt-auto-8629d29693694938db269f3fc51cc402e6c264fe",
+    "mission_id": "mission-gmo-17a8fa8a-c6d9-4da5-aad2-0fc73113239c",
+    "task_id": "ptask-1cc31e7b-bd0f-406b-b237-7b75f400e18e",
+    "target": {
+      "target_type": "URL",
+      "target_value": "http://127.0.0.1:80//dvwa/"
+    },
+    "profile": "fingerprinting",
+    "recon_target_key": "reconscope-03b0bb4a1f78ba1178f4aa8f3aee0432af3cc0ba",
+    "recon_target_sha256": "939cc986ecb7491ee1f7669a74810eca2ecba6422e61d7eb836ba3fda9f10ac1",
+    "recon_target_status": "READY_FOR_COLLECTION",
+    "target_is_observed": false
+  },
+  "intake_sha256": "22dc7e9d2196a8ebb098c318dee23e0f1481e1b9190fd58c40f6aefe7047dcfa",
+  "released_requests": 6,
+  "blocked_invocations": [
+    {
+      "invocation_id": "toolinv-195c8d5e0efebb29d6905c660700ba38",
+      "claim_sha256": "466ba4bb177baf8195cc468e83dd7071a897cabc0beb76b0c5216c040160f1e1"
+    }
+  ],
+  "terminal_attempts": [],
+  "target_network_io_performed": false,
+  "retired_at": "2026-11-09T02:30:00.785699+00:00",
+  "integrity": {
+    "algorithm": "SHA-256",
+    "canonicalization": "UTF8_SORTED_JSON_V1",
+    "hash_domain": "APTS_WPT_GOVERNED_INTAKE_RECORD_V1",
+    "canonical_sha256": "9b748600469185c255a10e7a22088d90ca24efc07179b47cca32fda9beb9fc65"
+  }
+}

@@ -1,0 +1,64 @@
+Stage 4.2 — PIP Ingestion, Validation & Binding
+================================================
+
+Target root:
+  D:\mission_orchestrator
+
+1. Overlay the supplied files into the target root, preserving directories.
+
+2. No database migration is required.
+   - Mission Orchestrator repository remains migration 53.
+   - Pentest Subsystem repository migration remains 0.
+   - Stage 4.2 is stateless: it validates and binds PIP artifacts but does not
+     create the Stage-4.3 local Pentest task repository.
+
+3. Keep the Global Mission Orchestrator running on:
+     http://127.0.0.1:8780
+   It must remain at:
+     stage3.9.10-global-mission-orchestrator-acceptance-regression-gate
+
+4. Stop the prior Stage-4.1 Pentest runtime if it is still using port 8790.
+
+5. Start the Stage-4.2 Pentest Subsystem in a separate PowerShell window:
+
+     cd D:\mission_orchestrator
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\START_STAGE4_2_PENTEST.ps1
+
+   Default endpoint:
+     http://127.0.0.1:8790
+
+6. Verify manually if desired:
+
+     Invoke-RestMethod http://127.0.0.1:8790/health
+     Invoke-RestMethod http://127.0.0.1:8790/api/pentest/boundary-contract
+     Invoke-RestMethod http://127.0.0.1:8790/api/pentest/pip-contract
+
+7. Run authoritative acceptance in another PowerShell window:
+
+     cd D:\mission_orchestrator
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE4_2_ACCEPTANCE.ps1
+
+Expected:
+  - Stage 3.9.10 predecessor preflight PASS
+  - Stage 4.1 canonical boundary predecessor PASS
+  - Pentest Stage 4.2 runtime PASS
+  - canonical PIP contract PASS
+  - valid PIP ingestion / validation / exact binding PASS
+  - negative freshness/integrity/binding paths PASS
+  - execution dispatch negative boundary PASS
+  - Python compilation PASS
+  - 1605 tests collected
+  - 15 focused Stage 4.2 tests PASS
+  - Stage-4.1 + critical predecessor regression PASS
+  - full historical regression PASS
+
+Important Stage-4.2 invariant:
+  A PIP is an intelligence input, not an execution command. Stage 4.2 may ingest,
+  validate, and bind a PIP to the accepted mission/pentest/task/scope boundary, but
+  it does not materialize a Pentest task, start a workflow, persist a Pentest
+  repository record, invoke tools, or actuate targets.
+
+Next stage:
+  Stage 4.3 — Pentest Mission & Task Contract

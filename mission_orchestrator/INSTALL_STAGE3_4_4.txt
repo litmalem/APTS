@@ -1,0 +1,78 @@
+Stage 3.4.4 - Deterministic Route Selection & Decision Record
+Installation / Regression Steps
+============================================================
+
+Target repository:
+  D:\mission_orchestrator
+
+1. Stop Mission Orchestrator before replacing files.
+2. Back up the repository and production database.
+3. Extract the Stage-3.4.4 full package or patch over D:\mission_orchestrator preserving paths.
+4. Database migration:
+   - Existing required level: 20.
+   - Apply:
+       migrations\021_stage3_4_4_deterministic_route_selection_decision_record.sql
+     to the production MySQL/MariaDB database.
+   - Expected repository migration level after migration: 21.
+   - SQLite test/dev repositories create the equivalent store automatically.
+5. Compile:
+     cd D:\mission_orchestrator
+     python -m compileall -q mission_orchestrator tests
+6. Full regression:
+     python -m pytest -q
+   Expected collection size for this package:
+     636 tests
+   If a shell/session time limit interrupts one complete invocation, run the Stage groups/test modules separately.
+7. Focused Stage-3.4.4 verification:
+     python -m pytest -q tests\test_stage3_4_4_deterministic_route_selection_decision_record.py
+   Expected:
+     50 passed
+8. Focused Stage-3.4 cumulative verification:
+     python -m pytest -q tests\test_stage3_4_1_canonical_subsystem_registry_capability_contract.py tests\test_stage3_4_2_task_routing_intent_candidate_resolution.py tests\test_stage3_4_3_routing_eligibility_compatibility_gate.py tests\test_stage3_4_4_deterministic_route_selection_decision_record.py
+   Expected:
+     130 passed
+9. Start/restart Mission Orchestrator:
+     python .\run\run_mission_orchestrator.py
+10. Verify health:
+     Invoke-RestMethod http://127.0.0.1:8780/health
+   Expected key values:
+     control_version = stage3.4.4-deterministic-route-selection-decision-record
+     mission_repository_migration_level = 21
+     task_routing_intent_database_migration_level = 19
+     task_routing_eligibility_database_migration_level = 20
+     task_route_selection_database_migration_level = 21
+     task_route_selection_policy = STAGE343_ELIGIBLE_CANONICAL_TUPLE_ASC_V1
+     task_route_selection_eligible_candidate_source = STAGE343_ELIGIBLE_CANDIDATES_ONLY
+     task_routing_route_ranking_performed = true
+     task_routing_route_selection_performed = true
+     task_route_selection_selected_route_is_logical_only = true
+     task_route_selection_selection_is_authorization = false
+     task_route_selection_selection_is_runtime_availability = false
+     task_routing_runtime_endpoint_resolution_performed = false
+     task_routing_runtime_health_probe_performed = false
+     task_routing_resource_assignment_performed = false
+     task_routing_governance_query_performed = false
+     task_routing_authorization_granted = false
+     task_routing_delegation_performed = false
+     task_routing_dispatch_performed = false
+     task_routing_target_actuation = false
+     governance_authorization_authority = EXTERNAL_APTS_GSS
+11. Run live/control acceptance:
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE3_4_4_ACCEPTANCE.ps1
+12. Expected final result:
+     STAGE 3.4.4 ACCEPTANCE: PASS
+
+Authority invariants:
+  ELIGIBLE != SELECTED ROUTE
+  SELECTED ROUTE = LOGICAL SUBSYSTEM/CAPABILITY IDENTITY ONLY
+  SELECTED ROUTE != RUNTIME AVAILABILITY
+  SELECTED ROUTE != AUTHORIZATION
+  ROUTE SELECTION != DELEGATION
+  ROUTE SELECTION != DISPATCH
+  ROUTE SELECTION != EXECUTION
+
+Important:
+  Stage 3.4.4 ranks/selects only Stage-3.4.3 ELIGIBLE candidates and writes an immutable decision record.
+  It does not resolve endpoints, probe health, assign resources, query or grant Governance authorization,
+  delegate, dispatch, execute, or actuate.

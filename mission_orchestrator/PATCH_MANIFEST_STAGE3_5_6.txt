@@ -1,0 +1,37 @@
+Stage 3.5.6 — Running Execution State & Heartbeat Projection
+
+Core source changes:
+- mission_orchestrator/execution_running.py                 NEW
+- mission_orchestrator/execution_delivery.py                UPDATED
+- mission_orchestrator/errors.py                            UPDATED
+- mission_orchestrator/repository.py                        UPDATED
+- mission_orchestrator/repository_model.py                  UPDATED
+- mission_orchestrator/mission_events.py                    UPDATED
+- mission_orchestrator/service.py                           UPDATED
+- mission_orchestrator/api_service.py                       UPDATED
+- migrations/032_stage3_5_6_running_execution_state_heartbeat_projection.sql  NEW
+
+Focused regression:
+- tests/test_stage3_5_6_running_execution_state_heartbeat_projection.py       NEW
+
+Compatibility regression:
+- Existing tests rebased to runtime control_version Stage 3.5.6,
+  HTTP server version 3.5.6, repository migration level 32, and the
+  extended supported-control lineage while preserving historical
+  per-stage migration declarations.
+
+Operational artifacts:
+- README_STAGE3_5_6.md
+- PATCH_NOTES_STAGE3_5_6.md
+- INSTALL_STAGE3_5_6.txt
+- PATCH_MANIFEST_STAGE3_5_6.txt
+- REGRESSION_EVIDENCE_STAGE3_5_6.txt
+- SHA256_STAGE3_5_6.txt
+- STAGE3_5_6_ACCEPTANCE.ps1
+
+Final package verification:
+- Python compile: PASS
+- Canonical inventory: 893 tests
+- Full regression: 893 passed in 426.88s
+- Focused Stage 3.5.6: 18 passed in 20.56s
+- Runtime declaration smoke check: PASS

@@ -1,0 +1,19 @@
+{
+  "schema_version": "apts-stage6.10-mission-health-fix-files-v1",
+  "source_archive": "Mission(20261004-082442).zip",
+  "source_archive_sha256": "08ba3cf35d675d0a331f656a73e22d6e202ad9642a7365e3121840a2adf83217",
+  "canonical_runtime_files_restored": [
+    "mission_orchestrator/service.py",
+    "mission_orchestrator/apts_source_binding.py"
+  ],
+  "file_sha256": {
+    "INSTALL_STAGE6_10_MISSION_HEALTH_FIX.txt": "20b8ed53f17424ab9410ae15e3e77a5b838059fa7fe60a922e41fa7e7c437b97",
+    "VALIDATION_STAGE6_10_MISSION_HEALTH_FIX.json": "9d7dec18a67cb6ee4ed91b2db56fef9309ff85cf708c9cdd99d88f0bd79cbeb5",
+    "mission_orchestrator/apts_source_binding.py": "9749392f97e7c2a20376c91cc82e12638edb92cd3671f5c3f688137f604e83c6",
+    "mission_orchestrator/service.py": "c4d06d7ae9e66c45136cfd602f15df817f72c81d5b56daaa2674075b855dcf5b",
+    "run/run_stage6_10_mission.py": "abd8c29fc9347efd9382f3695d565307c5d7d49fa8cc07e1f3f77e78a78c6735",
+    "run/stage6_10_source_binding_check.py": "f05a6321057a79b409ecf489ac3045228ea0278de387b38c1d8bb90cb8b1b1c3"
+  },
+  "requires_fresh_acceptance": true,
+  "stage6_10_deployment_acceptance_proven": false
+}

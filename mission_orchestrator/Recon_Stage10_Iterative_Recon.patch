@@ -1,0 +1,721 @@
+diff --git a/docs/RECON_STAGE10_ITERATION.md b/docs/RECON_STAGE10_ITERATION.md
+new file mode 100644
+index 0000000..d36a7b1
+--- /dev/null
++++ b/docs/RECON_STAGE10_ITERATION.md
+@@ -0,0 +1,25 @@
++# Stage 5.2 Recon iteration (Stage 10)
++
++Stage 5.2 can create a new immutable Recon run from a successful, terminal Stage 6 result. It fetches the result from the configured local Stage 6.6 endpoint; callers cannot submit result or observation content.
++
++## Endpoint
++
++```text
++POST /api/pentest/agentic-orchestrations/{orchestration_id}/reconnaissance/iterations
++```
++
++The JSON body has exactly these fields:
++
++```json
++{
++  "schema_version": "apts-stage5.2-recon-iteration-request-v1",
++  "parent_recon_run_id": "reconrun-…",
++  "action_id": "rareq-…"
++}
++```
++
++The selected action must belong to the selected parent run. Stage 5.2 reads the exact Action Request result at `/api/execution/recon-action-requests/{action_id}/results` from `APTS_STAGE6_RESULT_API_BASE` (default `http://127.0.0.1:8791`). The result must be integrity-valid, latest, terminal, successful, and bound to the same proposal, orchestration, mission, and task; its Stage 6.6 evidence must be sealed.
++
++The new run appends a bounded `RAW_EVIDENCE` observation that references the Stage 6 attempt and sealed evidence manifest. Earlier runs, requests, outputs, and evidence bundles remain unchanged. The Stage 6 result is not an authorization, vulnerability finding, or task completion signal. The iteration endpoint does not execute tools or contact targets.
++
++Repository migration 010 upgrades Stage 5.2's run store to retain multiple runs per orchestration with parent/action/result lineage. Existing runs migrate as iteration 1.
+diff --git a/pentest_migrations/010_stage5_2_recon_iteration.sql b/pentest_migrations/010_stage5_2_recon_iteration.sql
+new file mode 100644
+index 0000000..976191c
+--- /dev/null
++++ b/pentest_migrations/010_stage5_2_recon_iteration.sql
+@@ -0,0 +1,57 @@
++PRAGMA foreign_keys = OFF;
++
++CREATE TABLE pentest_recon_runs_v10 (
++    recon_run_id TEXT PRIMARY KEY,
++    request_id TEXT NOT NULL UNIQUE,
++    idempotency_key TEXT NOT NULL UNIQUE,
++    orchestration_id TEXT NOT NULL,
++    subtask_id TEXT NOT NULL,
++    pentest_task_id TEXT NOT NULL,
++    mission_id TEXT NOT NULL,
++    pentest_id TEXT NOT NULL,
++    agent_id TEXT NOT NULL,
++    capability_id TEXT NOT NULL,
++    run_status TEXT NOT NULL,
++    request_sha256 TEXT NOT NULL,
++    request_json TEXT NOT NULL,
++    output_sha256 TEXT NOT NULL,
++    output_json TEXT NOT NULL,
++    evidence_bundle_sha256 TEXT NOT NULL,
++    evidence_bundle_json TEXT NOT NULL,
++    created_at TEXT NOT NULL,
++    completed_at TEXT NOT NULL,
++    iteration_index INTEGER NOT NULL DEFAULT 1 CHECK (iteration_index >= 1),
++    parent_recon_run_id TEXT,
++    source_action_id TEXT,
++    source_result_sha256 TEXT,
++    UNIQUE (orchestration_id, iteration_index),
++    FOREIGN KEY (orchestration_id) REFERENCES pentest_agentic_orchestrations(orchestration_id) ON DELETE CASCADE,
++    FOREIGN KEY (pentest_task_id) REFERENCES pentest_tasks(pentest_task_id) ON DELETE CASCADE,
++    FOREIGN KEY (parent_recon_run_id) REFERENCES pentest_recon_runs_v10(recon_run_id)
++);
++
++INSERT INTO pentest_recon_runs_v10 (
++    recon_run_id, request_id, idempotency_key, orchestration_id, subtask_id, pentest_task_id,
++    mission_id, pentest_id, agent_id, capability_id, run_status, request_sha256, request_json,
++    output_sha256, output_json, evidence_bundle_sha256, evidence_bundle_json, created_at, completed_at,
++    iteration_index
++)
++SELECT recon_run_id, request_id, idempotency_key, orchestration_id, subtask_id, pentest_task_id,
++       mission_id, pentest_id, agent_id, capability_id, run_status, request_sha256, request_json,
++       output_sha256, output_json, evidence_bundle_sha256, evidence_bundle_json, created_at, completed_at, 1
++FROM pentest_recon_runs;
++
++DROP TABLE pentest_recon_runs;
++ALTER TABLE pentest_recon_runs_v10 RENAME TO pentest_recon_runs;
++CREATE INDEX IF NOT EXISTS idx_pentest_recon_runs_task ON pentest_recon_runs(pentest_task_id, created_at);
++CREATE INDEX IF NOT EXISTS idx_pentest_recon_runs_mission ON pentest_recon_runs(mission_id, created_at);
++CREATE INDEX IF NOT EXISTS idx_pentest_recon_runs_pentest ON pentest_recon_runs(pentest_id, created_at);
++CREATE INDEX IF NOT EXISTS idx_pentest_recon_runs_orchestration_iteration
++    ON pentest_recon_runs(orchestration_id, iteration_index DESC);
++
++UPDATE pentest_repository_meta
++SET migration_level=10, schema_version='apts-pentest-reconnaissance-agent-repository-v10',
++    updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now')
++WHERE repository_id='pentest-local-task-repository';
++
++PRAGMA foreign_keys = ON;
+diff --git a/pentest_subsystem/api_service.py b/pentest_subsystem/api_service.py
+index b20d00d..a12fe25 100644
+--- a/pentest_subsystem/api_service.py
++++ b/pentest_subsystem/api_service.py
+@@ -1454,6 +1454,16 @@ class PentestSubsystemStage52Handler(PentestSubsystemStage51Handler):
+                 return orchestration_id, "get"
+         return None
+ 
++    @staticmethod
++    def _recon_iteration_route(path: str) -> str | None:
++        prefix = "/api/pentest/agentic-orchestrations/"
++        suffix = "/reconnaissance/iterations"
++        if path.startswith(prefix) and path.endswith(suffix):
++            orchestration_id = unquote(path[len(prefix):-len(suffix)])
++            if orchestration_id and "/" not in orchestration_id:
++                return orchestration_id
++        return None
++
+     @staticmethod
+     def _recon_run_route(path: str) -> str | None:
+         prefix = "/api/pentest/reconnaissance-runs/"
+@@ -1535,6 +1545,18 @@ class PentestSubsystemStage52Handler(PentestSubsystemStage51Handler):
+ 
+     def do_POST(self) -> None:  # noqa: N802
+         path = urlparse(self.path).path
++        iteration_orchestration_id = self._recon_iteration_route(path)
++        if iteration_orchestration_id is not None:
++            try:
++                result = self.service.run_reconnaissance_iteration(iteration_orchestration_id, self._read_json())
++                self._send_json(201 if result["created"] else 200, result)
++            except ReconnaissanceAgentNotFound as exc:
++                self._send_json(404, {"status": "not_found", "error": str(exc)})
++            except (ReconnaissanceAgentConflict, ReconnaissanceAgentIntegrityError) as exc:
++                self._send_json(409, {"status": "rejected", "error": str(exc), "execution_started": False})
++            except (ReconnaissanceAgentValidationError, ReconnaissanceAgentRepositoryError) as exc:
++                self._send_json(400, {"status": "invalid", "error": str(exc), "execution_started": False})
++            return
+         if path == "/api/execution/dispatches":
+             self._send_json(409, {
+                 "status": "rejected",
+diff --git a/pentest_subsystem/reconnaissance.py b/pentest_subsystem/reconnaissance.py
+index 7f353d5..0aaa25f 100644
+--- a/pentest_subsystem/reconnaissance.py
++++ b/pentest_subsystem/reconnaissance.py
+@@ -4,10 +4,15 @@ from copy import deepcopy
+ from datetime import datetime, timedelta, timezone
+ import ipaddress
+ import json
++import ipaddress
++import os
+ from pathlib import Path
+ import re
+ import sqlite3
+ from typing import Any, Mapping
++from urllib.error import URLError
++from urllib.request import Request, urlopen
++from urllib.parse import urlsplit
+ 
+ from .boundary_contract import canonical_json, normalize_pentest_boundary_payload, sha256_hex
+ from .governance_contract import (
+@@ -44,8 +49,8 @@ RECONNAISSANCE_RUN_REQUEST_HASH_DOMAIN = "APTS_STAGE5_2_RECONNAISSANCE_RUN_REQUE
+ RECONNAISSANCE_OUTPUT_HASH_DOMAIN = "APTS_STAGE5_2_RECONNAISSANCE_OUTPUT_V1"
+ RECONNAISSANCE_EVIDENCE_HASH_DOMAIN = "APTS_STAGE5_2_RECON_EVIDENCE_BUNDLE_V1"
+ RECONNAISSANCE_RUN_ID_HASH_DOMAIN = "APTS_STAGE5_2_RECON_RUN_ID_V1"
+-RECONNAISSANCE_AGENT_REPOSITORY_MIGRATION_LEVEL = 9
+-RECONNAISSANCE_AGENT_REPOSITORY_SCHEMA_VERSION = "apts-pentest-reconnaissance-agent-repository-v9"
++RECONNAISSANCE_AGENT_REPOSITORY_MIGRATION_LEVEL = 10
++RECONNAISSANCE_AGENT_REPOSITORY_SCHEMA_VERSION = "apts-pentest-reconnaissance-agent-repository-v10"
+ RECONNAISSANCE_AGENT_PREDECESSOR_CONTROL = AGENTIC_PENTEST_ORCHESTRATOR_CONTROL_VERSION
+ RECONNAISSANCE_AGENT_NEXT_STAGE = "5.3"
+ RECONNAISSANCE_AGENT_ID = "PENTEST_RECONNAISSANCE_AGENT"
+@@ -721,13 +726,18 @@ def reconnaissance_run_request_sha256(request: Mapping[str, Any]) -> str:
+     return sha256_hex({"hash_domain": RECONNAISSANCE_RUN_REQUEST_HASH_DOMAIN, "request": dict(request)})
+ 
+ 
+-def deterministic_reconnaissance_run_id(orchestration_id: str) -> str:
++def deterministic_reconnaissance_run_id(orchestration_id: str, iteration_index: int = 1) -> str:
+     orchestration_id = _canonical_id(orchestration_id, "orchestration_id")
+-    digest = sha256_hex({
++    if isinstance(iteration_index, bool) or not isinstance(iteration_index, int) or iteration_index < 1:
++        raise ReconnaissanceAgentValidationError("iteration_index must be a positive integer")
++    seed = {
+         "hash_domain": RECONNAISSANCE_RUN_ID_HASH_DOMAIN,
+         "orchestration_id": orchestration_id,
+         "agent_id": RECONNAISSANCE_AGENT_ID,
+-    })
++    }
++    if iteration_index > 1:
++        seed["iteration_index"] = iteration_index
++    digest = sha256_hex(seed)
+     return f"{RECONNAISSANCE_RUN_ID_PREFIX}{digest[:48]}"
+ 
+ 
+@@ -1027,6 +1037,16 @@ def canonical_reconnaissance_agent_contract() -> dict[str, Any]:
+             "fail_closed_on_scope_mismatch": True,
+             "target_io_performed": False,
+         },
++        "iteration": {
++            "enabled": True,
++            "source": "SERVER_FETCHED_STAGE6_6_SEALED_EXECUTION_RESULT",
++            "parent_run_mutation": False,
++            "requires_latest_terminal_success": True,
++            "requires_action_proposal_binding": True,
++            "requires_scope_and_task_binding": True,
++            "caller_supplied_execution_result_accepted": False,
++            "append_only_run_store": True,
++        },
+         "action_request_contract": canonical_recon_action_request_contract(),
+         "evidence_contract": {
+             "schema_version": RECONNAISSANCE_EVIDENCE_CONTRACT_SCHEMA_VERSION,
+@@ -1054,7 +1074,7 @@ def canonical_reconnaissance_agent_contract() -> dict[str, Any]:
+         },
+         "repository": {
+             "migration_level": RECONNAISSANCE_AGENT_REPOSITORY_MIGRATION_LEVEL,
+-            "migration": "009_stage5_2_reconnaissance_agent.sql",
++            "migration": "010_stage5_2_recon_iteration.sql",
+             "run_store": "pentest_recon_runs",
+             "stage4_9_lineage_store_reused": True,
+             "stage4_8_governance_store_reused": True,
+@@ -1089,6 +1109,9 @@ def canonical_reconnaissance_agent_definition() -> dict[str, Any]:
+         "imported_observation_processing_enabled": True,
+         "action_proposal_generation_enabled": True,
+         "action_request_contract_enabled": True,
++        "iterative_recon_enabled": True,
++        "iteration_requires_stage6_sealed_result": True,
++        "append_only_recon_run_history": True,
+         "scope_roe_evaluation_enabled": True,
+         "stage4_9_lineage_binding_enabled": True,
+         "orchestrator_progress_handoff_enabled": True,
+@@ -1136,6 +1159,17 @@ class ReconnaissanceAgentRepository(AgenticPentestOrchestratorRepository):
+                             raise ReconnaissanceAgentIntegrityError(
+                                 "Stage 5.2 repository metadata is level 9 but pentest_recon_runs is missing"
+                             )
++                        columns = {item[1] for item in probe.execute("PRAGMA table_info(pentest_recon_runs)")}
++                        if not {"iteration_index", "parent_recon_run_id", "source_action_id", "source_result_sha256"}.issubset(columns):
++                            raise ReconnaissanceAgentIntegrityError("Stage 5.2 v10 iteration columns are missing")
++                        self._recon_initialized = True
++                        return
++                    if row is not None and int(row[0]) == 9:
++                        migration = Path(__file__).resolve().parents[1] / "pentest_migrations" / "010_stage5_2_recon_iteration.sql"
++                        if not migration.exists():
++                            raise ReconnaissanceAgentRepositoryError(f"Pentest migration file is missing: {migration}")
++                        with sqlite3.connect(self.sqlite_path) as upgrade:
++                            upgrade.executescript(migration.read_text(encoding="utf-8"))
+                         self._recon_initialized = True
+                         return
+             except sqlite3.DatabaseError as exc:
+@@ -1158,14 +1192,14 @@ class ReconnaissanceAgentRepository(AgenticPentestOrchestratorRepository):
+                     f"{RECONNAISSANCE_AGENT_REPOSITORY_MIGRATION_LEVEL}"
+                 )
+             conn.execute(
+-                "UPDATE pentest_repository_meta SET migration_level=?, schema_version=?, updated_at=? WHERE repository_id=?",
+-                (
+-                    RECONNAISSANCE_AGENT_REPOSITORY_MIGRATION_LEVEL,
+-                    RECONNAISSANCE_AGENT_REPOSITORY_SCHEMA_VERSION,
+-                    _utc_now_z(),
+-                    PENTEST_REPOSITORY_ID,
+-                ),
++                "UPDATE pentest_repository_meta SET migration_level=9, schema_version='apts-pentest-reconnaissance-agent-repository-v9', updated_at=? WHERE repository_id=?",
++                (_utc_now_z(), PENTEST_REPOSITORY_ID),
+             )
++        iteration_migration = Path(__file__).resolve().parents[1] / "pentest_migrations" / "010_stage5_2_recon_iteration.sql"
++        if not iteration_migration.exists():
++            raise ReconnaissanceAgentRepositoryError(f"Pentest migration file is missing: {iteration_migration}")
++        with self._connect() as conn:
++            conn.executescript(iteration_migration.read_text(encoding="utf-8"))
+         self._recon_initialized = True
+ 
+     @staticmethod
+@@ -1182,6 +1216,21 @@ class ReconnaissanceAgentRepository(AgenticPentestOrchestratorRepository):
+             raise ReconnaissanceAgentIntegrityError("stored reconnaissance output failed integrity verification")
+         if not verify_recon_evidence_bundle(bundle) or bundle["integrity"]["canonical_sha256"] != row["evidence_bundle_sha256"]:
+             raise ReconnaissanceAgentIntegrityError("stored reconnaissance evidence bundle failed integrity verification")
++        iteration_index = int(row["iteration_index"])
++        if iteration_index == 1:
++            if any(row[key] is not None for key in ("parent_recon_run_id", "source_action_id", "source_result_sha256")):
++                raise ReconnaissanceAgentIntegrityError("initial Recon run has unexpected iteration lineage")
++        else:
++            iteration = output.get("iteration") or {}
++            if (iteration_index < 2 or not row["parent_recon_run_id"] or not row["source_action_id"]
++                    or not isinstance(row["source_result_sha256"], str)
++                    or not _SHA256_RE.fullmatch(row["source_result_sha256"])
++                    or iteration.get("iteration_index") != iteration_index
++                    or iteration.get("parent_recon_run_id") != row["parent_recon_run_id"]
++                    or iteration.get("source_action_id") != row["source_action_id"]
++                    or iteration.get("source_result_sha256") != row["source_result_sha256"]
++                    or iteration.get("semantics") != {"previous_run_mutated": False, "result_is_authorization": False}):
++                raise ReconnaissanceAgentIntegrityError("stored Recon iteration lineage binding mismatch")
+         return {
+             "recon_run_id": row["recon_run_id"],
+             "request_id": row["request_id"],
+@@ -1194,6 +1243,10 @@ class ReconnaissanceAgentRepository(AgenticPentestOrchestratorRepository):
+             "agent_id": row["agent_id"],
+             "capability_id": row["capability_id"],
+             "run_status": row["run_status"],
++            "iteration_index": iteration_index,
++            "parent_recon_run_id": row["parent_recon_run_id"],
++            "source_action_id": row["source_action_id"],
++            "source_result_sha256": row["source_result_sha256"],
+             "request": request,
+             "request_sha256": row["request_sha256"],
+             "output": output,
+@@ -1211,7 +1264,7 @@ class ReconnaissanceAgentRepository(AgenticPentestOrchestratorRepository):
+     def get_orchestration_recon_run(self, orchestration_id: str) -> dict[str, Any] | None:
+         self.initialize()
+         with self._connect() as conn:
+-            row = conn.execute("SELECT * FROM pentest_recon_runs WHERE orchestration_id=?", (orchestration_id,)).fetchone()
++            row = conn.execute("SELECT * FROM pentest_recon_runs WHERE orchestration_id=? ORDER BY iteration_index DESC LIMIT 1", (orchestration_id,)).fetchone()
+         return None if row is None else self._run_row(row)
+ 
+     def list_recon_runs(
+@@ -1393,7 +1446,7 @@ class ReconnaissanceAgentRepository(AgenticPentestOrchestratorRepository):
+             raise ReconnaissanceAgentIntegrityError("Recon subtask is absent from the active orchestration graph")
+         if current_node.get("specialist", {}).get("agent_id") != RECONNAISSANCE_AGENT_ID:
+             raise ReconnaissanceAgentIntegrityError("Recon subtask is not assigned to the canonical Recon agent")
+-        if current_node.get("status") not in {"READY", "RUNNING"}:
++        if current_node.get("status") not in {"READY", "RUNNING", "SUCCEEDED"}:
+             raise ReconnaissanceAgentConflict(
+                 f"Recon proposal cannot advance from subtask status {current_node.get('status')}"
+             )
+@@ -1697,15 +1750,41 @@ class ReconnaissanceAgentRepository(AgenticPentestOrchestratorRepository):
+                 "reconnaissance output persisted but orchestrator progress handoff failed"
+             ) from exc
+ 
+-    def run_reconnaissance(self, orchestration_id: str, payload: Any) -> tuple[dict[str, Any], bool]:
++    def run_reconnaissance(
++        self, orchestration_id: str, payload: Any, *, iteration_context: Mapping[str, Any] | None = None,
++    ) -> tuple[dict[str, Any], bool]:
+         self.initialize()
+         request = normalize_reconnaissance_run_request(payload)
+         request_sha = reconnaissance_run_request_sha256(request)
+         orchestration = self.get_orchestration(orchestration_id)
+         if orchestration is None:
+             raise ReconnaissanceAgentNotFound(f"unknown orchestration: {orchestration_id}")
+-        run_id = deterministic_reconnaissance_run_id(orchestration_id)
+-        existing = self.get_orchestration_recon_run(orchestration_id)
++        if iteration_context is None:
++            iteration_index = 1
++            parent_run_id = source_action_id = source_result_sha256 = None
++            run_id = deterministic_reconnaissance_run_id(orchestration_id, iteration_index)
++            existing = self.get_orchestration_recon_run(orchestration_id)
++        else:
++            parent_run_id = iteration_context.get("parent_recon_run_id")
++            source_action_id = iteration_context.get("source_action_id")
++            source_result_sha256 = iteration_context.get("source_result_sha256")
++            if not all(isinstance(x, str) and x for x in (parent_run_id, source_action_id, source_result_sha256)):
++                raise ReconnaissanceAgentValidationError("iteration context is incomplete")
++            parent = self.get_recon_run(parent_run_id)
++            latest = self.get_orchestration_recon_run(orchestration_id)
++            if parent is None or latest is None or latest["recon_run_id"] != parent_run_id:
++                raise ReconnaissanceAgentConflict("iteration must extend the latest immutable Recon run")
++            if parent["orchestration_id"] != orchestration_id:
++                raise ReconnaissanceAgentConflict("parent Recon run belongs to another orchestration")
++            if not any(a.get("action_id") == source_action_id for a in parent["output"].get("action_requests", [])):
++                raise ReconnaissanceAgentConflict("Stage 6 result Action Request is not present in the parent Recon run")
++            iteration_index = parent["iteration_index"] + 1
++            run_id = deterministic_reconnaissance_run_id(orchestration_id, iteration_index)
++            with self._connect() as conn:
++                existing_row = conn.execute(
++                    "SELECT * FROM pentest_recon_runs WHERE idempotency_key=?", (request["idempotency_key"],)
++                ).fetchone()
++            existing = None if existing_row is None else self._run_row(existing_row)
+         if existing is not None:
+             if existing["recon_run_id"] != run_id or existing["request_sha256"] != request_sha:
+                 raise ReconnaissanceAgentConflict(
+@@ -1714,14 +1793,15 @@ class ReconnaissanceAgentRepository(AgenticPentestOrchestratorRepository):
+             recon_nodes = [n for n in orchestration["task_graph"]["nodes"] if n["capability_id"] == RECONNAISSANCE_CAPABILITY_ID]
+             if len(recon_nodes) != 1:
+                 raise ReconnaissanceAgentIntegrityError("Stage 5.1 graph must contain exactly one reconnaissance subtask")
+-            self._handoff_recon_success(
+-                orchestration_id=orchestration_id,
+-                node=recon_nodes[0],
+-                run_id=run_id,
+-                output=existing["output"],
+-                bundle=existing["evidence_bundle"],
+-                evidence_refs=[item["evidence_ref"] for item in existing["evidence_bundle"]["lineage_items"]],
+-            )
++            if iteration_context is None:
++                self._handoff_recon_success(
++                    orchestration_id=orchestration_id,
++                    node=recon_nodes[0],
++                    run_id=run_id,
++                    output=existing["output"],
++                    bundle=existing["evidence_bundle"],
++                    evidence_refs=[item["evidence_ref"] for item in existing["evidence_bundle"]["lineage_items"]],
++                )
+             return existing, False
+         if orchestration["orchestration_status"] in {"TERMINATED", "ESCALATED", "COMPLETED"}:
+             raise ReconnaissanceAgentConflict(
+@@ -1733,7 +1813,7 @@ class ReconnaissanceAgentRepository(AgenticPentestOrchestratorRepository):
+         node = recon_nodes[0]
+         if node["specialist"]["agent_id"] != RECONNAISSANCE_AGENT_ID:
+             raise ReconnaissanceAgentIntegrityError("reconnaissance subtask specialist identity mismatch")
+-        if node["status"] not in {"READY", "RUNNING"}:
++        if node["status"] not in {"READY", "RUNNING"} and not (iteration_context is not None and node["status"] == "SUCCEEDED"):
+             raise ReconnaissanceAgentConflict(
+                 f"reconnaissance subtask must be READY or RUNNING; observed {node['status']}"
+             )
+@@ -1810,6 +1890,16 @@ class ReconnaissanceAgentRepository(AgenticPentestOrchestratorRepository):
+             action_requests=action_requests,
+             observation_plan=observation_plan,
+         )
++        if iteration_context is not None:
++            output_core = {key: value for key, value in output.items() if key != "integrity"}
++            output_core["iteration"] = {
++                "iteration_index": iteration_index,
++                "parent_recon_run_id": parent_run_id,
++                "source_action_id": source_action_id,
++                "source_result_sha256": source_result_sha256,
++                "semantics": {"previous_run_mutated": False, "result_is_authorization": False},
++            }
++            output = _with_integrity(output_core, domain=RECONNAISSANCE_OUTPUT_HASH_DOMAIN)
+         bundle = build_recon_evidence_bundle(
+             run_id=run_id,
+             orchestration_id=orchestration_id,
+@@ -1828,8 +1918,9 @@ class ReconnaissanceAgentRepository(AgenticPentestOrchestratorRepository):
+                         recon_run_id, request_id, idempotency_key, orchestration_id, subtask_id,
+                         pentest_task_id, mission_id, pentest_id, agent_id, capability_id,
+                         run_status, request_sha256, request_json, output_sha256, output_json,
+-                        evidence_bundle_sha256, evidence_bundle_json, created_at, completed_at
+-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'COMPLETED', ?, ?, ?, ?, ?, ?, ?, ?)
++                        evidence_bundle_sha256, evidence_bundle_json, created_at, completed_at,
++                        iteration_index, parent_recon_run_id, source_action_id, source_result_sha256
++                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'COMPLETED', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     """,
+                     (
+                         run_id, request["request_id"], request["idempotency_key"], orchestration_id, node["subtask_id"],
+@@ -1837,6 +1928,7 @@ class ReconnaissanceAgentRepository(AgenticPentestOrchestratorRepository):
+                         RECONNAISSANCE_AGENT_ID, RECONNAISSANCE_CAPABILITY_ID,
+                         request_sha, canonical_json(request), output["integrity"]["canonical_sha256"], canonical_json(output),
+                         bundle["integrity"]["canonical_sha256"], canonical_json(bundle), now, now,
++                        iteration_index, parent_run_id, source_action_id, source_result_sha256,
+                     ),
+                 )
+         except sqlite3.IntegrityError as exc:
+@@ -1845,14 +1937,15 @@ class ReconnaissanceAgentRepository(AgenticPentestOrchestratorRepository):
+                 raise ReconnaissanceAgentConflict("reconnaissance run identity/idempotency conflict") from exc
+             return existing, False
+ 
+-        self._handoff_recon_success(
++        if iteration_context is None:
++            self._handoff_recon_success(
+             orchestration_id=orchestration_id,
+             node=node,
+             run_id=run_id,
+             output=output,
+             bundle=bundle,
+             evidence_refs=[item["evidence_ref"] for item in lineage_items],
+-        )
++            )
+         saved = self.get_recon_run(run_id)
+         if saved is None:
+             raise ReconnaissanceAgentRepositoryError("reconnaissance run disappeared after persistence")
+@@ -1862,8 +1955,9 @@ class ReconnaissanceAgentRepository(AgenticPentestOrchestratorRepository):
+ class ReconnaissanceAgentService(AgenticPentestOrchestratorService):
+     repository: ReconnaissanceAgentRepository
+ 
+-    def __init__(self, repository: ReconnaissanceAgentRepository | None = None) -> None:
++    def __init__(self, repository: ReconnaissanceAgentRepository | None = None, *, execution_result_provider=None) -> None:
+         super().__init__(repository or ReconnaissanceAgentRepository())
++        self.execution_result_provider = execution_result_provider
+ 
+     def health(self) -> dict[str, Any]:
+         base = dict(super().health())
+@@ -1886,6 +1980,9 @@ class ReconnaissanceAgentService(AgenticPentestOrchestratorService):
+             "stage5_2_recon_agent_enabled": True,
+             "stage5_2_imported_observation_processing_enabled": True,
+             "stage5_2_recon_evidence_contract_enabled": True,
++            "stage5_2_iterative_recon_enabled": True,
++            "stage5_2_iteration_result_source": "STAGE6_6_SEALED_EXECUTION_RESULT",
++            "stage5_2_recon_run_history_append_only": True,
+             "stage5_2_scope_roe_evaluation_enabled": True,
+             "stage5_2_action_proposal_generation_enabled": True,
+             "stage5_2_orchestrator_progress_handoff_enabled": True,
+@@ -1949,6 +2046,107 @@ class ReconnaissanceAgentService(AgenticPentestOrchestratorService):
+             "next_stage": RECONNAISSANCE_AGENT_NEXT_STAGE,
+         }
+ 
++    def _get_stage6_execution_result(self, action_id: str) -> dict[str, Any]:
++        if self.execution_result_provider is not None:
++            response = self.execution_result_provider(action_id)
++        else:
++            base = os.environ.get("APTS_STAGE6_RESULT_API_BASE", "http://127.0.0.1:8791").rstrip("/")
++            parsed_base = urlsplit(base)
++            try:
++                is_loopback = parsed_base.hostname == "localhost" or (
++                    parsed_base.hostname is not None and ipaddress.ip_address(parsed_base.hostname).is_loopback
++                )
++            except ValueError:
++                is_loopback = False
++            if parsed_base.scheme != "http" or not is_loopback or parsed_base.username or parsed_base.password:
++                raise ReconnaissanceAgentValidationError("Stage 6 result API must use an HTTP loopback endpoint")
++            request = Request(base + "/api/execution/recon-action-requests/" + action_id + "/results",
++                              headers={"Accept": "application/json"}, method="GET")
++            try:
++                with urlopen(request, timeout=5) as handle:
++                    response = json.loads(handle.read().decode("utf-8"))
++            except (URLError, TimeoutError, OSError, ValueError) as exc:
++                raise ReconnaissanceAgentConflict("Stage 6 result source is unavailable or returned invalid JSON") from exc
++        if not isinstance(response, dict) or response.get("action_id") != action_id:
++            raise ReconnaissanceAgentIntegrityError("Stage 6 result response is not bound to the requested Action Request")
++        results = response.get("results")
++        if not isinstance(results, list) or not results:
++            raise ReconnaissanceAgentConflict("Stage 6 has no durable result for this Action Request")
++        from execution_subsystem.execution_result_contract import verify_recon_execution_result
++        for item in results:
++            if not verify_recon_execution_result(item) or item.get("action_id") != action_id:
++                raise ReconnaissanceAgentIntegrityError("Stage 6 returned an invalid or mismatched Recon ExecutionResult")
++        latest = response.get("latest_result")
++        if latest != results[-1] or not latest.get("terminal"):
++            raise ReconnaissanceAgentConflict("Recon iteration requires the latest Stage 6 attempt to be terminal")
++        if latest.get("runtime_state") != "SUCCEEDED" or latest.get("execution_result", {}).get("status") != "SUCCEEDED":
++            raise ReconnaissanceAgentConflict("Recon iteration requires a successful terminal Stage 6 result")
++        if not latest.get("evidence") or latest["evidence"].get("capture_status") != "SEALED":
++            raise ReconnaissanceAgentConflict("Recon iteration requires sealed Stage 6.6 evidence")
++        return latest
++
++    def run_reconnaissance_iteration(self, orchestration_id: str, payload: Any) -> dict[str, Any]:
++        if not isinstance(payload, dict) or set(payload) != {"schema_version", "parent_recon_run_id", "action_id"}:
++            raise ReconnaissanceAgentValidationError("iteration request must contain exactly schema_version, parent_recon_run_id, and action_id")
++        if payload.get("schema_version") != "apts-stage5.2-recon-iteration-request-v1":
++            raise ReconnaissanceAgentValidationError("unsupported Recon iteration schema_version")
++        parent_id = _canonical_id(payload["parent_recon_run_id"], "parent_recon_run_id", prefix=RECONNAISSANCE_RUN_ID_PREFIX)
++        action_id = _canonical_id(payload["action_id"], "action_id", prefix="rareq-")
++        parent = self.repository.get_recon_run(parent_id)
++        if parent is None:
++            raise ReconnaissanceAgentNotFound("parent Recon run was not found")
++        if parent["orchestration_id"] != orchestration_id:
++            raise ReconnaissanceAgentConflict("parent Recon run belongs to another orchestration")
++        action = next((item for item in parent["output"].get("action_requests", []) if item.get("action_id") == action_id), None)
++        if action is None:
++            raise ReconnaissanceAgentConflict("Action Request is not part of the selected parent Recon run")
++        latest = self._get_stage6_execution_result(action_id)
++        if latest.get("proposal_ref") != action["proposal_ref"] or latest.get("orchestration_id") != orchestration_id:
++            raise ReconnaissanceAgentIntegrityError("Stage 6 result proposal or orchestration binding mismatch")
++        if latest.get("mission_id") != parent["mission_id"] or latest.get("task_id") != parent["pentest_task_id"]:
++            raise ReconnaissanceAgentIntegrityError("Stage 6 result mission/task binding mismatch")
++        result_sha = latest["integrity"]["canonical_sha256"]
++        digest = sha256_hex({"parent_recon_run_id": parent_id, "action_id": action_id, "result_sha256": result_sha})
++        prior_observations = list(parent["request"]["observations"])
++        result_observation = {
++            "observation_id": "stage6-result-" + digest[:32],
++            "kind": "RAW_EVIDENCE",
++            "target": {"target_type": action["target_ref"]["target_type"], "target_value": action["target_ref"]["target_value"]},
++            "summary": "A sealed Stage 6 execution result was returned for Recon reassessment.",
++            "attributes": {
++                "runtime_state": latest["runtime_state"],
++                "result_status": latest["execution_result"]["status"],
++                "reason_codes": latest["execution_result"]["reason_codes"],
++                "observation": latest["execution_result"]["observation"],
++                "evidence_id": latest["evidence"]["evidence_id"],
++                "evidence_manifest_sha256": latest["evidence"]["manifest_sha256"],
++            },
++            "confidence": 0.7,
++            "observed_at": _utc_now_z(),
++            "source": {"source_kind": "STAGE6_EXECUTION_RESULT", "source_id": latest["attempt_id"],
++                       "collection_method": "STAGE6_6_SEALED_EVIDENCE"},
++            "raw_evidence_sha256": latest["evidence"]["manifest_sha256"],
++        }
++        new_request = {
++            "schema_version": RECONNAISSANCE_RUN_REQUEST_SCHEMA_VERSION,
++            "request_id": "reconreq-iter-" + digest[:32],
++            "idempotency_key": "idem-reconiter-" + digest[:32],
++            "actor": "STAGE6_RECON_ITERATION",
++            "boundary": parent["request"]["boundary"],
++            "observations": [*prior_observations, result_observation],
++            "metadata": {"iteration": {"parent_recon_run_id": parent_id, "source_action_id": action_id,
++                                         "source_result_sha256": result_sha}},
++        }
++        run, created = self.repository.run_reconnaissance(orchestration_id, new_request, iteration_context={
++            "parent_recon_run_id": parent_id, "source_action_id": action_id,
++            "source_result_sha256": result_sha,
++        })
++        return {"status": "completed" if created else "replayed", "created": created, "replayed": not created,
++                "control_version": RECONNAISSANCE_AGENT_CONTROL_VERSION, "run": run,
++                "previous_run_mutated": False, "execution_started": False,
++                "tool_invocation_performed": False, "external_network_io_performed": False,
++                "target_actuation": False, "authorization_minted": False}
++
+     def get_recon_run(self, recon_run_id: str) -> dict[str, Any] | None:
+         return self.repository.get_recon_run(recon_run_id)
+ 
+diff --git a/tests/test_stage5_2_recon_iteration.py b/tests/test_stage5_2_recon_iteration.py
+new file mode 100644
+index 0000000..dc983dd
+--- /dev/null
++++ b/tests/test_stage5_2_recon_iteration.py
+@@ -0,0 +1,99 @@
++from __future__ import annotations
++
++import sqlite3
++from pathlib import Path
++
++import pytest
++
++from execution_subsystem.execution_contract import with_integrity
++from execution_subsystem.execution_result_contract import RESULT_DOMAIN, build_recon_execution_result
++from pentest_subsystem.orchestration.orchestrator import AgenticPentestOrchestratorRepository
++from pentest_subsystem.reconnaissance import ReconnaissanceAgentConflict, ReconnaissanceAgentRepository, ReconnaissanceAgentService
++from tests.test_stage5_2_reconnaissance_agent import _start_repo, recon_request
++
++
++def test_migration_010_upgrades_existing_stage52_repository(tmp_path):
++    db = tmp_path / "legacy-stage52.db"
++    predecessor = AgenticPentestOrchestratorRepository(db)
++    predecessor.initialize()
++    migration_009 = Path(__file__).resolve().parents[1] / "pentest_migrations" / "009_stage5_2_reconnaissance_agent.sql"
++    with sqlite3.connect(db) as conn:
++        conn.executescript(migration_009.read_text(encoding="utf-8"))
++        conn.execute("UPDATE pentest_repository_meta SET migration_level=9, schema_version='apts-pentest-reconnaissance-agent-repository-v9'")
++    upgraded = ReconnaissanceAgentRepository(db)
++    upgraded.initialize()
++    assert upgraded.migration_level() == 10
++    with sqlite3.connect(db) as conn:
++        columns = {item[1] for item in conn.execute("PRAGMA table_info(pentest_recon_runs)")}
++    assert {"iteration_index", "parent_recon_run_id", "source_action_id", "source_result_sha256"}.issubset(columns)
++
++
++def _stage6_result(action, task, orchestration):
++    attempt = {
++        "attempt_id": "xattempt-stage10",
++        "state": "SUCCEEDED",
++        "head_sha256": "a" * 64,
++        "record": {
++            "mission_id": task["mission_id"], "pentest_id": task["pentest_id"],
++            "task_id": task["pentest_task_id"], "pentest_task_id": task["pentest_task_id"],
++            "execution_id": "exec-stage10", "attempt_number": 1, "retry_of_attempt_id": None,
++            "integrity": {"canonical_sha256": "b" * 64},
++        },
++        "invocation": {"result": {
++            "status": "SUCCEEDED", "reason_codes": [], "observation": {"service": "https", "port": 443},
++            "semantics": {"target_io_uncertain": False}, "integrity": {"canonical_sha256": "c" * 64},
++        }},
++        "events": [{"event_id": "auth-event", "data": {"authorization_id": "auth-stage10"}},
++                   {"event_id": "terminal-event", "data": {}}],
++    }
++    manifest = {"recon_action_id": action["action_id"], "proposal_ref": action["proposal_ref"],
++                "attempt_id": attempt["attempt_id"], "terminal_event_sha256": attempt["head_sha256"],
++                "evidence_id": "xevidence-stage10", "integrity": {"canonical_sha256": "d" * 64},
++                "capture_status": "SEALED", "target_io_uncertain": False, "artifacts": []}
++    result = build_recon_execution_result(action_id=action["action_id"], proposal_ref=action["proposal_ref"],
++        orchestration_id=orchestration["orchestration_id"], item=attempt, manifest=manifest)
++    return with_integrity({key: value for key, value in result.items() if key != "integrity"}, RESULT_DOMAIN)
++
++
++def test_iteration_adds_new_hash_bound_run_and_preserves_parent(tmp_path):
++    repo, boundary, task, orchestration, *_ = _start_repo(tmp_path, "stage10-iteration")
++    parent, _ = repo.run_reconnaissance(orchestration["orchestration_id"],
++        recon_request(boundary, task, "stage10-iteration"))
++    action = parent["output"]["action_requests"][0]
++    result = _stage6_result(action, task, orchestration)
++    service = ReconnaissanceAgentService(repo, execution_result_provider=lambda action_id: {
++        "action_id": action_id, "results": [result], "latest_result": result,
++    })
++
++    iteration = service.run_reconnaissance_iteration(orchestration["orchestration_id"], {
++        "schema_version": "apts-stage5.2-recon-iteration-request-v1",
++        "parent_recon_run_id": parent["recon_run_id"], "action_id": action["action_id"],
++    })["run"]
++
++    assert iteration["recon_run_id"] != parent["recon_run_id"]
++    assert iteration["iteration_index"] == 2
++    assert iteration["parent_recon_run_id"] == parent["recon_run_id"]
++    assert iteration["source_action_id"] == action["action_id"]
++    assert iteration["source_result_sha256"] == result["integrity"]["canonical_sha256"]
++    assert iteration["output"]["iteration"]["semantics"]["previous_run_mutated"] is False
++    assert iteration["request"]["observations"][-1]["source"]["source_kind"] == "STAGE6_EXECUTION_RESULT"
++    assert repo.get_recon_run(parent["recon_run_id"]) == parent
++    assert repo.get_orchestration_recon_run(orchestration["orchestration_id"])["recon_run_id"] == iteration["recon_run_id"]
++
++
++def test_iteration_rejects_unsealed_or_nonterminal_result(tmp_path):
++    repo, boundary, task, orchestration, *_ = _start_repo(tmp_path, "stage10-block")
++    parent, _ = repo.run_reconnaissance(orchestration["orchestration_id"],
++        recon_request(boundary, task, "stage10-block"))
++    action = parent["output"]["action_requests"][0]
++    result = _stage6_result(action, task, orchestration)
++    result["terminal"] = False
++    result = with_integrity({key: value for key, value in result.items() if key != "integrity"}, RESULT_DOMAIN)
++    service = ReconnaissanceAgentService(repo, execution_result_provider=lambda _: {
++        "action_id": action["action_id"], "results": [result], "latest_result": result,
++    })
++    with pytest.raises(ReconnaissanceAgentConflict, match="terminal"):
++        service.run_reconnaissance_iteration(orchestration["orchestration_id"], {
++            "schema_version": "apts-stage5.2-recon-iteration-request-v1",
++            "parent_recon_run_id": parent["recon_run_id"], "action_id": action["action_id"],
++        })
+diff --git a/tests/test_stage5_2_reconnaissance_agent.py b/tests/test_stage5_2_reconnaissance_agent.py
+index 24d3a57..6bca738 100644
+--- a/tests/test_stage5_2_reconnaissance_agent.py
++++ b/tests/test_stage5_2_reconnaissance_agent.py
+@@ -177,7 +177,7 @@ def test_01_contract_binds_stage51_and_migration9_and_roadmap_outputs():
+     assert contract["schema_version"] == RECONNAISSANCE_AGENT_SCHEMA_VERSION
+     assert contract["predecessor"]["control"] == "stage5.1-full-agentic-pentest-workflow-orchestrator"
+     assert contract["predecessor"]["contract_sha256"] == predecessor["integrity"]["canonical_sha256"]
+-    assert contract["repository"]["migration_level"] == RECONNAISSANCE_AGENT_REPOSITORY_MIGRATION_LEVEL == 9
++    assert contract["repository"]["migration_level"] == RECONNAISSANCE_AGENT_REPOSITORY_MIGRATION_LEVEL == 10
+     assert contract["loop"] == ["OBSERVE", "REASON", "PROPOSE", "GOVERN", "ACT", "OBSERVE"]
+     assert contract["outputs"] == ["hosts", "domains", "services", "attack_surface", "raw_evidence", "confidence"]
+     assert contract["next_stage"] == RECONNAISSANCE_AGENT_NEXT_STAGE == "5.3"
+@@ -224,7 +224,7 @@ def test_05_recon_run_identity_is_deterministic():
+ 
+ def test_06_repository_migrates_to_level9_and_creates_recon_store(tmp_path: Path):
+     repo = ReconnaissanceAgentRepository(tmp_path / "pentest.db")
+-    assert repo.migration_level() == 9
++    assert repo.migration_level() == 10
+     with sqlite3.connect(repo.sqlite_path) as conn:
+         tables = {row[0] for row in conn.execute("select name from sqlite_master where type='table'")}
+     assert "pentest_recon_runs" in tables
+@@ -505,7 +505,7 @@ def test_17_restart_preserves_recon_run_and_integrity(tmp_path: Path):
+     second = repo2.get_recon_run(first["recon_run_id"])
+     assert second is not None
+     assert second["output"]["integrity"] == first["output"]["integrity"]
+-    assert repo2.migration_level() == 9
++    assert repo2.migration_level() == 10
+ 
+ 
+ def test_18_persisted_recon_output_tamper_fails_integrity_check(tmp_path: Path):
+@@ -524,7 +524,7 @@ def test_19_health_activates_stage52_and_preserves_non_execution_boundary(tmp_pa
+     service = ReconnaissanceAgentService(ReconnaissanceAgentRepository(tmp_path / "pentest.db"))
+     health = service.health()
+     assert health["control_version"] == CONTROL
+-    assert health["pentest_repository_migration_level"] == 9
++    assert health["pentest_repository_migration_level"] == 10
+     assert health["stage5_2_recon_agent_enabled"] is True
+     assert health["stage5_2_recon_evidence_contract_enabled"] is True
+     assert health["stage5_2_execution_intake_enabled"] is False

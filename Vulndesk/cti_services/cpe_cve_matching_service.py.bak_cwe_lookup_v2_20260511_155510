@@ -1,0 +1,171 @@
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional
+
+from .cpe_utils import Cpe23, clean_version, normalize_cpe_token, version_in_range
+from .db_adapter import DbAdapter
+from .service_registry import ServiceRegistry
+
+
+class CpeCveMatchingService:
+    SERVICE_KEY = "cpe_cve_matching_service"
+
+    def __init__(self, db: Optional[DbAdapter] = None, registry: Optional[ServiceRegistry] = None):
+        self.db = db or DbAdapter()
+        self.registry = registry or ServiceRegistry(self.db)
+
+    def resolve_cpe_candidates(self, cpe_candidates: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        if not self.registry.is_enabled(self.SERVICE_KEY):
+            return []
+        self.registry.update_status(self.SERVICE_KEY, "running")
+        try:
+            out: List[Dict[str, Any]] = []
+            for c in cpe_candidates:
+                out.extend(self.resolve_one(c))
+            self.registry.update_status(self.SERVICE_KEY, "idle")
+            return self._dedupe(out)
+        except Exception as e:
+            self.registry.update_status(self.SERVICE_KEY, "error", str(e))
+            raise
+
+    def resolve_one(self, cpe_candidate: Dict[str, Any]) -> List[Dict[str, Any]]:
+        cpe_uri = cpe_candidate.get("cpe23_uri") or cpe_candidate.get("criteria_uri") or ""
+        parsed = Cpe23.parse(cpe_uri)
+        vendor = normalize_cpe_token(cpe_candidate.get("vendor") or parsed.vendor)
+        product = normalize_cpe_token(cpe_candidate.get("product") or parsed.product)
+        version = clean_version(cpe_candidate.get("version") or parsed.version)
+        exact_rows = self._query_exact_cpe(cpe_uri)
+        rows = exact_rows or self._query_vendor_product(vendor, product)
+        matched = []
+        for row in rows:
+            if not version_in_range(version, row):
+                continue
+            detail = self._build_vulnerability_result(row, cpe_candidate, version)
+            if detail:
+                detail["match_method"] = "cpe_exact" if exact_rows else ("cpe_version_range" if version else "cpe_product_only")
+                detail["match_confidence"] = self._confidence(cpe_candidate, exact=bool(exact_rows), version=bool(version))
+                matched.append(detail)
+        return matched
+
+    def _query_exact_cpe(self, cpe_uri: str) -> List[Dict[str, Any]]:
+        if not cpe_uri or not self.db.table_exists("cpe_matches"):
+            return []
+        return self.db.fetch_all(
+            """
+            SELECT * FROM cpe_matches
+            WHERE criteria_uri = %(cpe_uri)s OR cpe23_uri = %(cpe_uri)s
+            """ if self.db.has_column("cpe_matches", "cpe23_uri") else
+            "SELECT * FROM cpe_matches WHERE criteria_uri = %(cpe_uri)s",
+            {"cpe_uri": cpe_uri},
+        )
+
+    def _query_vendor_product(self, vendor: str, product: str) -> List[Dict[str, Any]]:
+        if not vendor or not product or not self.db.table_exists("cpe_matches"):
+            return []
+        pattern1 = f"cpe:2.3:%:{vendor}:{product}:%"
+        # Some CPE strings may include escaped characters; product-only fallback is still bounded.
+        pattern2 = f"%:{product}:%"
+        return self.db.fetch_all(
+            """
+            SELECT * FROM cpe_matches
+            WHERE criteria_uri LIKE %(pattern1)s OR criteria_uri LIKE %(pattern2)s
+            LIMIT 500
+            """,
+            {"pattern1": pattern1, "pattern2": pattern2},
+        )
+
+    def _build_vulnerability_result(self, cpe_row: Dict[str, Any], cpe_candidate: Dict[str, Any], detected_version: str) -> Optional[Dict[str, Any]]:
+        vulnerability_id = cpe_row.get("vulnerability_id") or cpe_row.get("vuln_id") or cpe_row.get("cve_db_id")
+        if not vulnerability_id:
+            # Fallback: some dumps use cve_id directly on cpe_matches.
+            cve_id = cpe_row.get("cve_id")
+            vuln = self._get_vuln_by_cve(cve_id) if cve_id else None
+        else:
+            vuln = self._get_vuln_by_id(vulnerability_id)
+        if not vuln:
+            return None
+        vuln_id = vuln.get("id") or vulnerability_id
+        cvss = self._get_best_cvss(vuln_id)
+        cwes = self._get_cwes(vuln_id)
+        if not cwes:
+            cwes = [{"cwe_id": None, "cwe_name": None}]
+        out = []
+        for cwe in cwes:
+            out.append({
+                "vulndesk_vulnerability_id": vuln_id,
+                "cve_id": vuln.get("cve_id") or cpe_row.get("cve_id"),
+                "description": vuln.get("description"),
+                "published_date": vuln.get("published_date") or vuln.get("published"),
+                "last_modified_date": vuln.get("last_modified_date") or vuln.get("last_modified"),
+                "cwe_id": cwe.get("cwe_id"),
+                "cwe_name": cwe.get("cwe_name") or cwe.get("name"),
+                "severity": (cvss or {}).get("base_severity") or (cvss or {}).get("severity"),
+                "cvss_score": (cvss or {}).get("base_score") or (cvss or {}).get("score"),
+                "exploitability_score": (cvss or {}).get("exploitability_score"),
+                "impact_score": (cvss or {}).get("impact_score"),
+                "cpe23_uri": cpe_candidate.get("cpe23_uri") or cpe_row.get("criteria_uri"),
+                "criteria_uri": cpe_row.get("criteria_uri"),
+                "source_cpe_candidate_id": cpe_candidate.get("id"),
+                "cpe_candidate_id": cpe_candidate.get("id"),
+                "technology_name": cpe_candidate.get("product") or cpe_candidate.get("technology") or cpe_candidate.get("name"),
+                "technology_version": detected_version or cpe_candidate.get("version"),
+                "cpe_match_row": cpe_row,
+            })
+        # This method returns one row in caller's loop. If multiple CWE, caller can handle list? Simpler: return first; caller calls _explode.
+        return out[0] if out else None
+
+    def _get_vuln_by_id(self, vulnerability_id: Any) -> Optional[Dict[str, Any]]:
+        if not self.db.table_exists("vulnerabilities"):
+            return None
+        return self.db.fetch_one("SELECT * FROM vulnerabilities WHERE id = %(id)s", {"id": vulnerability_id})
+
+    def _get_vuln_by_cve(self, cve_id: str) -> Optional[Dict[str, Any]]:
+        if not cve_id or not self.db.table_exists("vulnerabilities"):
+            return None
+        return self.db.fetch_one("SELECT * FROM vulnerabilities WHERE cve_id = %(cve_id)s", {"cve_id": cve_id})
+
+    def _get_best_cvss(self, vulnerability_id: Any) -> Optional[Dict[str, Any]]:
+        if not vulnerability_id or not self.db.table_exists("cvss_metrics"):
+            return None
+        order_col = "base_score" if self.db.has_column("cvss_metrics", "base_score") else "score"
+        return self.db.fetch_one(
+            f"SELECT * FROM cvss_metrics WHERE vulnerability_id = %(id)s ORDER BY {order_col} DESC LIMIT 1",
+            {"id": vulnerability_id},
+        )
+
+    def _get_cwes(self, vulnerability_id: Any) -> List[Dict[str, Any]]:
+        if not vulnerability_id or not self.db.table_exists("vulnerability_cwes"):
+            return []
+        if self.db.table_exists("cwe_catalog"):
+            name_col = "name" if self.db.has_column("cwe_catalog", "name") else "title"
+            return self.db.fetch_all(
+                f"""
+                SELECT vc.cwe_id, c.{name_col} AS cwe_name
+                FROM vulnerability_cwes vc
+                LEFT JOIN cwe_catalog c ON c.cwe_id = vc.cwe_id
+                WHERE vc.vulnerability_id = %(id)s
+                """,
+                {"id": vulnerability_id},
+            )
+        return self.db.fetch_all(
+            "SELECT cwe_id, NULL AS cwe_name FROM vulnerability_cwes WHERE vulnerability_id = %(id)s",
+            {"id": vulnerability_id},
+        )
+
+    def _confidence(self, cpe_candidate: Dict[str, Any], exact: bool, version: bool) -> float:
+        base = float(cpe_candidate.get("confidence") or 0.5)
+        if exact and version:
+            return min(0.98, max(base, 0.90))
+        if exact:
+            return min(0.90, max(base, 0.80))
+        if version:
+            return min(0.85, max(base, 0.65))
+        return min(0.65, max(base, 0.45))
+
+    def _dedupe(self, rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        best: Dict[tuple, Dict[str, Any]] = {}
+        for r in rows:
+            key = (r.get("cve_id"), r.get("cwe_id"), r.get("source_cpe_candidate_id"))
+            if key not in best or float(r.get("match_confidence") or 0) > float(best[key].get("match_confidence") or 0):
+                best[key] = r
+        return list(best.values())

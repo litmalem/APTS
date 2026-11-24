@@ -1,0 +1,24 @@
+STAGE 3.5.2 INSTALL / VERIFY
+============================
+
+1. Replace the source tree with this patch/full package.
+2. Apply MySQL/MariaDB migration:
+   migrations/028_stage3_5_2_dispatch_eligibility_execution_preconditions.sql
+3. Restart Mission Orchestrator on port 8780.
+4. Verify /health:
+   control_version = stage3.5.2-dispatch-eligibility-execution-preconditions
+   mission_repository_migration_level = 28
+   dispatch_eligibility_database_migration_level = 28
+5. Run:
+   python -m compileall -q mission_orchestrator tests
+   python -m pytest -q tests/test_stage3_5_2_dispatch_eligibility_execution_preconditions.py
+   python -m pytest -q
+6. On Windows PowerShell, use:
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_5_2_ACCEPTANCE.ps1
+
+IMPORTANT AUTHORITY BOUNDARY
+----------------------------
+A PASSED Stage-3.5.2 gate means only that the immutable dispatch identity is eligible
+for the later authoritative pre-dispatch Governance revalidation step. It is NOT an
+execution authorization and does not perform dispatch or target actuation.

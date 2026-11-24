@@ -1,0 +1,111 @@
+Stage 3.1.7 - Mission Persistence & Repository Model
+====================================================
+
+Scope of patch
+--------------
+Apply this patch to D:\mission_orchestrator only.
+No Stage-3.1.7 source-code change is required in VulnDesk or aptsGSS.
+
+1. Stop Mission Orchestrator
+----------------------------
+Stop the running mission_orchestrator service before replacing files.
+
+2. Back up
+----------
+Back up:
+
+   D:\mission_orchestrator
+
+and the Mission Orchestrator database.
+
+Do not overwrite your existing data\mission_orchestrator.db with a database from another machine.
+The Stage-3.1.7 patch ZIP intentionally does not contain a runtime database.
+
+3. Extract/copy the Stage-3.1.7 patch
+------------------------------------
+Extract the supplied patch over:
+
+   D:\mission_orchestrator
+
+Preserve the existing runtime database and environment configuration.
+
+4. SQLite local mode
+--------------------
+No manual SQL command is required. Repository startup creates/updates:
+
+   mission_repository_metadata
+
+The existing mission data remains in place.
+
+5. MariaDB/MySQL mode
+---------------------
+Apply migration 007 after migrations 001-006:
+
+   cd D:\mission_orchestrator
+   mysql -u root -p < .\migrations\007_stage3_1_7_mission_persistence_repository_model.sql
+
+6. Preserve current runtime configuration
+-----------------------------------------
+If you use the existing services, retain for example:
+
+   $env:MISSION_GOVERNANCE_BASE_URL = "http://127.0.0.1:8770"
+   $env:MISSION_GOVERNANCE_TIMEOUT_SECONDS = "3.0"
+   $env:MISSION_CTI_BASE_URL = "http://127.0.0.1:8765"
+   $env:MISSION_CTI_TIMEOUT_SECONDS = "5.0"
+
+Stage 3.1.7 repository reconstruction itself is local-only and does not query these authorities.
+
+7. Run regression before service start
+--------------------------------------
+
+   cd D:\mission_orchestrator
+   python -m compileall -q mission_orchestrator tests
+   python -m pytest -q
+
+Expected result:
+
+   82 passed
+
+8. Start Mission Orchestrator
+-----------------------------
+
+   cd D:\mission_orchestrator
+   python .\run\run_mission_orchestrator.py --host 127.0.0.1 --port 8780
+
+9. Verify Stage-3.1.7 health
+----------------------------
+
+   Invoke-RestMethod http://127.0.0.1:8780/health
+
+Expected key values:
+
+   control_version                            = stage3.1.7-mission-persistence-repository-model
+   mission_repository_schema_version          = apts-mission-repository-v1
+   mission_persistence_manifest_schema_version = apts-mission-persistence-manifest-v1
+   mission_repository_migration_level         = 7
+   mission_repository_read_model_enabled      = True
+   dispatch_enabled                           = False
+   target_action_dispatch_enabled             = False
+   target_actuation                           = False
+
+10. Run Stage-3.1.7 acceptance
+------------------------------
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_1_7_ACCEPTANCE.ps1
+
+Optional explicit endpoint:
+
+   .\STAGE3_1_7_ACCEPTANCE.ps1 -MissionBaseUrl "http://127.0.0.1:8780"
+
+Expected final line:
+
+   STAGE 3.1.7 ACCEPTANCE: PASS
+
+Safety / authority notes
+------------------------
+- The Mission Orchestrator database is the durable source of truth only for APTS-MO01-owned canonical mission artifacts.
+- Persisted Governance bindings do not replace aptsGSS authority.
+- Repository reconstruction does not claim ownership of CTI state_version or plan_version.
+- Integrity failure is fail-closed; corrupted canonical persistence is not silently repaired.
+- Target-action dispatch and target actuation remain disabled.

@@ -1,0 +1,55 @@
+STAGE 6.10 HOTFIX 1 — COLLECTION BOOTSTRAP AND DIAGNOSTICS
+
+Apply this overlay after APTS_Stage6_10_Patch.zip in D:\mission_orchestrator.
+The reported failure occurred during GSS pytest collection, after live preflight
+and the native sandbox probe had succeeded. The supplied console output does
+not contain the underlying GSS traceback; its exact local cause is unresolved.
+
+This hotfix:
+  - fixes component cwd/rootdir and limits collection to canonical tests/;
+  - isolates pytest from unrelated ancestor config/conftest and env plugins;
+  - resolves GSS partial Mission copies and run.py through the complete Mission;
+  - normalizes Windows separators only in node filenames;
+  - uses UTF-8 for subprocess output;
+  - prints the actual pytest traceback, exit code and interpreter on failure;
+  - records dependency versions and source paths beside each collection log;
+  - retains exact locked inventory, JUnit coverage and zero failure/error/skip;
+  - supports -PythonExecutable for a selected backend interpreter.
+
+1. Extract APTS_Stage6_10_Hotfix1.zip into D:\mission_orchestrator and replace
+   the included harness files. Existing Stage 6.10 services can keep running.
+
+2. Install backend requirements in the Python environment that runs acceptance:
+      cd D:\mission_orchestrator
+      python -m pip install -r requirements-stage6_10.txt
+   GSS collection imports python-dotenv and Pydantic 2; VulnDesk also requires
+   requests and SQLAlchemy. A healthy GSS server can use another environment,
+   so preflight alone does not prove these modules exist for the test runner.
+
+3. Repeat acceptance using the source folders from the reported command:
+      Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+      .\STAGE6_10_ACCEPTANCE.ps1 -GssRoot D:\aptsGS -VulndeskRoot D:\Vulndesk
+   A fresh evidence directory is allocated automatically.
+
+   If the backend interpreter is in a virtual environment, install and run
+   using that same interpreter. For example, adapt this path if necessary:
+      & "D:\mission_orchestrator\.venv\Scripts\python.exe" -m pip install -r requirements-stage6_10.txt
+      .\STAGE6_10_ACCEPTANCE.ps1 -GssRoot D:\aptsGS -VulndeskRoot D:\Vulndesk -PythonExecutable "D:\mission_orchestrator\.venv\Scripts\python.exe"
+
+4. On collection failure, the terminal now displays the underlying error.
+   Its complete log and interpreter/dependency context are saved under:
+      <new-evidence-directory>\regression\gss_inventory.log
+      <new-evidence-directory>\regression\gss_inventory_context.json
+   For the original failed run, the existing log can be read with:
+      Get-Content -LiteralPath "D:\mission_orchestrator\evidence\stage6_10\acceptance-35dca054d93c492ea29c22e7e5567656\regression\gss_inventory.log" -Tail 100
+   A missing/incompatible module must be corrected in the printed interpreter.
+   An inventory mismatch must be resolved against the supplied source baseline;
+   the harness prints missing/unexpected node samples and does not lower the gate.
+
+Standalone GSS collection diagnosis (does not prove acceptance):
+      python run\stage6_10_pytest.py D:\aptsGS D:\mission_orchestrator --collect-only -q tests
+Expected supplied GSS inventory: 130 tests, including all 72 copied Stage 6.9
+tests and 58 native GSS tests.
+
+Validation and included evidence are documented in BUILD_VALIDATION_STAGE6_10_HOTFIX1.txt.
+Windows/Job Object deployment acceptance must still be verified on the local PC.

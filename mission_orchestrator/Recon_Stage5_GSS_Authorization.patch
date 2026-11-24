@@ -1,0 +1,211 @@
+diff --git a/execution_subsystem/authorization_contract.py b/execution_subsystem/authorization_contract.py
+index 75654f0e13469099be4503f68520784aaa0f22f6..6c962c8ff33c790aae7f0297a665a591375e3921 100644
+--- a/execution_subsystem/authorization_contract.py
++++ b/execution_subsystem/authorization_contract.py
+@@ -125,6 +125,8 @@ def canonical_execution_authorization_contract() -> dict[str, Any]:
+                       "configured_endpoint_only": True, "redirects_allowed": False,
+                       "remote_https_required": True, "hash_is_authentication": False},
+         "source": {"mission_migration_level": 53, "pentest_migration_level": 16,
++                   "supported_source_types": ["PERSISTED_STAGE5_6_EXPLOIT_ACTION_PROPOSAL",
++                                              "STAGE5_2_RECON_ACTION_REQUEST"],
+                    "mission_and_pentest_read_only": True, "mission_state_required": "RUNNING",
+                    "recheck_sources_after_governance": True},
+         "repository": {"migration_level": AUTHORIZATION_MIGRATION_LEVEL,
+diff --git a/execution_subsystem/authorization_service.py b/execution_subsystem/authorization_service.py
+index 1f8f182629aa912692b625e5eaba41f8041d9d15..751aaaf7026c8d38912d80c035925f3fbcd62f00 100644
+--- a/execution_subsystem/authorization_service.py
++++ b/execution_subsystem/authorization_service.py
+@@ -54,6 +54,7 @@ class ExecutionAuthorizationService(ExecutionRequestService):
+             "stage6_2_contract_sha256": contract["integrity"]["canonical_sha256"],
+             "stage6_2_predecessor_control": contract["predecessor"]["control"],
+             "stage6_2_predecessor_contract_sha256": contract["predecessor"]["contract_sha256"],
++            "supported_execution_request_sources": contract["source"]["supported_source_types"],
+             "mission_source_ready": ready, "mission_source_read_only": True,
+             "mission_repository_migration_level": level,
+             "authoritative_execution_authorization_gate_enabled": True,
+diff --git a/execution_subsystem/authorization_source.py b/execution_subsystem/authorization_source.py
+index 9da6969661a4783a98d25c25a1cc9dea235d5ff5..885006f8567a8f2da63ceac64c8e25ef617d73e7 100644
+--- a/execution_subsystem/authorization_source.py
++++ b/execution_subsystem/authorization_source.py
+@@ -11,6 +11,8 @@ from typing import Any
+ 
+ from mission_orchestrator.governance_binding import verify_binding_contract, resource_in_canonical_scope
+ from mission_orchestrator.scope_contract import verify_contract
++from pentest_subsystem.reconnaissance import ReconnaissanceAgentRepository
++from pentest_subsystem.task_repository import PentestTaskRepository
+ 
+ from .authorization_contract import parse_time
+ from .execution_contract import (
+@@ -22,16 +24,31 @@ from .proposal_source import PentestProposalSource
+ 
+ class ExecutionAuthorizationProposalSource(PentestProposalSource):
+     def current_context(self, envelope: dict[str, Any]) -> dict[str, Any]:
+-        if envelope.get("intake", {}).get("schema_version") == "apts-execution-request-intake-v2":
+-            raise ExecutionSourceRejected(
+-                "Stage 6.2 Recon source revalidation is not enabled; no GSS decision can be requested from this Stage 6.1 envelope yet"
+-            )
+         try:
+             with closing(self._connect()) as conn:
+                 self._migration(conn)
+-                current = self._build(conn, envelope["intake"])
++                intake = envelope["intake"]
++                current = self._build(conn, intake)
+                 if canonical_json(current) != canonical_json(envelope):
+                     raise ExecutionSourceRejected("persisted proposal no longer matches the execution envelope")
++                if intake.get("schema_version") == "apts-execution-request-intake-v2":
++                    # _build_recon revalidates the persisted Action Request, task artifact,
++                    # current scope/RoE snapshots, capability registry, orchestration node,
++                    # task lifecycle, and evidence lineage before returning this context.
++                    run_id = self._recon_run_id_for_action(conn, intake["recon_action_id"])
++                    run = self._one(conn, "pentest_recon_runs", "recon_run_id", run_id)
++                    run_record = ReconnaissanceAgentRepository._run_row(run)
++                    task_row = self._one(conn, "pentest_tasks", "pentest_task_id", run_record["pentest_task_id"])
++                    task_record = PentestTaskRepository._row_to_record(task_row)
++                    orchestration = self._one(conn, "pentest_agentic_orchestrations", "orchestration_id",
++                                              run_record["orchestration_id"])
++                    if orchestration["orchestration_status"] != "ACTIVE":
++                        raise ExecutionSourceRejected("Recon orchestration is no longer active")
++                    return {"boundary": run_record["request"]["boundary"],
++                            "task": task_record["task"],
++                            "orchestration_status": orchestration["orchestration_status"],
++                            "source_type": "STAGE5_2_RECON_ACTION_REQUEST",
++                            "recon_action_id": intake["recon_action_id"]}
+                 run = self._one(conn, "pentest_exploitation_runs", "exploitation_run_id", envelope["intake"]["exploitation_run_id"])
+                 run_request = json.loads(run["request_json"])
+                 task = self._one(conn, "pentest_tasks", "pentest_task_id", envelope["source_binding"]["pentest_task_id"])
+diff --git a/tests/test_stage6_1_recon_action_request_source.py b/tests/test_stage6_1_recon_action_request_source.py
+index 25c8d8a564962d5c3b19d67f1cdfee3558d0c407..19e663ee5f55fb544eefbb3deee5d8d25392ce83 100644
+--- a/tests/test_stage6_1_recon_action_request_source.py
++++ b/tests/test_stage6_1_recon_action_request_source.py
+@@ -69,10 +69,13 @@ def test_recon_source_hash_tampering_is_rejected_without_materializing_a_request
+     assert service.repository.list_requests() == []
+ 
+ 
+-def test_recon_envelope_fails_closed_at_unimplemented_later_stage_gates(recon_source):
++def test_recon_envelope_reaches_stage62_but_stage67_remains_closed(recon_source):
+     _, _, intake, service = recon_source
+     envelope = service.create_request(intake)["envelope"]
+-    with pytest.raises(ExecutionSourceRejected, match="Stage 6.2 Recon source revalidation is not enabled"):
+-        ExecutionAuthorizationProposalSource(service.proposal_source.sqlite_path).current_context(envelope)
++    # Stage 6.2 uses a dedicated Mission source and is covered end-to-end in
++    # test_stage6_2_recon_action_request_authorization.py. At this boundary the
++    # Pentest source accepts only an intact, persisted Recon envelope.
++    current = ExecutionAuthorizationProposalSource(service.proposal_source.sqlite_path).current_context(envelope)
++    assert current["source_type"] == "STAGE5_2_RECON_ACTION_REQUEST"
+     with pytest.raises(ExecutionSourceRejected, match="Stage 6.7 VEP source snapshots for Recon requests are not enabled"):
+         PentestVEPSource(service.proposal_source.sqlite_path).snapshot(envelope)
+diff --git a/tests/test_stage6_2_recon_action_request_authorization.py b/tests/test_stage6_2_recon_action_request_authorization.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..ca19901ba3d1d0fc29e5a0aa38255ff4a39ad4c8
+--- /dev/null
++++ b/tests/test_stage6_2_recon_action_request_authorization.py
+@@ -0,0 +1,109 @@
++from __future__ import annotations
++
++import sqlite3
++
++import pytest
++
++from execution_subsystem.authorization_contract import AUTHORIZATION_INTAKE_SCHEMA
++from execution_subsystem.authorization_repository import ExecutionAuthorizationRepository
++from execution_subsystem.authorization_service import ExecutionAuthorizationService
++from execution_subsystem.authorization_source import ExecutionAuthorizationProposalSource, MissionAuthorizationSource
++from execution_subsystem.execution_contract import ExecutionRequestIntegrityError, ExecutionSourceRejected
++from execution_subsystem.request_repository import ExecutionRequestRepository
++from execution_subsystem.request_service import ExecutionRequestService
++from execution_subsystem.proposal_source import PentestProposalSource
++from tests.test_stage6_2_authoritative_execution_authorization import FakeAuthority, NOW, seed_mission
++from tests.test_stage5_9_governance_bound_multi_agent_pentest_e2e import _pipeline
++
++
++@pytest.fixture
++def recon_authorization(tmp_path):
++    pentest_repo, boundary, _, _, runs = _pipeline(tmp_path, "stage62-recon", through_stage="5.2")
++    pentest_db = pentest_repo.sqlite_path
++    mission_db = tmp_path / "mission.db"
++    seed_mission(mission_db, boundary)
++
++    action = runs["5.2"]["output"]["action_requests"][0]
++    intake = {
++        "schema_version": "apts-execution-request-intake-v2",
++        "source_type": "STAGE5_2_RECON_ACTION_REQUEST",
++        "request_id": "ereq-stage62-recon",
++        "idempotency_key": "idem-stage62-recon",
++        "recon_action_id": action["action_id"],
++        "recon_request_sha256": action["integrity"]["canonical_sha256"],
++    }
++    request_service = ExecutionRequestService(
++        ExecutionRequestRepository(tmp_path / "execution.db"), PentestProposalSource(pentest_db))
++    request = request_service.create_request(intake)
++    auth_intake = {
++        "schema_version": AUTHORIZATION_INTAKE_SCHEMA,
++        "revalidation_id": "eauthreq-stage62-recon",
++        "idempotency_key": "idem-auth-stage62-recon",
++        "execution_id": request["execution_id"],
++        "envelope_sha256": request["envelope"]["integrity"]["canonical_sha256"],
++        "requested_by": "stage62-recon-test",
++    }
++    authority = FakeAuthority()
++    service = ExecutionAuthorizationService(
++        ExecutionAuthorizationRepository(tmp_path / "execution.db"),
++        ExecutionAuthorizationProposalSource(pentest_db), MissionAuthorizationSource(mission_db),
++        authority, clock=lambda: NOW)
++    return service, auth_intake, authority, request, pentest_db
++
++
++def test_recon_action_request_gets_fresh_action_bound_gss_decision(recon_authorization):
++    service, intake, authority, request, _ = recon_authorization
++    result = service.authorize_execution(intake)
++    record = result["record"]
++    evaluated = authority.calls[0]
++    assert result["created"] is True
++    assert result["governance_query_performed"] is True
++    assert evaluated["context"]["execution_authorization_evaluation"]["execution_request"] == request["envelope"]["execution_request"]
++    assert evaluated["action_class"] == "TARGET_RECON"
++    assert evaluated["resource_value"] == request["envelope"]["execution_request"]["target"]["target_value"]
++    assert record["decision"] == "ALLOW"
++    assert record["checks"] == {key: "PASS" for key in record["checks"]}
++    assert record["semantics"]["dispatch_performed"] is False
++    assert record["semantics"]["target_network_io_performed"] is False
++
++
++@pytest.mark.parametrize("decision", ["DENY", "REVIEW"])
++def test_gss_deny_or_review_is_preserved_for_recon_action(recon_authorization, decision):
++    service, intake, authority, _, _ = recon_authorization
++    authority.decision = decision
++    result = service.authorize_execution(intake)
++    assert result["record"]["decision"] == decision
++    assert result["execution_authorized"] is False
++    assert len(authority.calls) == 1
++
++
++@pytest.mark.parametrize("mutation", ["orchestration", "task_scope"])
++def test_changed_recon_lifecycle_or_scope_blocks_gss_query(recon_authorization, mutation):
++    service, intake, authority, _, pentest_db = recon_authorization
++    with sqlite3.connect(pentest_db) as conn:
++        if mutation == "orchestration":
++            conn.execute("UPDATE pentest_agentic_orchestrations SET orchestration_status='TERMINATED'")
++        else:
++            row = conn.execute("SELECT pentest_task_id, task_json FROM pentest_tasks").fetchone()
++            import json
++            task = json.loads(row[1])
++            task["scope"]["targets"] = []
++            conn.execute("UPDATE pentest_tasks SET task_json=? WHERE pentest_task_id=?",
++                         (json.dumps(task, sort_keys=True, separators=(",", ":")), row[0]))
++    with pytest.raises((ExecutionSourceRejected, ExecutionRequestIntegrityError)):
++        service.authorize_execution(intake)
++    assert authority.calls == []
++
++
++def test_gss_unavailable_does_not_create_authorization_or_fall_back_to_old_allow(recon_authorization, monkeypatch):
++    service, intake, authority, _, _ = recon_authorization
++    service.authorize_execution(intake)
++    def unavailable(_):
++        from execution_subsystem.authorization_contract import ExecutionGovernanceUnavailable
++        raise ExecutionGovernanceUnavailable("offline")
++    monkeypatch.setattr(authority, "evaluate_authorization", unavailable)
++    fresh = {**intake, "revalidation_id": "eauthreq-recon-fresh", "idempotency_key": "idem-auth-recon-fresh"}
++    from execution_subsystem.authorization_contract import ExecutionGovernanceUnavailable
++    with pytest.raises(ExecutionGovernanceUnavailable):
++        service.authorize_execution(fresh)
++    assert len(service.repository.list_authorizations(intake["execution_id"])) == 1

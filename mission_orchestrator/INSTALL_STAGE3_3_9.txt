@@ -1,0 +1,47 @@
+Stage 3.3.9 - Planning Event Lineage, Replay & Recovery
+Installation / Regression Steps
+======================================================
+
+Target repository:
+  D:\mission_orchestrator
+
+1. Stop the Mission Orchestrator before replacing files.
+2. Back up the repository and production database.
+3. Extract the Stage-3.3.9 patch over D:\mission_orchestrator preserving paths.
+4. Database migration:
+   - Existing required level: 16.
+   - Apply migrations\017_stage3_3_9_planning_event_lineage_replay_recovery.sql
+     to the production MySQL database.
+   - Expected repository migration level after migration: 17.
+   - SQLite test/dev repositories create the equivalent table automatically.
+5. Compile:
+     cd D:\mission_orchestrator
+     python -m compileall -q mission_orchestrator tests
+6. Full regression:
+     python -m pytest -q
+   Expected collected/pass baseline: 494 tests.
+7. Start/restart Mission Orchestrator:
+     python .\run\run_mission_orchestrator.py
+8. Verify health in another PowerShell:
+     Invoke-RestMethod http://127.0.0.1:8780/health
+   Expected:
+     control_version = stage3.3.9-planning-event-lineage-replay-recovery
+     mission_repository_migration_level = 17
+9. Run live acceptance:
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE3_3_9_ACCEPTANCE.ps1
+10. Expected final result:
+     STAGE 3.3.9 ACCEPTANCE: PASS
+
+Authority boundary after Stage 3.3.9:
+  PLAN      != AUTHORIZATION
+  TASK      != DISPATCH
+  READINESS != PERMISSION
+  PLANNER   != GOVERNANCE
+  REPLAY    != EXECUTION
+  RECOVERY  != AUTHORIZATION
+  Governance authority = EXTERNAL_APTS_GSS
+  planner rerun during recovery = false
+  external model/network I/O during recovery = false
+  target-action dispatch = false
+  target actuation = false

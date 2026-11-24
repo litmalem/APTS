@@ -1,0 +1,104 @@
+STAGE 3.6.2 — TASK TERMINALITY & COMPLETION ELIGIBILITY
+PACKAGE-CONSTRUCTION VERIFICATION EVIDENCE
+======================================================================
+
+Runtime/control target
+----------------------
+control_version            : stage3.6.2-task-terminality-completion-eligibility
+server_version             : APTSMissionOrchestrator/3.6.2
+repository migration       : 37
+new durable store          : mission_task_terminality_eligibility_gates
+identity prefix            : telig-
+gate status                : EVALUATED
+
+Canonical test inventory
+------------------------
+Command:
+  python -m pytest --collect-only -q tests
+
+Observed:
+  1002 tests collected
+
+Result:
+  PASS — exact expected inventory 1002
+
+Python compilation
+------------------
+Command:
+  python -m compileall -q mission_orchestrator tests
+
+Result:
+  PASS
+
+Focused Stage 3.6.1 + 3.6.2
+---------------------------
+Command:
+  python -m pytest -q tests/test_stage3_6_1_canonical_task_outcome_contract_identity.py tests/test_stage3_6_2_task_terminality_completion_eligibility.py
+
+Observed:
+  39 passed in 10.53s
+
+Result:
+  PASS
+
+Health/migration regression subset
+----------------------------------
+Commands:
+  python -m pytest -q -k 'supported_control or migration' -x
+  python -m pytest -q -k 'health' -x
+
+Observed:
+  45 passed, 957 deselected
+  57 passed, 945 deselected
+
+Result:
+  PASS
+
+Full regression in package-construction environment
+---------------------------------------------------
+A complete sequential 1002-test regression is NOT claimed by this package-construction run.
+The suite is long-running in the sandbox. After historical control/migration assertions were
+rebased, a sequential run progressed beyond 23 percent without a failure before the sandbox
+command timeout. The authoritative target-host acceptance command is:
+
+  .\STAGE3_6_2_ACCEPTANCE.ps1
+
+That harness prints STAGE 3.6.2 ACCEPTANCE: PASS only after the complete 1002-test regression,
+the focused 20-test Stage-3.6.2 proof, and all runtime/migration/authority-boundary checks pass.
+
+Focused Stage-3.6.2 evidence
+----------------------------
+- immutable telig-* contract and canonical SHA-256 verification;
+- exact binding to the active Plan and Stage-3.6.1 toutcome-* source;
+- deterministic classification of VERIFIED_COMPLETED/FAILED/CANCELLED/TIMED_OUT;
+- only VERIFIED_COMPLETED is completion-eligible;
+- stale Mission version, stale Plan hash, stale outcome hash, and missing source fail closed;
+- caller-supplied terminality/eligibility/acceptance/completion/side-effect fields rejected;
+- exact idempotent replay without duplicate gate/event;
+- one immutable gate per Stage-3.6.1 outcome;
+- no Governance or runtime contact during evaluation/replay;
+- restart preserves the same durable gate;
+- exactly-once MISSION_TASK_TERMINALITY_COMPLETION_ELIGIBILITY_EVALUATED event;
+- repository manifest/integrity includes task_terminality_completion_eligibility_store;
+- persisted-column tampering is detected;
+- migration 037 and API routes are registered;
+- acceptance, completion commit, task transition, dependency release, readiness recalculation,
+  Plan progression, Mission completion, redispatch, new execution attempts, external network I/O,
+  target actuation, and Mission state transition remain outside Stage 3.6.2.
+
+Clean patch-application verification
+------------------------------------
+Procedure:
+  1. copy the original supplied Stage-3.6.1 tree to a clean verification directory;
+  2. overlay Mission_STAGE3_6_2_TASK_TERMINALITY_COMPLETION_ELIGIBILITY_PATCH.zip;
+  3. compile source/tests;
+  4. run Stage-3.6.1 + Stage-3.6.2 focused tests;
+  5. collect the canonical pytest inventory.
+
+Observed:
+  Python compilation: PASS
+  Stage 3.6.1 + 3.6.2: 39 passed in 12.27s
+  Canonical inventory: 1002 tests collected in 0.96s
+
+Result:
+  PASS — the Stage-3.6.2 delta is self-contained relative to the supplied Stage-3.6.1 baseline.

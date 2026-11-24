@@ -1,0 +1,64 @@
+Stage 3.9.7 local source qualification (2026-09-28)
+==================================================
+
+Snapshot input: Mission(20260928-084932).zip
+Snapshot SHA-256: 6495d83fda0f2669ac9b7a8f53d5c403c98bdf71beec6355878aff099d52a04a
+Control: stage3.9.7-adaptation-replanning-e2e-scenario
+Repository migration: 53 (unchanged)
+
+Local static / collection qualification:
+  python -m compileall -q mission_orchestrator run tests : PASS
+  pytest --collect-only -q                           : 1531 tests collected
+
+Focused Stage 3.9.7 qualification:
+  tests 01-04 : 4 passed in 8.49s
+  tests 05-08 : 4 passed in 11.89s
+  tests 09-12 : 4 passed in 12.01s
+  tests 13-16 : 4 passed in 12.58s
+  Result      : all 16 focused Stage 3.9.7 nodes PASS
+
+Compatibility / predecessor probes:
+  Stage 3.9.4 full focused file : 12 passed in 9.53s
+  Stage 3.9.6 full focused file : 15 passed in 33.29s
+  Stage 3.9.1-3.9.7 health/control assertions : 7 passed in 3.90s
+
+Existing Stage 3.7 authority regression was also started across the adaptation
+trigger, eligibility, snapshot, candidate, validation, commit, and handoff files.
+The sandbox command ceiling was reached after 36 passing test nodes and before an
+aggregate summary; no failure had been emitted. No uninterrupted aggregate Stage
+3.7 or full historical-suite PASS is claimed from this sandbox run.
+
+A canonical Stage 3.9.7 runtime smoke trajectory qualified successfully with:
+  qualification status        = QUALIFIED
+  failed checks               = []
+  mission events              = 49
+  replan events               = 9
+  mission state               = RUNNING(v4)
+  source plan                 = v1
+  active successor plan       = v2
+  successor tasks             = analyze-cti, report-findings
+  candidate dependency edges = 1
+  satisfied predecessors      = 1
+  eligibility                 = ELIGIBLE
+  validation                  = VALIDATED_FOR_COMMIT
+  commit                      = COMMITTED_SUCCESSOR_PLAN
+  handoff                     = HANDOFF_READY
+  next control                = STAGE3_4_ROUTING_THEN_STAGE3_5_DISPATCH
+  replan recovery checkpoints= 0
+  target actuation            = false
+
+Exact Stage 3.9.7 event segment:
+  1. MISSION_ADAPTATION_REPLAN_DETECTED
+  2. MISSION_ADAPTATION_TRIGGER_CLASSIFIED
+  3. MISSION_REPLAN_ELIGIBILITY_GOVERNANCE_EVALUATED
+  4. MISSION_REPLAN_SNAPSHOT_CONTEXT_BOUND
+  5. MISSION_REPLAN_CANDIDATE_GENERATED
+  6. MISSION_REPLAN_DECISION_RECORDED
+  7. MISSION_PLAN_VERSION_REPLANNED_SUPERSEDED
+  8. MISSION_REPLAN_COMMIT_AUTHORIZED_SUCCESSOR_PLAN_MATERIALIZED
+  9. MISSION_REPLAN_HANDOFF_READY
+
+STAGE3_9_7_ACCEPTANCE.ps1 is the authoritative deployment-host gate: it enforces
+runtime activation, exact 1531-test inventory, focused Stage 3.9.7 suite, complete
+Stage 3.9.1-3.9.7 E2E chain, Stage 3.7 authority regression, and the full historical
+regression on the activated host.

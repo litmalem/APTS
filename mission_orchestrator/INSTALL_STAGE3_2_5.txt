@@ -1,0 +1,35 @@
+Stage 3.2.5 installation
+========================
+
+Baseline required: Stage 3.2.4 — Planning and Run Activation (accepted v2 harness)
+
+1. Stop Mission Orchestrator.
+2. Back up the Mission Orchestrator database.
+3. Extract STAGE3_2_5_WAITING_DEPENDENCY_CONTROL_PATCH.zip directly into D:\mission_orchestrator with overwrite enabled.
+4. Do NOT create migration 009. Repository migration level remains 8.
+5. Run:
+
+   cd D:\mission_orchestrator
+   python -m compileall -q mission_orchestrator tests
+   python -m pytest -q
+
+   Expected: 182 passed
+
+6. Start Mission Orchestrator and verify /health reports:
+
+   control_version = stage3.2.5-waiting-dependency-control
+   mission_waiting_dependency_schema_version = apts-mission-waiting-dependency-control-v1
+   mission_waiting_dependency_mode = EXPLICIT_WAIT_DECLARATION_AND_LOCAL_RESOLUTION_EVIDENCE_FAIL_CLOSED
+   mission_waiting_dependency_return_command = START
+   mission_waiting_dependency_resolution_status_required = SATISFIED
+   mission_waiting_dependency_evidence_refs_required_for_return = True
+   mission_waiting_approval_is_governance_authorization = False
+   mission_waiting_dependency_external_queries = False
+   mission_lifecycle_stage3_2_5_dependency_resolution_enabled = True
+   mission_lifecycle_stage3_2_6_pause_resume_replan_enabled = False
+   mission_repository_migration_level = 8
+   governance_authorization_authority = EXTERNAL_APTS_GSS
+   target_action_dispatch_enabled = False
+   target_actuation = False
+
+7. Run STAGE3_2_5_ACCEPTANCE.ps1.

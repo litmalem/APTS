@@ -1,0 +1,158 @@
+Stage 3.1.5 - Governed Task Routing
+===================================
+
+Roadmap note
+------------
+The Canonical Mission State Model is Stage 3.1.2 and is already implemented.
+Stage 3.1.5 is Governed Task Routing and uses the Stage-3.1.2 canonical state
+as the task-creation/dispatch lifecycle gate.
+
+Scope of patch
+--------------
+Apply this patch to D:\mission_orchestrator only.
+No Stage-3.1.5 source-code change is required in VulnDesk or aptsGSS.
+Both existing services are active runtime dependencies for acceptance.
+
+1. Stop Mission Orchestrator
+----------------------------
+Stop the running mission_orchestrator service before replacing files.
+
+2. Back up
+----------
+Back up:
+
+   D:\mission_orchestrator
+
+and the Mission Orchestrator database.
+
+Do not overwrite production data with a database bundled from another machine.
+
+3. Copy the Stage-3.1.5 patch
+----------------------------
+Copy/extract the supplied project files over:
+
+   D:\mission_orchestrator
+
+Preserve your existing runtime database/configuration unless you explicitly intend
+to replace them.
+
+4. SQLite local mode
+--------------------
+No manual migration is required. Repository startup creates the two new
+Stage-3.1.5 tables when they are absent:
+
+   mission_routed_tasks
+   mission_task_dispatch_attempts
+
+5. MariaDB/MySQL mode
+---------------------
+Apply migration 005 after migrations 001-004:
+
+   cd D:\mission_orchestrator
+   mysql -u root -p < .\migrations\005_stage3_1_5_governed_task_routing.sql
+
+6. Configure authoritative Governance
+-------------------------------------
+Defaults remain compatible with the current local aptsGSS service:
+
+   MISSION_GOVERNANCE_BASE_URL=http://127.0.0.1:8770
+   MISSION_GOVERNANCE_TIMEOUT_SECONDS=3.0
+
+PowerShell:
+
+   $env:MISSION_GOVERNANCE_BASE_URL = "http://127.0.0.1:8770"
+   $env:MISSION_GOVERNANCE_TIMEOUT_SECONDS = "3.0"
+
+7. Configure VulnDesk CTI routing
+---------------------------------
+Stage 3.1.5 adds:
+
+   MISSION_CTI_BASE_URL=http://127.0.0.1:8765
+   MISSION_CTI_TIMEOUT_SECONDS=5.0
+
+PowerShell:
+
+   $env:MISSION_CTI_BASE_URL = "http://127.0.0.1:8765"
+   $env:MISSION_CTI_TIMEOUT_SECONDS = "5.0"
+
+8. Verify aptsGSS first
+-----------------------
+
+   Invoke-RestMethod http://127.0.0.1:8770/health
+   Invoke-RestMethod http://127.0.0.1:8770/api/governance/emergency-stop
+
+The Governance emergency stop must not be active for the acceptance mission.
+Do NOT automatically release emergency stop merely to pass acceptance. Resolve
+an active safety state through the normal administrative process.
+
+9. Verify VulnDesk CTI
+----------------------
+
+   Invoke-RestMethod http://127.0.0.1:8765/health
+
+Expected component_id:
+
+   CTI-INF01
+
+The CTI service must be ready enough to accept:
+
+   POST /api/cti/missions/start
+
+10. Start Mission Orchestrator
+------------------------------
+
+   cd D:\mission_orchestrator
+   python .\run\run_mission_orchestrator.py --host 127.0.0.1 --port 8780
+
+11. Verify Mission Orchestrator health
+--------------------------------------
+
+   Invoke-RestMethod http://127.0.0.1:8780/health
+
+Expected key values:
+
+   control_version                     = stage3.1.5-governed-task-routing
+   subsystem_routing_dispatch_enabled  = True
+   supported_routing_subsystems        = CTI
+   dispatch_enabled                    = False
+   target_action_dispatch_enabled      = False
+   target_actuation                    = False
+
+12. Run full regression
+-----------------------
+In another PowerShell:
+
+   cd D:\mission_orchestrator
+   python -m pytest -q
+
+Expected current result:
+
+   61 passed
+
+13. Run Stage-3.1.5 acceptance
+------------------------------
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_1_5_ACCEPTANCE.ps1
+
+Optional explicit endpoints:
+
+   .\STAGE3_1_5_ACCEPTANCE.ps1 `
+       -MissionBaseUrl "http://127.0.0.1:8780" `
+       -GovernanceBaseUrl "http://127.0.0.1:8770" `
+       -CtiBaseUrl "http://127.0.0.1:8765"
+
+Expected final result:
+
+   STAGE 3.1.5 ACCEPTANCE: PASS
+
+Safety / authority notes
+------------------------
+- Stage 3.1.5 dispatches a high-level subsystem mission only.
+- It accepts only bound NOT_REQUIRED_INTERNAL capabilities whose action class is
+  INTERNAL_REASONING or REPORTING.
+- Route destination is derived from the Stage-3.1.4 bound subject_component.
+- aptsGSS/GOV-PLANE remains authoritative for target authorization/revalidation,
+  approval, revocation, hard-deny, and emergency stop.
+- Mission Orchestrator target-action dispatch remains disabled.
+- Routing projection is read-only; it never changes canonical mission state.

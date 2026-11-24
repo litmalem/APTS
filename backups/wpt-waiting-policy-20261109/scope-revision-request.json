@@ -1,0 +1,59 @@
+{
+  "contract": {
+    "mission_id": "mission-gmo-17a8fa8a-c6d9-4da5-aad2-0fc73113239c",
+    "name": "Pentest pada http://127.0.0.1:80//dvwa/",
+    "policy_set_id": "default-policy",
+    "valid_from": "2026-11-09T02:16:01.764116",
+    "valid_until": "2026-11-30T09:15:00",
+    "created_by": "local-test-operator",
+    "approved_by": "local-test-operator",
+    "metadata": {
+      "revision_reason": "http://127.0.0.1:80//dvwa/",
+      "revision_actor": "local-test-operator"
+    },
+    "targets": [
+      {
+        "target_type": "URL",
+        "target_value": "http://127.0.0.1:80//dvwa/",
+        "environment": "LAB",
+        "allowed": 1,
+        "notes": null
+      }
+    ],
+    "sources": [],
+    "action_constraints": [
+      {
+        "action_class": "TARGET_RECON",
+        "action_name": "recon",
+        "effect": "ALLOW",
+        "max_risk_level": "LOW",
+        "requires_approval": false,
+        "constraints": {
+          "max_network_requests": 6,
+          "allowed_methods": [
+            "GET"
+          ],
+          "state_changing_requests": false
+        }
+      },
+      {
+        "action_class": "TARGET_RECON",
+        "action_name": "web_technology_fingerprinting",
+        "effect": "ALLOW",
+        "max_risk_level": "LOW",
+        "requires_approval": false,
+        "constraints": {
+          "max_network_requests": 6,
+          "allowed_methods": [
+            "GET"
+          ],
+          "state_changing_requests": false
+        }
+      }
+    ]
+  },
+  "previous_id": "scope-1d53c50c-50a8-4c22-9b5b-9537afbd95d7",
+  "expected_version": 1,
+  "apply_auto_recon_task_delegation_profile": true,
+  "reason": "User explicitly approved bounded LAB DVWA Recon and WPT fingerprinting in Codex chat on 2026-11-09; six GET requests, no state changes."
+}

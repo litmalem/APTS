@@ -1,0 +1,73 @@
+Stage 4.7 — Capability Registry & Tool Contract
+================================================
+
+Target root:
+  D:\mission_orchestrator
+
+1. Overlay the supplied files into the target root, preserving directories.
+
+2. Database behavior:
+   - Global Mission Orchestrator remains migration 53 and is not modified.
+   - Pentest Subsystem continues to use the isolated repository:
+       data\pentest_subsystem.db
+   - Pentest migration level becomes 5.
+   - Migration 005 creates:
+       pentest_capability_registry_snapshots
+       pentest_capability_contracts
+       pentest_tool_contracts
+       pentest_capability_tool_mappings
+   - Existing Stage-4.3/4.4/4.5/4.6 records are preserved.
+   - Canonical registry rows are seeded deterministically and integrity-verified.
+   - Optional database override:
+       $env:APTS_PENTEST_DB = "D:\path\to\pentest_subsystem.db"
+
+3. Restart/start Pentest Subsystem:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\START_STAGE4_7_PENTEST.ps1
+
+   Expected URL:
+     http://127.0.0.1:8790
+
+4. Keep the Global Mission Orchestrator running on:
+     http://127.0.0.1:8780
+
+5. Verify health:
+
+   Invoke-RestMethod http://127.0.0.1:8790/health
+
+   Expected:
+     control_version = stage4.7-capability-registry-tool-contract
+     pentest_repository_migration_level = 5
+     stage4_7_capability_count = 7
+     stage4_7_tool_count = 8
+     stage4_7_mapping_count = 8
+     stage4_7_capability_registry_enabled = true
+     stage4_7_tool_contract_enabled = true
+     stage4_7_capability_selection_enabled = false
+     stage4_7_tool_invocation_enabled = false
+     stage4_7_target_actuation = false
+     stage4_7_next_stage = 4.8
+
+6. Inspect canonical registry:
+
+   Invoke-RestMethod http://127.0.0.1:8790/api/pentest/capability-registry
+   Invoke-RestMethod http://127.0.0.1:8790/api/pentest/capabilities
+   Invoke-RestMethod http://127.0.0.1:8790/api/pentest/capabilities/enumeration/tools
+   Invoke-RestMethod http://127.0.0.1:8790/api/pentest/tools/pentest.tool.exploitation_adapter
+
+7. Run authoritative acceptance:
+
+   .\STAGE4_7_ACCEPTANCE.ps1
+
+8. Safety boundary:
+   - Registry/tool contracts are metadata only.
+   - Capability selection is disabled.
+   - Runtime adapter/binary/command binding is disabled.
+   - Tool invocation is disabled.
+   - External network I/O is not performed by Stage 4.7.
+   - Target actuation is disabled.
+   - POST /api/execution/dispatches remains HTTP 409 fail-closed.
+
+9. Next stage:
+   Stage 4.8 — Governance, Scope & Rules-of-Engagement Enforcement

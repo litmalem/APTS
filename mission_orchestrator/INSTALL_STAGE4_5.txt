@@ -1,0 +1,71 @@
+Stage 4.5 — Pentest Event Runtime & Contract
+============================================
+
+Target root:
+  D:\mission_orchestrator
+
+1. Overlay the supplied files into the target root, preserving directories.
+
+2. Database behavior:
+   - Global Mission Orchestrator remains migration 53 and is not modified.
+   - Pentest Subsystem continues to use the isolated repository:
+       data\pentest_subsystem.db
+   - Pentest migration level becomes 3.
+   - Migration 003 creates the append-only pentest_events table.
+   - Existing Stage-4.3 tasks and Stage-4.4 transition-journal rows are reconciled to
+     canonical Stage-4.5 events during repository initialization.
+   - Optional override:
+       $env:APTS_PENTEST_DB = "D:\path\to\pentest_subsystem.db"
+
+3. Keep the Global Mission Orchestrator running on:
+     http://127.0.0.1:8780
+   It must remain at:
+     stage3.9.10-global-mission-orchestrator-acceptance-regression-gate
+
+4. Stop the prior Stage-4.4 Pentest runtime if it is still using port 8790.
+
+5. Start Stage 4.5 in a separate PowerShell window:
+
+     cd D:\mission_orchestrator
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\START_STAGE4_5_PENTEST.ps1
+
+   Default endpoint:
+     http://127.0.0.1:8790
+
+6. Manual health/contract checks if desired:
+
+     Invoke-RestMethod http://127.0.0.1:8790/health
+     Invoke-RestMethod http://127.0.0.1:8790/api/pentest/lifecycle-contract
+     Invoke-RestMethod http://127.0.0.1:8790/api/pentest/event-contract
+
+7. Run authoritative acceptance in another PowerShell window:
+
+     cd D:\mission_orchestrator
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE4_5_ACCEPTANCE.ps1
+
+Expected pre-full-regression checkpoints:
+  - Stage 3.9.10 predecessor PASS
+  - Stage 4.1 + 4.2 + 4.3 + 4.4 predecessor contracts PASS
+  - Pentest Stage 4.5 runtime PASS
+  - Pentest repository migration 3 PASS
+  - canonical event contract PASS
+  - task materialization emits PENTEST_TASK_RECEIVED PASS
+  - lifecycle transitions emit PENTEST_LIFECYCLE_STATE_TRANSITIONED PASS
+  - exact transition replay does not duplicate event PASS
+  - per-Pentest event sequence/hash-chain verification PASS
+  - execution-dispatch negative boundary PASS
+  - Python compilation PASS
+  - 1671 tests collected
+  - 25 focused Stage 4.5 tests PASS
+  - 96 Stage 4.1–4.5 tests PASS
+  - 155 critical predecessor tests PASS
+  - full historical regression PASS
+
+Important Stage-4.5 invariant:
+  Event persistence records authoritative local Pentest history; it does not authorize or
+  perform workflow execution. RUNNING remains a lifecycle state, not target execution proof.
+
+Next stage:
+  Stage 4.6 — Pentest Workflow Orchestrator Skeleton

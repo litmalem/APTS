@@ -1,0 +1,14 @@
+{
+  "tests/test_sources.py::SourceTests::test_adapter_change_clears_only_stale_parameters": true,
+  "tests/test_sources.py::SourceTests::test_create_read_update_and_reopen_persist_configuration": true,
+  "tests/test_sources.py::SourceTests::test_delete_requires_confirmation_and_preserves_cti_and_source_history": true,
+  "tests/test_sources.py::SourceTests::test_duplicate_id_is_409_including_database_case_collation": true,
+  "tests/test_sources.py::SourceTests::test_empty_registry_lists_all_four_builtin_api_templates": true,
+  "tests/test_sources.py::SourceTests::test_enabled_custom_source_uses_governed_mission_route": true,
+  "tests/test_sources.py::SourceTests::test_filters_pagination_health_and_search_injection": true,
+  "tests/test_sources.py::SourceTests::test_invalid_fields_fail_before_any_write": true,
+  "tests/test_sources.py::SourceTests::test_legacy_reference_and_hidden_config_remain_compatible": true,
+  "tests/test_sources.py::SourceTests::test_registry_only_source_can_be_saved_but_cannot_start_acquisition": true,
+  "tests/test_sources.py::SourceTests::test_stale_edit_and_delete_are_rejected_without_lost_updates": true,
+  "tests/test_sources.py::SourceHttpTests::test_http_roundtrip_and_csrf_boundary": true
+}

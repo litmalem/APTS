@@ -1,0 +1,15 @@
+VulnDesk Stage 2.9.2 patch installation
+
+1. Stop VulnDesk.
+2. Back up D:\vulndesk.
+3. Extract this ZIP over D:\vulndesk, preserving directories.
+4. No SQL migration is required.
+5. Activate D:\vulndesk\.venv and run:
+     python -m pytest -q tests/test_task_lineage_probe_stage2_9_2.py
+     python -m pytest -q tests --ignore=tests/test_nvd_bulk_upsert.py
+6. Restart VulnDesk normally.
+7. Verify /health reports:
+     hybrid-event-driven-2.13-task-lineage-probe
+8. Run:
+     .\STAGE2_9_2_ACCEPTANCE.ps1 -TaskId "<fresh-task-id>"
+9. Run STAGE2_9_2_ACCEPTANCE.sql with the same task_id.

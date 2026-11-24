@@ -1,0 +1,84 @@
+{
+  "verified_at": "2026-11-09T04:42:41.446051+00:00",
+  "mission_id": "mission-gmo-57851fd3-1f64-436f-b713-0b49e839bcc2",
+  "job_id": "wpt-4e6a99b29d7bbf9f15a73ddbeb92ad6d",
+  "execution_id": "exec-44f379e336b26997f6e59d423cec9fcd",
+  "attempt_id": "xattempt-e1db853a9ccf5b4290c618e88d60b8e8",
+  "runtime_state": "ABORTED",
+  "wpt_status": "FAILED",
+  "reason_code": "RUNTIME_GOVERNANCE_REVALIDATION_STALE",
+  "resources_closed": true,
+  "target_io_performed": true,
+  "pinned_target": {
+    "host": "kurikulum.del.ac.id",
+    "ip": "172.21.2.2",
+    "path": "/",
+    "port": 443,
+    "tls": true
+  },
+  "fingerprint_result": null,
+  "recon_status": "NOT_SENT",
+  "retry_eligible_by_result": false,
+  "scope_targets": {
+    "mission": [
+      {
+        "environment": "LAB",
+        "metadata": {},
+        "target_type": "URL",
+        "target_value": "https://kurikulum.del.ac.id:443"
+      },
+      {
+        "environment": "LAB",
+        "metadata": {},
+        "target_type": "IP",
+        "target_value": "172.21.2.2"
+      }
+    ],
+    "pentest_boundary": [
+      {
+        "environment": "LAB",
+        "metadata": {},
+        "target_type": "URL",
+        "target_value": "https://kurikulum.del.ac.id:443"
+      },
+      {
+        "environment": "LAB",
+        "metadata": {},
+        "target_type": "IP",
+        "target_value": "172.21.2.2"
+      }
+    ],
+    "task": [
+      {
+        "environment": "LAB",
+        "metadata": {},
+        "target_type": "URL",
+        "target_value": "https://kurikulum.del.ac.id:443"
+      },
+      {
+        "environment": "LAB",
+        "metadata": {},
+        "target_type": "IP",
+        "target_value": "172.21.2.2"
+      }
+    ]
+  },
+  "governance_checks": {
+    "EXPIRY": "PASS",
+    "POLICY": "PASS",
+    "REVOCATION": "PASS",
+    "RISK": "PASS",
+    "ROE": "PASS",
+    "SCOPE": "PASS",
+    "TARGET": "PASS",
+    "TECHNIQUE": "PASS"
+  },
+  "operator_selected_destination": "172.21.2.2",
+  "old_task_lifecycle": "ABORTED",
+  "scope_revision_version": 2,
+  "test_status": {
+    "regression_passed": 21,
+    "javascript_syntax": "PASS",
+    "full_suite_run": false
+  }
+}

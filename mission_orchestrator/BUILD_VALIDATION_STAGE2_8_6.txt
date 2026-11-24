@@ -1,0 +1,36 @@
+VulnDesk Stage 2.8.6 build validation
+=====================================
+
+Baseline:
+  hybrid-event-driven-2.8-task-lifecycle-lineage
+
+New control version:
+  hybrid-event-driven-2.9-causal-event-chain
+
+Database analysis:
+  vulndesk(6).sql already contains:
+    cti_events.causation_event_id
+    cti_events.upstream_event_id
+    idx_cti_event_causation
+    idx_cti_event_upstream
+  No new migration required.
+
+aptsGSS analysis:
+  GovernanceEventPublisher already generates gevent-* and places it in
+  payload.governance_event_id through the durable outbox.
+  No aptsGSS source or DB patch required for Stage 2.8.6.
+
+Focused Stage 2.8.6:
+  6 passed
+
+Stage 2.x regression through 2.8.6:
+  42 passed
+
+Broad VulnDesk regression excluding NVD bulk-upsert integration path:
+  75 passed
+
+Full build-container collection:
+  blocked only because this build environment does not provide pymysql.
+  The user's Windows environment previously passed the full Stage 2.8.5 suite
+  with 73 tests. With six new Stage 2.8.6 tests, the corresponding local target
+  is approximately 79 passing tests, assuming the same baseline.

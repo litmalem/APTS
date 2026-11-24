@@ -1,0 +1,65 @@
+[
+  {
+    "schema_version": "apts-wpt-intake-retirement-v1",
+    "intake_id": "wptreq-auto-83bcdd37ff88f0fd6a3f3ff7e620410e0ae39b3f",
+    "replacement_intake_id": "wptreq-auto-267deca5231ffe1933eef07a95901bdb23d56439",
+    "intake_sha256": "2e95ef6fa2fd1968ff777baf40b1fe76fc3654c5a22b7de2177910e7e4773585",
+    "released_requests": 6,
+    "terminal_attempts": [
+      {
+        "attempt_id": "xattempt-b8066347b3c092d7717f131736113556",
+        "head_sha256": "c925456aba368e763ad1226131aadc4a9eb89afdbcd8a7b47feb0e046c497e55"
+      }
+    ],
+    "target_network_io_performed": false,
+    "retired_at": "2026-11-09T02:06:31.901126+00:00",
+    "integrity": {
+      "algorithm": "SHA-256",
+      "canonicalization": "UTF8_SORTED_JSON_V1",
+      "hash_domain": "APTS_WPT_GOVERNED_INTAKE_RECORD_V1",
+      "canonical_sha256": "088c653809d64614043e3e5de61899c4e2e126c96a02969a8ea313daacaa7881"
+    }
+  },
+  {
+    "schema_version": "apts-wpt-intake-retirement-v1",
+    "intake_id": "wptreq-auto-b3139ae1a3d27f1b42cc8fff4ff1800cdff90a8e",
+    "replacement_intake_id": "wptreq-auto-267deca5231ffe1933eef07a95901bdb23d56439",
+    "intake_sha256": "f92073627909fdedd8cf00dd65604cc7bb9f61729ada77b5ec9d3e6152a806ed",
+    "released_requests": 6,
+    "terminal_attempts": [
+      {
+        "attempt_id": "xattempt-fc5700f2893fac28fcce7c56e32aaa5d",
+        "head_sha256": "c877474d939bec4d83c5c485f3d6348176cb540dbed1afb82a89514dd2eaf597"
+      }
+    ],
+    "target_network_io_performed": false,
+    "retired_at": "2026-11-09T02:06:31.958592+00:00",
+    "integrity": {
+      "algorithm": "SHA-256",
+      "canonicalization": "UTF8_SORTED_JSON_V1",
+      "hash_domain": "APTS_WPT_GOVERNED_INTAKE_RECORD_V1",
+      "canonical_sha256": "df3f99fb5b1756ae9a3c1f6151f5a5c791f693046a6f02399e95229507533b8a"
+    }
+  },
+  {
+    "schema_version": "apts-wpt-intake-retirement-v1",
+    "intake_id": "wptreq-auto-6323cdb170a2f0c3acda6bcf2a75b85791de8424",
+    "replacement_intake_id": "wptreq-auto-267deca5231ffe1933eef07a95901bdb23d56439",
+    "intake_sha256": "c983a930913cef4d41002ae934af4ebbdb23c1d82a0d63ec2bcbc09c6942678d",
+    "released_requests": 2,
+    "terminal_attempts": [
+      {
+        "attempt_id": "xattempt-612789bda25d547c0b2e3a06f2dac35d",
+        "head_sha256": "bf440d756489ba06175b1ece83d275095aea225eaa05b637dc41ba5566e1e892"
+      }
+    ],
+    "target_network_io_performed": false,
+    "retired_at": "2026-11-09T02:06:32.013992+00:00",
+    "integrity": {
+      "algorithm": "SHA-256",
+      "canonicalization": "UTF8_SORTED_JSON_V1",
+      "hash_domain": "APTS_WPT_GOVERNED_INTAKE_RECORD_V1",
+      "canonical_sha256": "3f3cd86d5c7cc405af0a94f0621434047527a7160970162082e051aabe0e3fde"
+    }
+  }
+]

@@ -1,0 +1,1081 @@
+{
+  "stage": "6.8",
+  "title": "Cleanup, Rollback & Post-Action Verification",
+  "control_version": "stage6.8-cleanup-rollback-post-action-verification",
+  "baseline_archive": "Mission(20261003-222408).zip",
+  "baseline_archive_sha256": "407cbc8f3c681513592506a8d5c0d5f325478a90bb922a92f308f33a54937099",
+  "package_type": "INCREMENTAL_PATCH_OVER_STAGE6_7_OR_STAGE6_8",
+  "hotfix_revision": 1,
+  "hotfix_reason": "Fence late supervisor authority work before terminal publication",
+  "execution_migration_level": 8,
+  "mission_migration_level": 53,
+  "pentest_migration_level": 16,
+  "focused_tests": 92,
+  "continuity_tests": 784,
+  "full_canonical_tests": 2793,
+  "test_status": "PASS",
+  "source_file_count": 410,
+  "isolated_groups": 61,
+  "reported_windows_acceptance_before_hotfix": "FAIL_ONE_STAGE6_7_AUTHORITY_COUNT_RACE",
+  "reported_stage6_7_test_unchanged": true,
+  "windows_runtime_exercised": false,
+  "live_user_mission_exercised": false,
+  "files": [
+    {
+      "path": "INSTALL_STAGE6_8.txt",
+      "sha256": "584251e84c1b41be61a2a0578c3e75505e53fe19ac2fb9d49fd6c88c8e2aae05",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "PATCH_NOTES_STAGE6_8.md",
+      "sha256": "b681c2a68142c585363e2be3d56018b70c8f654ff4281baace632e35490b6b30",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "README_STAGE6_8.md",
+      "sha256": "ce697e3d539d287da64f51798d60a3b07453e79fd9135ea8361fbf623db491d6",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "REGRESSION_EVIDENCE_STAGE6_8.txt",
+      "sha256": "7f67f83c108bfab05e1c0628326d8d8ed5f2fe57d3350dc337f2a519186c2b55",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "STAGE6_8_ACCEPTANCE.ps1",
+      "sha256": "90907ed88a116e1efffd0295be877a70e409a2cbc731e1b9cda78841d72373bd",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "START_STAGE6_8_EXECUTION.ps1",
+      "sha256": "b812d8a5eadb35345bf83d863466227e739de1ad2564a2296586ff67b83e2d37",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/build_verification.json",
+      "sha256": "64570137b618f1d0879a0cd06664724f0cad66d5b39ef6df9e5c0a3a38c2bf7c",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/canonical_contract.json",
+      "sha256": "eed38391c77b13d906e8bdfbfef7def0ae1ef25f05f27ec2fd8ac3718d929c7c",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/cold_overlay.log",
+      "sha256": "5080c12a0433d1b6af1147289b58b9ec2a81491f56f079c6993917918a115ac8",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/cold_overlay_verification.json",
+      "sha256": "aec60be69156ea83ff6cd66457d500fcf1b243ced837f6d6db5bd16d38e5c4b3",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/continuity.log",
+      "sha256": "1388a73b5c4040b89a8685f7ad46b9558962fc70bf5bd4d0dd8a1caa0c5aa940",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/continuity.xml",
+      "sha256": "256a72be922d9703b5319a7ea3e51d003fe3179483020aa560e1fa8b067987d8",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/focused.log",
+      "sha256": "8b9e673cb674e7188499fadb8743f0c116b0a442f3c657758a8de3753371cc8d",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/focused.xml",
+      "sha256": "73c0e5d7a2dd7540c7de86b355bfb6047940f31f0a6290576c3254d355e54989",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_001.log",
+      "sha256": "78ece1ec420d8e710f25510a7c1cdf2220794eaecc98a042ea146293d5282cd8",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_001.xml",
+      "sha256": "0aeb0171accf264e17de414de8bd383fb65f7fe7125ff1603a9e577333133d75",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_002.log",
+      "sha256": "a55a5b99ad2ec6c711d2f922eb1df279379ed37357a1d2e228edec1dc6838970",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_002.xml",
+      "sha256": "12895cf0155678ccd7c1f43abf101b84a82214da7eee926fc0e63b844a136ab8",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_003.log",
+      "sha256": "f25e40ba332ad83d36e5d560fe8d3219ead54470fa4ebcc5a98944c482c71bc9",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_003.xml",
+      "sha256": "94b7a6ea7f3868b3fdeddead8e2cc8fe1fb2e18e57a4fba3a210c2677823b09d",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_004.log",
+      "sha256": "3d13a59a1ae4861318c645e6dc931d59381f77d3150da43ed7f6740b131fdc79",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_004.xml",
+      "sha256": "4bac3cf9bd87f12be89c690f18be38c32cd3ce39e304397ba85dd5cbf834152f",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_005.log",
+      "sha256": "1bb0363b7e7e6457af59996347222b484fc2dd9fd95456a8d03b9e377d31135c",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_005.xml",
+      "sha256": "1205944838703ab24bab7dc714cf45eed2526ce12f3f4b9b585e0b3f866fb5b4",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_006.log",
+      "sha256": "b2fe7410e3b11579456c0aa146cf8b3bbb2236f3284adcb41151bb33b4070d81",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_006.xml",
+      "sha256": "fccee41a81df85111158e6f1b0075e807fb708db29040a3619f5debacc01ccac",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_007.log",
+      "sha256": "3c8ac65e771d5540b57827636c2ae3e9eae15d1face4a05ebaa66ab6ca8f732f",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_007.xml",
+      "sha256": "a15bf157145f86d395252de0624f7dc4e395f43a2d2c0a8f01fe950344689630",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_008.log",
+      "sha256": "70e36ef22fb89c62d4ea1cf1b5b719c43611c9eb8ff9f7f5744eec5369c30f99",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_008.xml",
+      "sha256": "7f190c4bc13e049dc3833443f37f46c87044fce531875a51826eabab8a0c3ecc",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_009.log",
+      "sha256": "0496b17c3fefd7dca63b546647b4a7a9ba7cba658e7eb6ac13122bdd596ba4eb",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_009.xml",
+      "sha256": "ae2c8bd6b3fd4798ea9a7eb79698f56811d4be43ff05b1e974d8eaddee3d98c0",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_010.log",
+      "sha256": "1a9a0d2e4d7c283284184c863dbd7fa9058bedef563fe486d553032d820e5f95",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_010.xml",
+      "sha256": "7589b9bc3bd867ed57a66a85bd9ad346640851514a4be55fad5472f0ea3fc125",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_011.log",
+      "sha256": "0347e4afd34616cb83ecc48a5969ad025dc5f3ab8e872e2796cf43b6ee5bf1be",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_011.xml",
+      "sha256": "273a74227acd0fbd5212197045cf6107f74f43de505d2ef03415ccd2f1e6f20a",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_012.log",
+      "sha256": "b10fcbdb3cbe6b2bd5489fc60f7ee517454686ededbe2454d727f0f9b2a2aaab",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_012.xml",
+      "sha256": "1e2b0efcd7e9cfb60da26c018bbbf77a5582213b8a26637588b8a564d3c9a358",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_013.log",
+      "sha256": "d35b660f04b5579e1c132a943cecbec771a41e73a928ef4ec0e524d9c6b83e19",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_013.xml",
+      "sha256": "98d5b77cf2cada28e88de82c8f063a37db2b1cb5b38359d26374e6ef56530753",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_014.log",
+      "sha256": "3190269c7eb98ab39a8276aafcfcc227cc13f08a970cbabfafa01fe1b83f8df1",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_014.xml",
+      "sha256": "acb93ce2ad670a0c4ce55b0122825875d2d98ffe14d9448dda0e0827acfbd797",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_015.log",
+      "sha256": "7e66d4ffcc27d8cff1fb10b58560cdb23c438770376634a425b6ea910e485015",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_015.xml",
+      "sha256": "d0ebddcee51acbaa56f02ec3df383891ecfe291ec0ebed971cc9582be35c9a5d",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_016.log",
+      "sha256": "89617b8a12bdd3d563fcf548e08729ddc0e35cd943a0764213a432a32404c8ac",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_016.xml",
+      "sha256": "305e8e16bde96077b8ebdede9a448356f5d48307186ab8ca5872c3dafbb423ec",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_017.log",
+      "sha256": "ef4aab0bce6ce9295d7ec55fed067ed2f66ca56242e519f97a3d3d9a43a8643d",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_017.xml",
+      "sha256": "1f38bf7eb446b3d65ad31473c16459e96aaa43a3f2f42f01ad32e5c98dc69f2e",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_018.log",
+      "sha256": "68b6b35285e7dcb317a2259c3768eae4a34dc5acca271664a803344c51f006bc",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_018.xml",
+      "sha256": "f801a4bb274d08ba55dfd157b44094d39b1267e9079fa07b451460bfc21dcdb9",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_019.log",
+      "sha256": "9a2b497ce9dd7877843e0f8a0ff22cf4191858a5eb5d4ec3952b7750a34657fd",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_019.xml",
+      "sha256": "b767e9531cbe576f09376fa5d0ab30f70c7bc9b5e0b59aca8a482eb4d9f42cce",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_020.log",
+      "sha256": "07fd4a85c3c9ba0d6db345a9d5f4d88b412006d71bdf1c158aae057b72bf355a",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_020.xml",
+      "sha256": "ba1d80db02c1b3eb3b319ae63959d3372680d0d5d92c43ec11d9be5c4deedb73",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_021.log",
+      "sha256": "99f76cf996a115cceee87b14153c3f67634ad35241427e45b7fe211199211196",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_021.xml",
+      "sha256": "93b282f4cb7ca67f8871658fdd1724dc0830739abbe42b98a15638cbd94072e4",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_022.log",
+      "sha256": "06df4d99a200df99f66bb518d424f019ad32c76322553730701bddf044d7aa08",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_022.xml",
+      "sha256": "07be9acca4981e85be68ffad7ee4b6a68df0663bd49a94de22e057b86bb80cbd",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_023.log",
+      "sha256": "05f1b2f074aba0dedc0b8eae3af026130fbd6b89b3943726d1ece820124a466c",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_023.xml",
+      "sha256": "9a15d540057d842e712ea979be49342417f2a6203735ecd1408b91eac724cfc8",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_024.log",
+      "sha256": "678c4e48f47831494424cd5fd40e3ad66df61354c8cb4ebfe037226098832198",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_024.xml",
+      "sha256": "29b51373255b1ceefeb5b7b9b10deb0254cdd84f5f0060692556c527861a5364",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_025.log",
+      "sha256": "e042c037b64f6b7b41aa18bdf63849c3e09ce8d3105077a02c5d962e6400a941",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_025.xml",
+      "sha256": "75cf6df1729d7c42938070a11ca5af74d2e190e76e5a51170a42ac32cfd6e94b",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_026.log",
+      "sha256": "78dda1efbe9cf923550a8dab906b93bbd0aa17890055ecf390f03510c039d982",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_026.xml",
+      "sha256": "a4d629c7bb8df49fe19e98a151b8bec46d8ef2b51eebf4d8b1b4f57342c04277",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_027.log",
+      "sha256": "8761de7be9afa66dfc72a6fb01ebd85fab75f776d101c63899c06e49d25df1de",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_027.xml",
+      "sha256": "340e9529c6bf71aa47159663d4b73fba3a22cd0db767aa8d25307ad3a393a802",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_028.log",
+      "sha256": "5f8c3dbb43dd22818e7f8b504037e9d0793b2450a5dcd188d67cae4b69e13664",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_028.xml",
+      "sha256": "42e2804bb5d70a554814b464adc124dc6584ec5230abeece199fa82c5b0b2bf1",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_029.log",
+      "sha256": "d74d8583360d22fe0cf00b0bdcb1564ca218cd15a7263985c44b72e718ccf10f",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_029.xml",
+      "sha256": "0cc557db998ee7f5d3235750c335e6379eb5187921518d5d2ea2ff4360d7bc4e",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_030.log",
+      "sha256": "bcaa6dba06bfe792a213783911f8b318b355e8a19d9130ffb72c216801c49ed2",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_030.xml",
+      "sha256": "d7adcb8251f658db9131c6852ae4f2b054f6306b29834e372653b19c74fd4edb",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_031.log",
+      "sha256": "63ba3630f06379440c4c187691406b1162ed49daeee623ee0c900cfa981a9e6b",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_031.xml",
+      "sha256": "5f2b94991c8fe16763657e3e771f9023b7132d177a01caa6222f75291ccfa6ce",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_032.log",
+      "sha256": "601e322800eee5f1bdd3124289318a8b691a1908000e07c890a4858d5e9193f3",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_032.xml",
+      "sha256": "3e1caae5b9fd0f839eead93b9174ad065fba5f2c6a4d413f1cf71dc3aedf06c0",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_033.log",
+      "sha256": "a30142f269c63482392a500a3a58cfab3b990807e47dbe7b1429d205656bff28",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_033.xml",
+      "sha256": "4b547c2e459a950e6a53e32e3b154368851fbabc732aeeb31733a764d8508a11",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_034.log",
+      "sha256": "228973a1d28e9ac6f73fa540323d23de71734e7644d85a07a97e5e6e87784375",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_034.xml",
+      "sha256": "0ba6dde72c4eaa6133af866dae6a81d858bf92eeadea7c9bc6ae0b6b14337c0a",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_035.log",
+      "sha256": "793caf70a1d0f993d430591a09a5309eb8f6ef28f7370c77cc2e2e0e35bb61d1",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_035.xml",
+      "sha256": "8b66605e7588ea2bc56d150d69eb5c1c65c757b200a2ead6cdf761748f29ce51",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_036.log",
+      "sha256": "9c667cd717f0ba315019e47c50fa6ffe96658203f2e06d62b09e0416d95dc371",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_036.xml",
+      "sha256": "5e96db3df92a2dc18187d6b3c7ea8b0cfebcab3c1fa7b63261abf48087fb39c6",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_037.log",
+      "sha256": "d5238d61db78712d61d40f74580ffbbf52d2b74f9bf04205c8999d797d5bd436",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_037.xml",
+      "sha256": "39bbe3e1201485c0a6fba296116f390e423a1d4aa28b725abb2fbfaee55fbe4a",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_038.log",
+      "sha256": "b8e6768c93a0e8c5fd3b660bced11cc5a7b0ea5dc156efe244371e41b1528755",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_038.xml",
+      "sha256": "369cc7e90c5d0fd06d35d1bca0780b1e895a3544572f8256a9f59cbf4a70c463",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_039.log",
+      "sha256": "e00aa4839db5ede164b2913c226a48410fb883a40cba02e6caa23ae1581f67d8",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_039.xml",
+      "sha256": "91a770d5c41a17f8cb92958b9e496fff0054f52ac2a705efb1132e3dd7abac66",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_040.log",
+      "sha256": "bac26c2c5ad69e1a92007a4224af647d33fbda29366752d81a1b931b12847047",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_040.xml",
+      "sha256": "2c75ae2d3ffa2b8536afa721e46cb8a2588ecc6523f37ce476e3ee1622a81ceb",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_041.log",
+      "sha256": "8238ec8f2b16a7b51b1cf9b18a709dae60249101c12e711a8c78978171a09063",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_041.xml",
+      "sha256": "ed7ff86c2a6446a09677153244b04bc2ea7cc5143d57007df627d867105962e9",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_042.log",
+      "sha256": "e3860ffa148d6061fa3299d1eb8d001ecfb04b38f8048bc511bbb55e7d5be015",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_042.xml",
+      "sha256": "61bc45a11208b3a29d93b9d93834f52bca465cf91eb23ca70ccef402566b660f",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_043.log",
+      "sha256": "c75bbdfbbfd3ec4436b2111bf5804164f661e8a7de450c3eddfb4bd41eb57ed5",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_043.xml",
+      "sha256": "ba63b7ecc9177896103a9e42f580cfee3d6796c55565b46d7c1d3d5f2347a168",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_044.log",
+      "sha256": "b633e6f29717f2a615570c7ef2311c1437b3b33ad3bd4ceb4b870da69142040f",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_044.xml",
+      "sha256": "183ab3c8ca88363c6d14727b63134e39c0481778673224f6cc4ec3a6a5186414",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_045.log",
+      "sha256": "26f5f66cdeb1f5ccba3bd8b3b60ea6d384f8b67fd18e4c5fd75be8dfdaabf7ed",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_045.xml",
+      "sha256": "437eba6f3d2d80f3be7df103c9681207d232f5bcde0678c8539e10bd4265da57",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_046.log",
+      "sha256": "d2d1b9a3a17ff949731b08db80df76a8d162b27068ec62cc855a70c2f13995a4",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_046.xml",
+      "sha256": "26fb94dfdfd4c188d39fcd0185c4aa429e5cfb115cd868605abc056ba0228de7",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_047.log",
+      "sha256": "d1fb40477f12dcf0c9b74941059c981c01bd4eefcf8b5ae9172962224760da23",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_047.xml",
+      "sha256": "da5577ae1f8b5d67a54517c088f1268c82a80fb160ef980344b23ce7b5976d21",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_048.log",
+      "sha256": "2cf6fe975c016fc7a66becf73104c935eb2e2d48ddfcb928719cd050502b868b",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_048.xml",
+      "sha256": "21ad7aac2d43b793f6374367101ac5f3e501ef58491251b446fa75948cd00c88",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_049.log",
+      "sha256": "9fd264c8dc0ecbe06cdf99e55902d533e4e01e0fec62725f1528688451ceb987",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_049.xml",
+      "sha256": "8a4ce32d9788de59716e9c56272eba2d6d294783b0b6682c9bf112b0468c3ee2",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_050.log",
+      "sha256": "61dead20bbc0b4f457c18833e5cdd38df8117b042d317b62a8045d3562c94b77",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_050.xml",
+      "sha256": "6f6e6751e27ea5de5a8487a2bd07f257fefdf4e8848ffda1c909d1050bbdc299",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_051.log",
+      "sha256": "01e2ace301be8567d26caddebe18c2cc2e2524811fec4ce70b0661867e841184",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_051.xml",
+      "sha256": "1f6abf23ade592af07f428313c6cbddb7941097be6b3ddb0b3690ec24b4a6c28",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_052.log",
+      "sha256": "9a9bc6391de4314b394928557a91e7f911d21a57bcb331b89b7af92434899166",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_052.xml",
+      "sha256": "2e59fc7fdd09839799465375d8c62759a107648727a737ff1cb1698b0b29f87d",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_053.log",
+      "sha256": "e92646bf35f3d8d3852084242a687353b9a3ac4b8b1b7e405738424d5c7e2194",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_053.xml",
+      "sha256": "a5e7979f4156416bfff0f90a1d229c814925bea663d561ba782e2b17e06f7c01",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_054.log",
+      "sha256": "9a4fd2150c9134a18c9733f81bf7a3377be4767e7aaece1d89152895cf84f6c0",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_054.xml",
+      "sha256": "50926d6ec9baaa8d818ae53f86df6670d0e415d9095482cbb4f0f258934a2775",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_055.log",
+      "sha256": "c64f470799475ea9015b848655c87250faeef3509002156d0542e6c5d00c7da8",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_055.xml",
+      "sha256": "918c1d5d7d73bee13a986931e09eb980aa2a8de0c46d527c38b6466291e2c8fc",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_056.log",
+      "sha256": "24030313b42e67f7badc870b64a271ab0a5dc81ffcf6a871cabe8a48ee3dab05",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_056.xml",
+      "sha256": "51b618d438ecfd28688f1bca9d643d7a0e25aada761125e06d8c1531d8f1e36a",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_057.log",
+      "sha256": "ad754a52e10f530666338178bde8873a5ae4e187f353bb5481dd4ea90135c54f",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_057.xml",
+      "sha256": "10abfcbfba5e20b25477452e4c5350388320cc41f3b9a244bd5680e5fe6c93bf",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_058.log",
+      "sha256": "07a1a213fdb6c819e8082b487c4950419ba3ae2142191c0cd1e0bbf88b3000ab",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_058.xml",
+      "sha256": "69b6837d83f623e535c3573c067d0823b4a66f850f5804200fa1971d97cfca42",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_059.log",
+      "sha256": "4be7a876fb3785407f62b43d2454c4feeab531fbecee091e8cb50a9f624abaf8",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_059.xml",
+      "sha256": "e5bbc05da095a86692e852aace2360ad0dd5c3c72e7b39714bd974d34697eecf",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_060.log",
+      "sha256": "21b682210361e76eeb365bfec8999118652712ef5d22873e9ea68ffb300af453",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_060.xml",
+      "sha256": "e2c60cb11b175616950d39fd84e815b27b3b23b2ffdbe28576ad95198e000942",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_061.log",
+      "sha256": "a2b1fbf30fd44bd0fc31eafaa16356c3e3e65e7f231e7cda7d7966a8a8019ccd",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_batch_061.xml",
+      "sha256": "41588b67061fd6ac58b0d3539de60a44203988d370332b7314e7c55cb5ef9195",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_regression.xml",
+      "sha256": "96892a60b1317827dc359a8cc425973a20f51503bba812fc30ad461d68a0035c",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/full_regression_runner.log",
+      "sha256": "4b37cd665f92b1db260820c54ab1fd97f75726f86cabb93c79e82a627f6c429b",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/hotfix1/completion_fence.xml",
+      "sha256": "43c142ecc7bff27f7d6e29f95eda73abf141e847d091cfb22978e679425fe41f",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/hotfix1/continuity.xml",
+      "sha256": "3f2ab101f9137d26b5c7dbeeb0e8d887a48dfda67a82c730bb1d0324511a507f",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/hotfix1/diagnosis.json",
+      "sha256": "e243ade114f698009fe7184f24e6b65777780e9d173219c751a43c1d985b8309",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/hotfix1/final_verification.json",
+      "sha256": "451e5b917c655a89ae66831133968d83efd81774299f32564524f4ec133fccf2",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/hotfix1/focused.xml",
+      "sha256": "3807ce73deb83ca214d1e9ed570fc37ac8064df59d9c9c654673fcc3cd4e8ad6",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/hotfix1/focused_final_source.xml",
+      "sha256": "6e72f85856dc0961017467f5cac621c54e05bead4a246f5a320135e4b3d20b5d",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/hotfix1/initial_fix.xml",
+      "sha256": "cee5bce9f115be1581b5a6ac999df3eddf4ee447be94ee6f784924dc94ad39fb",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/hotfix1/reported_windows_acceptance.json",
+      "sha256": "cd65dec3ab69e6d484a5c69fbd6e574f403acc1100c512dfe2b0a659715675aa",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/hotfix1/reproduction_before_fix.xml",
+      "sha256": "be34a2db8cdd897cf59ceb89a4c6b69e10f61d321b12a12e1d56672e9c37b9e5",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/inventory.log",
+      "sha256": "fd728430209f922ca72597c8cc769db558d7d97c44fbbcfd5e0056b503a0b0e9",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/inventory_preflight.log",
+      "sha256": "fd728430209f922ca72597c8cc769db558d7d97c44fbbcfd5e0056b503a0b0e9",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/offline_audit_summary.json",
+      "sha256": "ce1d9288e6c7dc3c1d00656ddd916d5bcbd22379824f527d171e8760148eef84",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/post_action_http_proof_summary.json",
+      "sha256": "7128b7464041cfe4dfa0100fe6d932ed599678d2dfc7fc43dfa201604c258d11",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/post_action_offline_export.json",
+      "sha256": "b240e57acb50aad66e1499a5e3555f2d6d38c1b1ffc2a86efd758c99032941ac",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/regression_groups.json",
+      "sha256": "9d3bc7d0734956e88b7b685bf5268e8f8f0aa075eff8991d245f2a5b5c106743",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/regression_summary.json",
+      "sha256": "d54f678812cc696c26621eb32fac0024ec4832172aa14a54fddde688723bf52f",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/schema_qa.json",
+      "sha256": "b129abfdf5c87adb5106be5f83961b103a8d475b84aadd374c98dfe776b3b63c",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/source_snapshot.json",
+      "sha256": "8d128b5a15728a49e9f0e16ebdd3653cd768da7d857c4e6fcc62ba2e89939070",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "evidence/stage6_8/uploaded_database_upgrade_check.json",
+      "sha256": "62ee3e5f30b602a04717122ad8a2d6fc82239a881d9fa3b0e50f7dc6e5f8f634",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "execution_migrations/008_stage6_8_cleanup_rollback_post_action_verification.sql",
+      "sha256": "6c7caa8a5fb8b3a621f2625879a0342d67178e73605a45c3cf2e037819ee2456",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "execution_subsystem/adapter_service.py",
+      "sha256": "fe339fec71af7dc58b5610746f6b6e4162cf8529a12acc9772f3e0143833d43b",
+      "predecessor_sha256": "17786d54d0c38b1163574044003fd35f8ba5d1d8bdd3ff43f2c71cc9f6aa9872",
+      "operation": "MODIFY"
+    },
+    {
+      "path": "execution_subsystem/authorization_service.py",
+      "sha256": "a7e63633e0b0a76cf00f817e4431928ce8797b62bd1f34533929b52d5024b062",
+      "predecessor_sha256": "b1dea7943f7ab777e3994022448ca46d794bc2265271f566bccc477880da6103",
+      "operation": "MODIFY"
+    },
+    {
+      "path": "execution_subsystem/cleanup_api.py",
+      "sha256": "cf5eceed171b82b454574222d1faa9e554daa55097cdf84991dcdba0c2a0027e",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "execution_subsystem/cleanup_contract.py",
+      "sha256": "d0259ebb4425268d7fcc1c0a0612af32ecee4f9eaf21d6655327e2f2cb1c8331",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "execution_subsystem/cleanup_repository.py",
+      "sha256": "6df131527ac36d1772c484594ef5e21e20821e7b314e21230372e77128e2d41d",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "execution_subsystem/cleanup_resources.py",
+      "sha256": "b6def5b0cead173081666f46afc5b5b718e2302e4d438f8805a2a8ea23ab92f9",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "execution_subsystem/cleanup_service.py",
+      "sha256": "7a575b6bd4885e7e34e6b7b6acf0c806b2ec59ad6d5193d16d8ee19b11a06730",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "execution_subsystem/runtime_control.py",
+      "sha256": "655bab3229bd104937a51af17849119b5644cc285e4dece560ff7de161b5d2e2",
+      "predecessor_sha256": "87b6d207f2e22f30f72f7322746321c2ce3eedda9a7dc9baf3d87f55002b32dc",
+      "operation": "MODIFY"
+    },
+    {
+      "path": "execution_subsystem/runtime_service.py",
+      "sha256": "ada4ef35028ccd2a1d24ba9d5a02068be957247021a9238c770e8c821634493b",
+      "predecessor_sha256": "f1887d9b61ae8403066979ecb3df07e6d76143fc32d5c9f1a864dd582d421c4c",
+      "operation": "MODIFY"
+    },
+    {
+      "path": "execution_subsystem/sandbox_runtime.py",
+      "sha256": "66103476ac9a1b5c013c71badd62c9e2de30c8cfc9afe81ad65277d6a8b56ed7",
+      "predecessor_sha256": "6d6e2aee79951c9a4f70d78d553e3d014f560e99a365291b164710bb9987e7ba",
+      "operation": "MODIFY"
+    },
+    {
+      "path": "execution_subsystem/schemas/execution_post_action_intake_v1.schema.json",
+      "sha256": "c19748dcdd6c4a971df09e1318631cb51f97120961a4a66f1687ad87d55cecc2",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "execution_subsystem/schemas/execution_post_action_report_v1.schema.json",
+      "sha256": "e50d73245cd2391649fd3ceba09b86c8434a9ccb2ccdd86b3cf747a94ad9fd44",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "execution_subsystem/target_broker.py",
+      "sha256": "a49faa61820e1fb14a86c14ac46f2d0e5be23c73bf6fd28cc9d41210edb8a74e",
+      "predecessor_sha256": "540204c0caf74eb4c85d9f4e4732d82bc54fe7fd40e8f753541ee626d7d5f3d0",
+      "operation": "MODIFY"
+    },
+    {
+      "path": "run/execution_cleanup.py",
+      "sha256": "4cdadcda9a6067cd4ab3d634dee015f2f7d65d8a73d5c02a44d8447b9d5ce1aa",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "run/stage6_8_audit.py",
+      "sha256": "2c1c4d0989bd98ab028a0e53cb8f1aff3624842a789bfe1dced0ee1e0fcc1097",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "run/stage6_8_regression.py",
+      "sha256": "5662bbb1d6bdff54f0f5a184f7c73fc907460d783227312caea712d27ec500c7",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "tests/test_stage6_8_cleanup_rollback_post_action_verification.py",
+      "sha256": "76754b91622cee71bacd2e83e67fe5363e6e65212f03f6909c1b864c5f01bfa3",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    },
+    {
+      "path": "tests/test_stage6_8_runtime_completion_fence.py",
+      "sha256": "3facf6d06b4dc269cf00a6363c33388541cdfbe1030126b9ea83d2b22a3479dc",
+      "predecessor_sha256": null,
+      "operation": "ADD"
+    }
+  ]
+}

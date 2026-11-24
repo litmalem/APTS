@@ -1,0 +1,17 @@
+Stage 3.6.7 Hotfix 1 — Regression Baseline Rebase
+
+1. Keep the already installed Stage 3.6.7 runtime patch.
+2. Extract this hotfix at the repository root D:\mission_orchestrator and overwrite matching files under tests\.
+3. No database migration, runtime restart, or production-module replacement is required by this hotfix itself.
+4. Run:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_6_7_ACCEPTANCE.ps1
+
+Expected preflight remains:
+- control_version = stage3.6.7-completion-readiness-blockers
+- repository migration level = 42
+- canonical inventory = 1102
+
+The authoritative result is PASS only when the full acceptance script passes on the target host.

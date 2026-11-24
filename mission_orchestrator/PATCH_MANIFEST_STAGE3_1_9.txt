@@ -1,0 +1,62 @@
+Stage 3.1.9 - Mission Event & Lineage Foundation Patch Manifest
+==============================================================
+
+New files
+---------
+README_STAGE3_1_9.md
+PATCH_NOTES_STAGE3_1_9.md
+INSTALL_STAGE3_1_9.txt
+PATCH_MANIFEST_STAGE3_1_9.txt
+STAGE3_1_9_ACCEPTANCE.ps1
+SHA256_STAGE3_1_9.txt
+mission_orchestrator/mission_events.py
+migrations/008_stage3_1_9_mission_event_lineage_foundation.sql
+tests/test_stage3_1_9_mission_event_lineage_foundation.py
+
+Modified files
+--------------
+mission_orchestrator/__init__.py
+mission_orchestrator/api_service.py
+mission_orchestrator/errors.py
+mission_orchestrator/repository.py
+mission_orchestrator/repository_model.py
+mission_orchestrator/service.py
+tests/test_stage3_1_6_mission_versioning_concurrency.py
+tests/test_stage3_1_7_mission_persistence_repository_model.py
+tests/test_stage3_1_8_canonical_mission_api_validation_layer.py
+
+Database
+--------
+New migration:
+  migrations/008_stage3_1_9_mission_event_lineage_foundation.sql
+Repository migration level:
+  8
+New durable store:
+  mission_events
+No synthetic historical backfill.
+
+New read-only API
+-----------------
+GET /api/missions/{mission_id}/events
+GET /api/missions/{mission_id}/events/{event_id}
+GET /api/missions/{mission_id}/lineage
+
+Unchanged subsystem source
+--------------------------
+aptsGSS: no Stage-3.1.9 source change required
+VulnDesk: no Stage-3.1.9 source change required
+
+Validation
+----------
+python -m compileall -q mission_orchestrator tests : PASS
+python -m pytest -q                              : 101 passed
+HTTP /health smoke                              : PASS
+HTTP create -> MISSION_REGISTERED                : PASS
+HTTP transition -> chained event                 : PASS
+HTTP events / single event / lineage             : PASS
+HTTP repository event manifest/integrity         : PASS
+
+Data safety
+-----------
+Distributable ZIP excludes data/mission_orchestrator.db, .pytest_cache,
+__pycache__, local smoke databases, and external aptsGSS/VulnDesk repositories.

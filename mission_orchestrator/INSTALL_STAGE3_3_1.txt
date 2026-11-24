@@ -1,0 +1,45 @@
+Stage 3.3.1 - Canonical Plan Contract & Identity
+Installation / Regression Steps
+====================================================
+
+Target repository:
+  D:\mission_orchestrator
+
+1. Stop the Mission Orchestrator process before replacing files.
+2. Back up the existing repository and database.
+3. Extract the Stage-3.3.1 patch over D:\mission_orchestrator preserving paths.
+4. Database migration:
+     NEW: migrations\009_stage3_3_1_canonical_plan_contract_identity.sql
+   Repository migration level advances:
+     8 -> 9
+   The runtime ensure_schema path is forward-compatible and creates/validates the
+   mission_plans store on startup. For managed MySQL/MariaDB deployment, apply the
+   migration according to the existing deployment procedure before accepting traffic.
+5. Compile:
+     cd D:\mission_orchestrator
+     python -m compileall -q mission_orchestrator tests
+6. Regression:
+     python -m pytest -q
+   Expected:
+     280 passed
+7. Start/restart Mission Orchestrator and verify:
+     Invoke-RestMethod http://127.0.0.1:8780/health
+   Expected control_version:
+     stage3.3.1-canonical-plan-contract-identity
+   Expected mission_repository_migration_level:
+     9
+8. Run live acceptance:
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE3_3_1_ACCEPTANCE.ps1
+9. Expected final result:
+     STAGE 3.3.1 ACCEPTANCE: PASS
+
+Stage 3.3.1 is Plan identity only. It MUST NOT enable planner invocation,
+task decomposition/materialization, Governance authorization, target-action dispatch,
+or target actuation.
+
+Mandatory invariants:
+  PLAN != AUTHORIZATION
+  TASK != DISPATCH
+  READINESS != PERMISSION
+  PLANNER != GOVERNANCE

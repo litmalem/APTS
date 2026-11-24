@@ -1,0 +1,25 @@
+Stage 3.7.7 Hotfix 1 — Regression Baseline Rebase
+================================================
+
+TYPE: TEST-ONLY HOTFIX
+DB MIGRATION: NONE
+SERVICE RESTART: NOT REQUIRED
+EXPECTED CANONICAL INVENTORY: 1304
+
+1. Extract PATCH_STAGE3_7_7_HOTFIX1_REGRESSION_REBASE.zip into:
+
+   D:\mission_orchestrator
+
+   Overwrite matching files.
+
+2. Run:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_7_7_ACCEPTANCE.ps1
+
+3. Formal acceptance requires the final output:
+
+   STAGE 3.7.7 ACCEPTANCE: PASS
+
+The hotfix does not change runtime code, repository migration level 51, Governance semantics, or the Stage 3.7.7 authority boundary.

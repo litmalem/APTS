@@ -1,0 +1,37 @@
+STAGE 3.7.4 PATCH MANIFEST
+==========================
+Stage: Canonical Replan Snapshot & Context Binding
+Build input: user-supplied Mission(20260921-034650).zip (Stage-3.7.3 baseline)
+
+NEW DOMAIN / PERSISTENCE
+------------------------
+mission_orchestrator/replan_snapshot.py
+migrations/048_stage3_7_4_canonical_replan_snapshot_context_binding.sql
+tests/test_stage3_7_4_canonical_replan_snapshot_context_binding.py
+
+CORE FILES MODIFIED
+-------------------
+mission_orchestrator/api_service.py
+mission_orchestrator/errors.py
+mission_orchestrator/mission_events.py
+mission_orchestrator/repository.py
+mission_orchestrator/repository_model.py
+mission_orchestrator/service.py
+
+PACKAGE / ACCEPTANCE ARTIFACTS ADDED
+------------------------------------
+README_STAGE3_7_4.md
+PATCH_NOTES_STAGE3_7_4.md
+INSTALL_STAGE3_7_4.txt
+PATCH_MANIFEST_STAGE3_7_4.txt
+REGRESSION_EVIDENCE_STAGE3_7_4.txt
+STAGE3_7_4_ACCEPTANCE.ps1
+PATCH_FILE_LIST_STAGE3_7_4.txt
+SHA256_STAGE3_7_4.txt
+
+HISTORICAL REGRESSION FILES REBASED
+-----------------------------------
+Historical tests whose assertions intentionally follow the current repository head were rebased from Stage 3.7.3 / migration 47 / server 3.7.3 to Stage 3.7.4 / migration 48 / server 3.7.4. Stage-local historical constants remain unchanged where they describe the stage under test rather than the current repository head.
+
+See PATCH_FILE_LIST_STAGE3_7_4.txt for the exact changed/new patch payload list.
+See SHA256_STAGE3_7_4.txt for SHA-256 hashes of patch payload files. The release archive hash is published separately as PATCH_STAGE3_7_4.zip.sha256 to avoid a self-referential archive hash.

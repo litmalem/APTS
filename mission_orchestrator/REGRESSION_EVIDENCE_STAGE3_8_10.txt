@@ -1,0 +1,10 @@
+Stage 3.8.10 local implementation evidence
+==========================================
+Canonical pytest inventory: 1431 tests collected.
+Focused Stage 3.8 suite: 75 passed.
+Focused Stage 3.8.10 + Stage 3.8.9: 14 passed.
+Python compilation: PASS.
+Full 1431-test regression: NOT CLAIMED from the build sandbox; the local full run exceeded the available execution window before completion. Authoritative full-regression PASS is intentionally delegated to STAGE3_8_10_ACCEPTANCE.ps1 on the deployment host.
+Repository migration level: 53 unchanged.
+New durable store: none.
+New database migration: none.

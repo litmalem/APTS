@@ -1,0 +1,31 @@
+STAGE 3.8.9 — WINDOWS DEPLOYMENT
+
+Baseline: D:\mission_orchestrator running Stage 3.8.8 (migration 53).
+Patch: PATCH_STAGE3_8_9.zip (overlay, no data/ directory).
+
+1. Preserve a copy of the current mission_orchestrator/ and tests/ directories
+   and deployment configuration/database using your established procedure.
+
+2. Extract the supplied ZIP over D:\mission_orchestrator:
+
+   Expand-Archive `
+       -Path 'C:\path\to\PATCH_STAGE3_8_9.zip' `
+       -DestinationPath 'D:\mission_orchestrator' `
+       -Force
+
+3. Restart Mission Orchestrator using the same startup procedure as before.
+   GET http://127.0.0.1:8780/health should report
+   stage3.8.9-forensic-query-evidence-bundle-reconstruction-api.
+
+4. In PowerShell:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_8_9_ACCEPTANCE.ps1
+
+   To check a known existing Mission's live forensic routes as well:
+   .\STAGE3_8_9_ACCEPTANCE.ps1 -MissionId '<existing-mission-id>'
+
+The script compiles sources, checks the exact canonical test inventory, runs
+the complete regression and the Stage 3.8.9 focused suite, and verifies the
+read-only route contract. No database migration is required.

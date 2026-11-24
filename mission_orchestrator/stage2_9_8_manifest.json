@@ -1,0 +1,30 @@
+{
+  "patch_id": "2.9.8-E2E-ACCEPTANCE-v1",
+  "stage": "2.9.8",
+  "title": "End-to-End Acceptance",
+  "type": "additive-acceptance-harness",
+  "runtime_semantics_changed": false,
+  "database_migration_required": false,
+  "expected_baseline": {
+    "architecture_version": "2026-08-harmonized",
+    "control_version": "hybrid-event-driven-2.17-health-diagnostics",
+    "cti_component_id": "CTI-INF01",
+    "governance_component_id": "GOV-PLANE"
+  },
+  "files": [
+    "STAGE2_9_8_E2E_ACCEPTANCE.ps1",
+    "STAGE2_9_8_ACCEPTANCE_CRITERIA.md",
+    "README_STAGE2_9_8.md"
+  ],
+  "acceptance_closes": [
+    "2.9.1 canonical lineage projection",
+    "2.9.2 task lineage probe",
+    "2.9.3 mission lineage reconstruction",
+    "2.9.4 cross-subsystem governance correlation",
+    "2.9.5 integrity/violation probe",
+    "2.9.6 health/diagnostics",
+    "2.9.7 optional GUI non-blocking",
+    "2.9.8 end-to-end closure"
+  ],
+  "evidence_schema": "stage2-9-8-e2e-acceptance-v1"
+}

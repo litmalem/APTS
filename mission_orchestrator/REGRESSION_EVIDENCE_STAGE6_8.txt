@@ -1,0 +1,45 @@
+STAGE 6.8 - CLEANUP, ROLLBACK & POST-ACTION VERIFICATION - HOTFIX 1
+Baseline: Mission(20261003-222408).zip / Stage 6.7; also overlays installed 6.8.
+Control: stage6.8-cleanup-rollback-post-action-verification.
+Execution migration remains 8; Mission 53 / Pentest 16 remain read-only.
+
+Focused: 92 passed (50.79 seconds).
+Stage 5.9 -> 6.8 continuity: 784 passed (192.14 seconds).
+Full canonical regression: 2793 passed; zero failures, errors or skips.
+Exact per-test JUnit coverage: PASS.
+Frozen source snapshot: UNCHANGED (410 source files).
+Isolated groups: 61; pytest workers: 4; wall time: 343.245 seconds.
+Native backend: Linux SECCOMP_RLIMIT.
+Reported Stage 6.7 SQL-insert-failure test: PASS; original test bytes unchanged.
+New completion-fence regression cases: 12, for both Stage 6.7 and Stage 6.8.
+Focused subset on final frozen source: hotfix1/focused_final_source.xml.
+
+Diagnosis: the supervisor could finish a source read after worker completion
+and launch an authority probe despite its earlier completion check. A held
+supervisor reproduced the same (2,1) -> (3,1) authority/target count difference
+before the fix. hotfix1/reproduction_before_fix.xml is the intentional failing
+reproduction on old production code, not a failure of this final build.
+
+Completion now seals helper admission under the per-attempt lock and drains
+already admitted authority work before terminal publication, bounded by two
+seconds and the wall deadline. Queued helpers check lifecycle after their
+authorization lock/source read and before GSS. Late responses are discarded.
+Cancellation stays interruptible; previously issued control-plane requests may
+finish in the background without enabling target I/O or usable authorization.
+Health/acceptance check that the running owner includes the completion fence.
+
+The supplied Windows log before the fix reported 80 focused and 772 continuity
+tests passing and JOB_OBJECT_FIXED_WORKER readiness, but full acceptance FAILED
+one Stage 6.7 test. See hotfix1/reported_windows_acceptance.json.
+This updated build was tested on Linux. Windows acceptance must be rerun after
+installing the archive and restarting the Execution process.
+
+Original Stage 6.8 cleanup contract and exact Stage 6.7 predecessor are unchanged.
+Offline post-action export: VERIFIED_INTERNAL_LINEAGE; 9 retained artifacts.
+Draft 2020-12 intake/report structural schemas are unchanged.
+Cold archive overlay / database upgrade / health / native sandbox:
+see evidence/stage6_8/cold_overlay_verification.json.
+
+Local resource closure does not verify target state or issuer token revocation.
+Evidence and VEP remain immutable; no Mission/Pentest/CTI writeback is performed.
+Live user mission was not exercised. Run STAGE6_8_ACCEPTANCE.ps1 on Windows.

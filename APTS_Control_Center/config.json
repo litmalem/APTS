@@ -1,0 +1,56 @@
+{
+  "ui_port": 8800,
+  "modules": {
+    "vulndesk": {
+      "root": "D:/APTS/vulndesk",
+      "port": 8765,
+      "python": "C:/Python313/python.exe",
+      "env": {"APTS_WPT_CTI_SHARED_TOKEN": "pIJUpqKf3dpJ7I9Y5t8tmae5q1F3kZONpqJAFztr1CwAWAig"}
+    },
+    "vulndesk_web": {
+      "root": "D:/APTS/Vulndesk/Vulndesk_Web",
+      "port": 8801,
+      "python": "C:/Python313/python.exe",
+      "env": {}
+    },
+    "gss": {
+      "root": "D:/APTS/aptsGS",
+      "port": 8770,
+      "python": "",
+      "env": {}
+    },
+    "mission": {
+      "root": "D:/APTS/mission_orchestrator",
+      "port": 8780,
+      "python": "",
+      "env": {"APTS_AUTONOMOUS_LIFECYCLE_CEILING": "FULL", "APTS_AUTONOMOUS_WPT_RECON_DELIVERY": "1", "APTS_AUTONOMOUS_WPT_CTI_DELIVERY": "1", "APTS_AUTONOMOUS_CTI_ENUMERATION_DELIVERY": "1", "APTS_AUTONOMOUS_TASK_DRIVE": "0","APTS_WPT_CTI_SHARED_TOKEN": "pIJUpqKf3dpJ7I9Y5t8tmae5q1F3kZONpqJAFztr1CwAWAig"}
+    },
+    "pentest": {
+      "root": "D:/APTS/mission_orchestrator",
+      "port": 8790,
+      "python": "",
+      "env": {}
+    },
+    "wpt": {
+      "root": "D:/APTS/WebTechnologyProfiler",
+      "port": 8791,
+      "python": "",
+      "env": {
+        "WTP_HOST": "127.0.0.1",
+        "WTP_PORT": "8791"
+      }
+    },
+    "gss_web": {
+      "root": "",
+      "port": 8802,
+      "python": "",
+      "env": {}
+    },
+    "stage6_runtime": {
+      "root": "D:/APTS/mission_orchestrator",
+      "port": 8792,
+      "python": "",
+      "env": {}
+    }
+  }
+}

@@ -1,0 +1,13 @@
+VulnDesk NVD Sync V3.2 validation
+=================================
+Python compileall: PASS
+Automated tests: 4 PASS
+Regression covered:
+- Large raw JSON compressed chunk storage
+- Insert / unchanged skip / update
+- Case-insensitive duplicate reference URL
+- 255-character prefix-index duplicate reference URL
+UI source validation:
+- First and Last navigation controls added
+- Filtered results and total vulnerabilities counters added
+Note: PySide6 runtime UI smoke test was not executed in the build container because PySide6 is not installed there.

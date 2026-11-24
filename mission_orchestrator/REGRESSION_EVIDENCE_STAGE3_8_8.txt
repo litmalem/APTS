@@ -1,0 +1,20 @@
+STAGE 3.8.8 — LOCAL SOURCE VERIFICATION (25 September 2026 UTC)
+
+Source: supplied Stage 3.8.7 Mission snapshot plus Stage 3.8.8 patch.
+Environment: Linux, Python 3.12, SQLite.
+Repository migration level: 53 (unchanged).
+
+python3 -m compileall -q mission_orchestrator run tests
+Result: PASS
+
+python3 -m pytest --collect-only -q
+Result: 1417 tests collected
+
+python3 -m pytest -q --maxfail=1
+Result: 1417 passed in 924.23s (0:15:24)
+
+python3 -m pytest -q tests/test_stage3_8_8_observability_metrics_health_operator_diagnostics.py
+Result: 9 passed in 0.97s
+
+Windows deployment acceptance has not been performed here.
+Run STAGE3_8_8_ACCEPTANCE.ps1 on the target host after installing the patch.

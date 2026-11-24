@@ -1,0 +1,126 @@
+{
+  "stage": "6.3",
+  "title": "Controlled Execution Gateway",
+  "control_version": "stage6.3-controlled-execution-gateway",
+  "baseline_archive": "Mission(20261002-154500).zip",
+  "baseline_sha256": "0398c58518602079634e0d8658860908b8a7b38877db9c65707fee77688d23db",
+  "baseline_tests": 2229,
+  "focused_tests": 111,
+  "continuity_tests": 331,
+  "inventory_tests": 2340,
+  "execution_migration": 3,
+  "mission_migration": 53,
+  "pentest_migration": 16,
+  "added_files": [
+    {
+      "path": "INSTALL_STAGE6_3.txt",
+      "sha256": "454e96a4271d7285b4b84ff3ea1c5b71ab0b6cad712967240b1ba06009fc22fc"
+    },
+    {
+      "path": "PATCH_FILE_LIST_STAGE6_3.txt",
+      "sha256": "34cdf53dfd1802c3a022291155aec06818b79c2ce7e52d1b8d8169b6145aedce"
+    },
+    {
+      "path": "PATCH_NOTES_STAGE6_3.md",
+      "sha256": "5d6fe54ae97eace3109352b6d942c7a2d113d26b6e362b47e8c3b9054f1bddca"
+    },
+    {
+      "path": "README_STAGE6_3.md",
+      "sha256": "a99242d10c822a791cce84e704ae87191a8f50ba89c64e3f38ee736257f29ed5"
+    },
+    {
+      "path": "REGRESSION_EVIDENCE_STAGE6_3.txt",
+      "sha256": "ed8c43ce65f669da6fab12856a0c15cd7ba5ce16bf62270571439e2d67586ee2"
+    },
+    {
+      "path": "STAGE6_3_ACCEPTANCE.ps1",
+      "sha256": "3a6387083f3f45800e486426ee2e55c0b60f6158fc7df7e7bd639139ca2ce533"
+    },
+    {
+      "path": "START_STAGE6_3_EXECUTION.ps1",
+      "sha256": "c674a2476746f1f502ec844118920c89cd9ddb96f2bd60d5fe03cb133e7c5df4"
+    },
+    {
+      "path": "evidence/stage6_3/cold_overlay.txt",
+      "sha256": "9af88adc21c5cb0f9f58bb566e5db684d562bdb5f4eaa1cead5e1b4d7ebe6145"
+    },
+    {
+      "path": "evidence/stage6_3/continuity.log",
+      "sha256": "3d2f9022812e6a0dc7e2aa5ff1facc9e54eb281c8b5458d5880df12adda1be68"
+    },
+    {
+      "path": "evidence/stage6_3/continuity.xml",
+      "sha256": "303ee5cd78779cebc7756a53ae2253c7ba8ded349496cb070176e2f654ce49a9"
+    },
+    {
+      "path": "evidence/stage6_3/focused.log",
+      "sha256": "f185ad3c3c2c1c60c00b33da3006230ab7c679505ef35ce34def7bcf83844e90"
+    },
+    {
+      "path": "evidence/stage6_3/focused.xml",
+      "sha256": "47380652cb8514729d2c68f9a56483b184ebcc7e05f23bbbb6269fde9a07fc19"
+    },
+    {
+      "path": "evidence/stage6_3/full_regression.log",
+      "sha256": "bb8d0874387c420b69f666ecbbbd7bcc836e9fc9d0d6e81ad0b860642a34a4a4"
+    },
+    {
+      "path": "evidence/stage6_3/full_regression.xml",
+      "sha256": "e1c7dbaaf86f66e9ff709b482fae4cc3ea4c960292b37d57430943d362232da1"
+    },
+    {
+      "path": "evidence/stage6_3/inventory.log",
+      "sha256": "a8e03783af3d6d9ae30701b9a3e5b4062c572c69541b7aeab4f0479ff5de22b2"
+    },
+    {
+      "path": "evidence/stage6_3/standalone_qa.txt",
+      "sha256": "b36f4ded061c1a4bc76b1723623721f0fbbad1caf59cf46abec193d12de88217"
+    },
+    {
+      "path": "execution_migrations/003_stage6_3_controlled_execution_gateway.sql",
+      "sha256": "d14e1465af6fbd7044434ac2f11e4343fe7a76869fb6e1b228c0ad13a6edd13e"
+    },
+    {
+      "path": "execution_subsystem/gateway_api.py",
+      "sha256": "880e95966199f9147c86b0b6c8539fd7021c8902acc2b1a710094246349751eb"
+    },
+    {
+      "path": "execution_subsystem/gateway_contract.py",
+      "sha256": "32d994cf4f132717e5810ac33640055ad20af648d000ff7ba69209da154d4607"
+    },
+    {
+      "path": "execution_subsystem/gateway_policy.py",
+      "sha256": "b9df1c6aac3994d6d91784742eed2eff3c9dd62d8f058b8993f1e8bbcd884d08"
+    },
+    {
+      "path": "execution_subsystem/gateway_repository.py",
+      "sha256": "2a5038acb9830d74cb528b313f6d7ba841313fedd984c6a634c2cf79a8c0c53e"
+    },
+    {
+      "path": "execution_subsystem/gateway_service.py",
+      "sha256": "423a8a41ae9d3dbd39831fdb3d1677bdd9718621524713c02fbe94e959af2ae6"
+    },
+    {
+      "path": "execution_subsystem/schemas/execution_gateway_intake_v1.schema.json",
+      "sha256": "1861ff0513fa1aa99808e207d91c3373ff990c6a79a398a7c4f58f7bb28ff4b0"
+    },
+    {
+      "path": "run/execution_gateway.py",
+      "sha256": "0edac567451c3d0dc01e93fb9a92910caf717244c21f7cb489cf387af1d0d7e1"
+    },
+    {
+      "path": "tests/test_stage6_3_controlled_execution_gateway.py",
+      "sha256": "c69bfae7e7d3b500dd19837741fdd9949617d564f6e656f165ece99a1e9054af"
+    }
+  ],
+  "modified_baseline_files": [],
+  "databases_included": false,
+  "live_gss_compatibility_verified": false,
+  "powershell_harness_executed": false,
+  "required_gss_attestation": "apts-gss-execution-revalidation-v1",
+  "gateway_admission_enabled": true,
+  "admission_is_dispatch_authority": false,
+  "registered_adapter_count": 0,
+  "target_actuation_performed": false,
+  "cold_overlay_smoke_passed": true
+}

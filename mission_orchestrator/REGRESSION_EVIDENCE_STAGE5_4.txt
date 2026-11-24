@@ -1,0 +1,63 @@
+Stage 5.4 implementation-environment regression evidence
+Date: 2026-10-01
+
+Control:
+  stage5.4-vulnerability-hypothesis-agent
+
+Pentest migration:
+  11
+
+Python compilation:
+  PASS
+
+Canonical pytest inventory:
+  1901 tests collected
+
+Focused Stage 5.4:
+  28 passed in 5.16s
+
+Focused Stage 4.8 + Stage 4.9 + Stage 4.10 + Stage 5.1 -> Stage 5.4 predecessor/lineage regression:
+  177 passed in 19.21s
+
+Stage 4.1 -> Stage 5.4 Pentest qualification chain:
+  326 passed in 27.28s
+
+Critical Stage 3.9.10 -> Stage 4.10 -> Stage 5.1 -> Stage 5.4 regression:
+  132 passed in 22.18s
+
+Full historical suite:
+  not executed inside the packaging environment because prior full-suite runs for this
+  repository are long-running. The deployment-host STAGE5_4_ACCEPTANCE.ps1 is the final
+  PASS/FAIL authority and executes all 1901 tests.
+
+Implemented Stage 5.4 capabilities:
+  bounded PENTEST_VULNERABILITY_HYPOTHESIS_AGENT specialist
+  strict Hypothesis run request contract
+  deterministic Vulnerability Hypothesis run identity
+  exact Stage-5.3 enumeration_run/output/evidence hash binding
+  authoritative Stage-5.3 enumerated-asset consumption
+  explicit Knowledge/CTI source provenance + content SHA-256 binding
+  deterministic selector-based evidence correlation
+  CVE / advisory / CTI / configuration / weakness / internal knowledge families
+  deterministic SHA-bound OPEN/UNVALIDATED Hypothesis Model
+  conservative confidence from knowledge + matched evidence
+  required-validation contract with Stage-6 execution deferral
+  Stage-4.9 Evidence -> HYPOTHESIS lineage binding
+  supporting evidence-ref preservation
+  no hypothesis fabrication when knowledge selectors do not match authoritative evidence
+  no FINDING materialization before validation
+  durable Vulnerability Hypothesis Evidence Bundle
+  idempotent replay and restart
+  Stage-5.1 progress handoff that releases Attack-Path Planning
+
+Authority boundary:
+  no raw tool access
+  no direct external target network I/O
+  no target actuation
+  no active vulnerability validation
+  no unvalidated hypothesis -> confirmed FINDING conversion
+  no PolicyDecision minting
+  Stage 6 remains controlled execution authority
+
+Next:
+  Stage 5.5 — Attack-Path Planning Agent

@@ -1,0 +1,362 @@
+--- a/pentest_subsystem/reconnaissance.py
++++ b/pentest_subsystem/reconnaissance.py
+@@ -38,6 +38,7 @@
+ RECON_ACTION_REQUEST_SCHEMA_VERSION = "apts-recon-action-request-v1"
+ RECON_ACTION_REQUEST_HASH_DOMAIN = "APTS_RECON_ACTION_REQUEST_V1"
+ RECON_ACTION_REQUEST_CONTRACT_SCHEMA_VERSION = "apts-stage5.2-recon-action-request-contract-v1"
++RECON_PROPOSAL_LIFECYCLE_SCHEMA_VERSION = "apts-stage5.2-recon-proposal-lifecycle-v1"
+ RECONNAISSANCE_AGENT_CONTRACT_HASH_DOMAIN = "APTS_STAGE5_2_RECONNAISSANCE_AGENT_V1"
+ RECONNAISSANCE_RUN_REQUEST_HASH_DOMAIN = "APTS_STAGE5_2_RECONNAISSANCE_RUN_REQUEST_V1"
+ RECONNAISSANCE_OUTPUT_HASH_DOMAIN = "APTS_STAGE5_2_RECONNAISSANCE_OUTPUT_V1"
+@@ -641,6 +642,18 @@
+         "capability_source": "SERVER_OWNED_REGISTRY_ONLY",
+         "target_source": "IMMUTABLE_TASK_SCOPE_REFERENCE",
+         "idempotency": "DETERMINISTIC_PROPOSAL_BOUND_NO_DUPLICATE_ACTION",
++        "proposal_lifecycle": {
++            "schema_version": RECON_PROPOSAL_LIFECYCLE_SCHEMA_VERSION,
++            "states": ["PROPOSED", "VALIDATED", "AWAITING_STAGE6_INTAKE", "REJECTED"],
++            "binding_checks": [
++                "ACTIVE_ORCHESTRATION_MATCHES_TASK",
++                "RECON_SUBTASK_ASSIGNED_TO_CANONICAL_AGENT",
++                "PENTEST_LIFECYCLE_IS_RUNNING",
++                "TARGET_REMAINS_IN_CURRENT_TASK_SCOPE",
++                "TASK_AND_CAPABILITY_SNAPSHOTS_MATCH",
++            ],
++            "history": "IMMUTABLE_TRANSITIONS_EMBEDDED_IN_HASHED_RECON_OUTPUT",
++        },
+         "authorization_semantics": "REQUEST_IS_NOT_AUTHORIZATION; GSS_STAGE6_REVALIDATION_REQUIRED",
+         "execution_semantics": "NO_TOOL_INVOCATION_OR_TARGET_IO_IN_STAGE5_2",
+         "unknown_fields": "REJECT",
+@@ -1344,6 +1357,161 @@
+             "confidence": observation["confidence"],
+         }
+ 
++    def _validate_proposal_lifecycle_binding(
++        self,
++        *,
++        orchestration_id: str,
++        task_record: Mapping[str, Any],
++        node: Mapping[str, Any],
++        proposal: Mapping[str, Any],
++        capability_registry_sha256: str,
++    ) -> dict[str, Any]:
++        """Re-check current control-plane bindings before publishing a Stage 6 handoff."""
++        current_orchestration = self.get_orchestration(orchestration_id)
++        if current_orchestration is None:
++            raise ReconnaissanceAgentNotFound(f"unknown orchestration: {orchestration_id}")
++        if current_orchestration["orchestration_status"] != "ACTIVE":
++            raise ReconnaissanceAgentConflict(
++                "Recon proposal cannot advance unless its orchestration is ACTIVE"
++            )
++        if current_orchestration["pentest_task_id"] != task_record["pentest_task_id"]:
++            raise ReconnaissanceAgentIntegrityError("orchestration/task binding changed before proposal publication")
++        current_task = self.get_task(task_record["pentest_task_id"])
++        if current_task is None:
++            raise ReconnaissanceAgentNotFound("Pentest task disappeared before proposal publication")
++        if current_task["task_contract_sha256"] != task_record["task_contract_sha256"]:
++            raise ReconnaissanceAgentConflict("Pentest task contract changed before proposal publication")
++        lifecycle = self.get_lifecycle(task_record["pentest_task_id"])
++        if lifecycle is None or lifecycle.get("state") != "RUNNING":
++            state = "MISSING" if lifecycle is None else str(lifecycle.get("state"))
++            raise ReconnaissanceAgentConflict(
++                f"Recon proposal requires Pentest lifecycle RUNNING; observed {state}"
++            )
++        graph = current_orchestration["task_graph"]
++        current_node = graph_node(graph, str(node["subtask_id"]))
++        if current_node is None or current_node.get("capability_id") != RECONNAISSANCE_CAPABILITY_ID:
++            raise ReconnaissanceAgentIntegrityError("Recon subtask is absent from the active orchestration graph")
++        if current_node.get("specialist", {}).get("agent_id") != RECONNAISSANCE_AGENT_ID:
++            raise ReconnaissanceAgentIntegrityError("Recon subtask is not assigned to the canonical Recon agent")
++        if current_node.get("status") not in {"READY", "RUNNING"}:
++            raise ReconnaissanceAgentConflict(
++                f"Recon proposal cannot advance from subtask status {current_node.get('status')}"
++            )
++        if current_node.get("subtask_id") != node.get("subtask_id"):
++            raise ReconnaissanceAgentIntegrityError("Recon subtask identity changed before proposal publication")
++        if not _target_in_task_scope(proposal["target"], current_task["task"]):
++            raise ReconnaissanceAgentConflict("Recon proposal target is outside the current task scope")
++        current_capabilities = self.get_capability_registry()
++        if current_capabilities["integrity"]["canonical_sha256"] != capability_registry_sha256:
++            raise ReconnaissanceAgentConflict("Capability registry changed before proposal publication")
++        if proposal.get("technique") != "PASSIVE_DISCOVERY" or proposal.get("capability_id", RECONNAISSANCE_CAPABILITY_ID) != RECONNAISSANCE_CAPABILITY_ID:
++            raise ReconnaissanceAgentValidationError("proposal capability/technique is not enabled for Recon")
++
++        graph_sha = sha256_hex(graph)
++        lifecycle_binding = {
++            "mission_id": task_record["mission_id"],
++            "pentest_id": task_record["pentest_id"],
++            "task_id": task_record["pentest_task_id"],
++            "task_contract_sha256": current_task["task_contract_sha256"],
++            "orchestration_id": current_orchestration["orchestration_id"],
++            "orchestration_graph_sha256": graph_sha,
++            "subtask_id": current_node["subtask_id"],
++            "assigned_agent_id": current_node["specialist"]["agent_id"],
++            "lifecycle_state": lifecycle["state"],
++            "lifecycle_state_version": lifecycle["state_version"],
++            "scope_sha256": sha256_hex(current_task["task"]["scope"]),
++            "constraints_sha256": sha256_hex(current_task["task"]["constraints"]),
++            "authorization_reference_sha256": sha256_hex(current_task["task"]["authorization_reference"]),
++            "capability_registry_sha256": capability_registry_sha256,
++            "target": deepcopy(proposal["target"]),
++        }
++        binding_sha = sha256_hex({
++            "hash_domain": "APTS_STAGE5_2_RECON_PROPOSAL_LIFECYCLE_BINDING_V1",
++            "binding": lifecycle_binding,
++        })
++        return {
++            "schema_version": RECON_PROPOSAL_LIFECYCLE_SCHEMA_VERSION,
++            "current_status": "AWAITING_STAGE6_INTAKE",
++            "binding": lifecycle_binding,
++            "binding_sha256": binding_sha,
++            "transitions": [
++                {"sequence": 1, "from_status": None, "to_status": "PROPOSED", "gate": "RECON_NEED_DERIVED"},
++                {"sequence": 2, "from_status": "PROPOSED", "to_status": "VALIDATED", "gate": "ORCHESTRATION_TASK_ASSIGNMENT_SCOPE_REGISTRY"},
++                {"sequence": 3, "from_status": "VALIDATED", "to_status": "AWAITING_STAGE6_INTAKE", "gate": "GSS_AUTHORIZATION_STILL_REQUIRED"},
++            ],
++            "semantics": {
++                "append_only_snapshot": True,
++                "gss_authorized": False,
++                "execution_started": False,
++                "external_network_io_performed": False,
++            },
++        }
++
++    def validate_recon_action_request_for_stage6(self, action_id: str) -> dict[str, Any]:
++        """Revalidate the stored immutable Action Request before a Stage 6 intake."""
++        self.initialize()
++        action_id = _canonical_id(action_id, "action_id", prefix="rareq-")
++        matches: list[tuple[dict[str, Any], dict[str, Any]]] = []
++        for run in self.list_recon_runs(limit=500):
++            for request in run["output"].get("action_requests", []):
++                if request.get("action_id") == action_id:
++                    matches.append((run, request))
++        if len(matches) != 1:
++            raise ReconnaissanceAgentNotFound("Action Request is missing or is not uniquely bound to a Recon run")
++        run, request = matches[0]
++        request = normalize_recon_action_request(request)
++        if request["recon_run_id"] != run["recon_run_id"] or request["orchestration_id"] != run["orchestration_id"]:
++            raise ReconnaissanceAgentIntegrityError("Action Request run/orchestration binding mismatch")
++        task_record = self.get_task(request["task_id"])
++        orchestration = self.get_orchestration(request["orchestration_id"])
++        if task_record is None or orchestration is None:
++            raise ReconnaissanceAgentNotFound("Action Request task or orchestration no longer exists")
++        if orchestration["orchestration_status"] != "ACTIVE" or orchestration["pentest_task_id"] != request["task_id"]:
++            raise ReconnaissanceAgentConflict("Action Request orchestration is closed or no longer bound to its task")
++        lifecycle = self.get_lifecycle(request["task_id"])
++        if lifecycle is None or lifecycle.get("state") != "RUNNING":
++            raise ReconnaissanceAgentConflict("Action Request requires the Pentest lifecycle to remain RUNNING")
++        if task_record["task_contract_sha256"] != request["binding"]["task_contract_sha256"]:
++            raise ReconnaissanceAgentConflict("Action Request task contract is stale")
++        task = task_record["task"]
++        if (sha256_hex(task["scope"]) != request["binding"]["scope_sha256"]
++                or sha256_hex(task["constraints"]) != request["binding"]["constraints_sha256"]
++                or sha256_hex(task["authorization_reference"]) != request["binding"]["authorization_reference_sha256"]):
++            raise ReconnaissanceAgentConflict("Action Request scope, constraints, or authorization reference is stale")
++        node = graph_node(orchestration["task_graph"], request["subtask_id"])
++        if (node is None or node.get("capability_id") != RECONNAISSANCE_CAPABILITY_ID
++                or node.get("specialist", {}).get("agent_id") != RECONNAISSANCE_AGENT_ID
++                or node.get("status") not in {"READY", "RUNNING", "SUCCEEDED"}):
++            raise ReconnaissanceAgentConflict("Action Request Recon assignment is no longer valid")
++        if not _target_in_task_scope(
++            {"target_type": request["target_ref"]["target_type"], "target_value": request["target_ref"]["target_value"]}, task
++        ):
++            raise ReconnaissanceAgentConflict("Action Request target is no longer in the current task scope")
++        registry = self.get_capability_registry()
++        if registry["integrity"]["canonical_sha256"] != request["binding"]["capability_registry_sha256"]:
++            raise ReconnaissanceAgentConflict("Action Request capability registry snapshot is stale")
++        proposal_record = self.get_lineage_object(request["proposal_ref"])
++        if (proposal_record["record_type"] != "ACTION_PROPOSAL"
++                or proposal_record["pentest_task_id"] != request["task_id"]
++                or proposal_record["record"]["integrity"]["canonical_sha256"] != request["input_sha256"]):
++            raise ReconnaissanceAgentIntegrityError("Action Request source proposal is missing or has changed")
++        return {
++            "status": "VALIDATED_AWAITING_GSS",
++            "action_id": action_id,
++            "proposal_ref": request["proposal_ref"],
++            "mission_id": request["mission_id"],
++            "task_id": request["task_id"],
++            "orchestration_id": request["orchestration_id"],
++            "recon_run_id": request["recon_run_id"],
++            "current_lifecycle_state": lifecycle["state"],
++            "target_scope_verified": True,
++            "assignment_verified": True,
++            "source_proposal_integrity_verified": True,
++            "gss_authorized": False,
++            "execution_started": False,
++            "external_network_io_performed": False,
++        }
++
+     def _evaluate_and_publish_proposal(
+         self,
+         *,
+@@ -1353,6 +1521,9 @@
+         proposal: Mapping[str, Any],
+         index: int,
+         decision_timestamp: str,
++        orchestration_id: str,
++        node: Mapping[str, Any],
++        capability_registry_sha256: str,
+     ) -> tuple[dict[str, Any], dict[str, Any] | None]:
+         task = task_record["task"]
+         in_scope = _target_in_task_scope(proposal["target"], task)
+@@ -1405,6 +1576,14 @@
+         if decision["status"] not in {"ELIGIBLE", "REVIEW_REQUIRED"} or not in_scope:
+             return governance_item, None
+ 
++        proposal_lifecycle = self._validate_proposal_lifecycle_binding(
++            orchestration_id=orchestration_id,
++            task_record=task_record,
++            node=node,
++            proposal=proposal,
++            capability_registry_sha256=capability_registry_sha256,
++        )
++
+         action_id = _deterministic_record_id(
+             "actp-", run_id=run_id, key=f"{index}:{proposal['proposal_key']}", domain="APTS_STAGE5_2_RECON_ACTION_PROPOSAL_ID_V1"
+         )
+@@ -1430,6 +1609,8 @@
+                     "proposal_key": proposal["proposal_key"],
+                     "governance_status": decision["status"],
+                     "execution_deferred_to_stage6": True,
++                    "proposal_lifecycle_status": proposal_lifecycle["current_status"],
++                    "proposal_lifecycle_binding_sha256": proposal_lifecycle["binding_sha256"],
+                 },
+             },
+             "data": {
+@@ -1468,6 +1649,7 @@
+             "supporting_observation_ids": deepcopy(proposal.get("supporting_observation_ids", [])),
+             "governance_decision_ref": decision["decision_id"],
+             "execution_status": "DEFERRED_TO_STAGE6",
++            "proposal_lifecycle": proposal_lifecycle,
+         }
+ 
+     def _handoff_recon_success(
+@@ -1582,6 +1764,7 @@
+             as_of=assessment_timestamp,
+         )
+         derived_proposals = derive_recon_action_proposals(observation_plan)
++        capability_registry_sha256 = self.get_capability_registry()["integrity"]["canonical_sha256"]
+         for index, proposal in enumerate(derived_proposals):
+             governance_item, action_item = self._evaluate_and_publish_proposal(
+                 run_id=run_id,
+@@ -1590,6 +1773,9 @@
+                 proposal=proposal,
+                 index=index,
+                 decision_timestamp=decision_timestamp,
++                orchestration_id=orchestration_id,
++                node=node,
++                capability_registry_sha256=capability_registry_sha256,
+             )
+             governance_items.append(governance_item)
+             if action_item is not None:
+@@ -1609,7 +1795,7 @@
+                     recon_run_id=run_id,
+                     subtask_id=node["subtask_id"],
+                     created_at=assessment_timestamp,
+-                    capability_registry_sha256=self.get_capability_registry()["integrity"]["canonical_sha256"],
++                    capability_registry_sha256=capability_registry_sha256,
+                 ))
+ 
+         output = build_reconnaissance_output(
+--- a/pentest_subsystem/api_service.py
++++ b/pentest_subsystem/api_service.py
+@@ -1477,6 +1477,23 @@
+         if path == "/api/contracts/recon-action-request":
+             self._send_json(200, self.service.get_recon_action_request_contract())
+             return
++        action_validation_prefix = "/api/pentest/recon-action-requests/"
++        action_validation_suffix = "/validate-stage6-intake"
++        if path.startswith(action_validation_prefix) and path.endswith(action_validation_suffix):
++            action_id = unquote(path[len(action_validation_prefix):-len(action_validation_suffix)])
++            if not action_id or "/" in action_id:
++                self._send_json(400, {"status": "invalid", "error": "invalid Action Request route"})
++                return
++            try:
++                result = self.service.repository.validate_recon_action_request_for_stage6(action_id)
++                self._send_json(200, {"status": "ok", "validation": result})
++            except ReconnaissanceAgentNotFound as exc:
++                self._send_json(404, {"status": "not_found", "error": str(exc)})
++            except (ReconnaissanceAgentConflict, ReconnaissanceAgentIntegrityError) as exc:
++                self._send_json(409, {"status": "rejected", "error": str(exc), "execution_started": False})
++            except ReconnaissanceAgentRepositoryError as exc:
++                self._send_json(400, {"status": "invalid", "error": str(exc)})
++            return
+         if path == "/api/pentest/reconnaissance-runs":
+             query = parse_qs(parsed.query, keep_blank_values=False)
+             try:
+--- a/tests/test_stage5_2_reconnaissance_agent.py
++++ b/tests/test_stage5_2_reconnaissance_agent.py
+@@ -310,12 +310,62 @@
+     assert action_request["semantics"]["request_is_authorization"] is False
+     assert action_request["semantics"]["external_network_io_performed"] is False
+     assert normalize_recon_action_request(action_request) == action_request
++    lifecycle = proposal["proposal_lifecycle"]
++    assert lifecycle["current_status"] == "AWAITING_STAGE6_INTAKE"
++    assert [x["to_status"] for x in lifecycle["transitions"]] == [
++        "PROPOSED", "VALIDATED", "AWAITING_STAGE6_INTAKE"
++    ]
++    assert lifecycle["binding"]["orchestration_id"] == orch["orchestration_id"]
++    assert lifecycle["binding"]["task_id"] == task["pentest_task_id"]
++    assert lifecycle["binding"]["assigned_agent_id"] == RECONNAISSANCE_AGENT_ID
++    assert lifecycle["semantics"]["gss_authorized"] is False
++    stage6_validation = repo.validate_recon_action_request_for_stage6(action_request["action_id"])
++    assert stage6_validation["status"] == "VALIDATED_AWAITING_GSS"
++    assert stage6_validation["source_proposal_integrity_verified"] is True
+     records = repo.list_lineage_objects(task["pentest_task_id"])
+     assert [item["record_type"] for item in records].count("ACTION_PROPOSAL") == 1
+     assert [item["record_type"] for item in records].count("ACTION_RESULT") == 0
+     assert run["output"]["semantics"]["target_actuation"] is False
+ 
+ 
++def test_11d_lifecycle_or_orchestration_closure_blocks_stage6_intake(tmp_path: Path):
++    repo, boundary, task, orch, _, _ = _start_repo(tmp_path, "lifecycle-block")
++    run, _ = repo.run_reconnaissance(orch["orchestration_id"], recon_request(boundary, task, "lifecycle-block"))
++    action_id = run["output"]["action_requests"][0]["action_id"]
++    with sqlite3.connect(repo.sqlite_path) as conn:
++        conn.execute(
++            "UPDATE pentest_task_lifecycle SET state='WAITING', state_version=state_version+1 WHERE pentest_task_id=?",
++            (task["pentest_task_id"],),
++        )
++    with pytest.raises(ReconnaissanceAgentConflict, match="lifecycle to remain RUNNING"):
++        repo.validate_recon_action_request_for_stage6(action_id)
++
++    repo2, boundary2, task2, orch2, _, _ = _start_repo(tmp_path, "orchestration-block")
++    run2, _ = repo2.run_reconnaissance(orch2["orchestration_id"], recon_request(boundary2, task2, "orchestration-block"))
++    with sqlite3.connect(repo2.sqlite_path) as conn:
++        conn.execute(
++            "UPDATE pentest_agentic_orchestrations SET orchestration_status='TERMINATED' WHERE orchestration_id=?",
++            (orch2["orchestration_id"],),
++        )
++    with pytest.raises(ReconnaissanceAgentConflict, match="orchestration is closed"):
++        repo2.validate_recon_action_request_for_stage6(run2["output"]["action_requests"][0]["action_id"])
++
++
++def test_11e_non_running_lifecycle_cannot_publish_action_proposal(tmp_path: Path):
++    repo, boundary, task, orch, _, _ = _start_repo(tmp_path, "lifecycle-before-publish")
++    with sqlite3.connect(repo.sqlite_path) as conn:
++        conn.execute(
++            "UPDATE pentest_task_lifecycle SET state='WAITING', state_version=state_version+1 WHERE pentest_task_id=?",
++            (task["pentest_task_id"],),
++        )
++    with pytest.raises(ReconnaissanceAgentConflict, match="requires Pentest lifecycle RUNNING"):
++        repo.run_reconnaissance(
++            orch["orchestration_id"],
++            recon_request(boundary, task, "lifecycle-before-publish"),
++        )
++    assert repo.list_lineage_objects(task["pentest_task_id"], record_type="ACTION_PROPOSAL") == []
++
++
+ def test_11a_action_request_rejects_tampering_unknown_fields_and_invalid_binding(tmp_path: Path):
+     repo, boundary, task, orch, _, _ = _start_repo(tmp_path, "request-contract")
+     run, _ = repo.run_reconnaissance(orch["orchestration_id"], recon_request(boundary, task, "request-contract"))
+@@ -502,6 +552,10 @@
+         run_id = result["run"]["recon_run_id"]
+         status, _, fetched = _get(base + f"/api/pentest/reconnaissance-runs/{run_id}")
+         assert status == 200 and fetched["run"]["recon_run_id"] == run_id
++        action_id = fetched["run"]["output"]["action_requests"][0]["action_id"]
++        status, _, intake = _get(base + f"/api/pentest/recon-action-requests/{action_id}/validate-stage6-intake")
++        assert status == 200 and intake["validation"]["status"] == "VALIDATED_AWAITING_GSS"
++        assert intake["validation"]["gss_authorized"] is False
+         status, _, listed = _get(base + "/api/pentest/reconnaissance-runs?limit=10")
+         assert status == 200 and listed["count"] == 1
+         assert result["orchestration"]["task_graph"]["nodes"][1]["status"] == "READY"

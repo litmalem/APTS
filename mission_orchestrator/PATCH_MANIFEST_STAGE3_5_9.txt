@@ -1,0 +1,22 @@
+Stage 3.5.9 — Execution Event Lineage, Replay & Recovery
+
+Primary new files:
+  mission_orchestrator/execution_lineage.py
+  migrations/035_stage3_5_9_execution_event_lineage_replay_recovery.sql
+  tests/test_stage3_5_9_execution_event_lineage_replay_recovery.py
+  README_STAGE3_5_9.md
+  PATCH_NOTES_STAGE3_5_9.md
+  INSTALL_STAGE3_5_9.txt
+  STAGE3_5_9_ACCEPTANCE.ps1
+  REGRESSION_EVIDENCE_STAGE3_5_9.txt
+  SHA256_STAGE3_5_9.txt
+
+Primary modified runtime files:
+  mission_orchestrator/errors.py
+  mission_orchestrator/mission_events.py
+  mission_orchestrator/repository.py
+  mission_orchestrator/repository_model.py
+  mission_orchestrator/service.py
+  mission_orchestrator/api_service.py
+
+Regression-head tests were rebased from runtime 3.5.8/migration 34 to runtime 3.5.9/migration 35 while preserving historical stage semantics.

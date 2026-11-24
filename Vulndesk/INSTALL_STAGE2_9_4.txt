@@ -1,0 +1,37 @@
+VulnDesk / aptsGSS Stage 2.9.4 Installation
+============================================
+
+Baseline:
+  Vulndesk(20260829-023750).zip
+  Vulndesk(20260829-023743).sql
+  aptsGSS(20260829-023743).zip
+  AptsGSS(20260829-023743).sql
+
+Database migration:
+  NONE REQUIRED.
+
+Recommended install order:
+
+1. Stop VulnDesk and aptsGSS.
+2. Back up both source directories and both databases.
+3. Replace/patch aptsGSS first.
+4. Start aptsGSS and verify:
+     GET http://127.0.0.1:8770/health
+   Expected:
+     governance_correlation_probe_mode = MISSION_SCOPED_AUTHORITATIVE_READ_ONLY
+5. Verify the new Governance read endpoint using a known mission:
+     GET http://127.0.0.1:8770/api/governance/correlation/missions/<mission_id>
+6. Replace/patch VulnDesk.
+7. Start VulnDesk and verify:
+     GET http://127.0.0.1:8765/health
+   Expected control_version:
+     hybrid-event-driven-2.15-cross-subsystem-governance-correlation
+8. Run regression tests.
+9. Run one fresh governed mission (preferably one with authorization + revalidation).
+10. Optionally run a separate fresh revocation mission to prove revocation correlation.
+11. Run STAGE2_9_4_ACCEPTANCE.ps1 with the fresh mission id.
+12. Run STAGE2_9_4_ACCEPTANCE.sql after setting @mission_id.
+
+Important stage boundary:
+  PARTIAL/MISMATCH is a Stage 2.9.4 correlation fact only.
+  Do not interpret it as an integrity violation until Stage 2.9.5 is implemented.

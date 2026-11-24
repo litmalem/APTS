@@ -1,0 +1,16 @@
+[
+  "tests/test_cpe_cve_matching_version_range_scan.py::test_product_only_fallback_when_vendor_absent",
+  "tests/test_cpe_cve_matching_version_range_scan.py::test_version_range_row_survives_beyond_legacy_500_cap",
+  "tests/test_cpe_cve_matching_version_range_scan.py::test_wildcard_version_rows_are_fetched_first",
+  "tests/test_cpe_enrichment_matching.py::test_angular_and_juice_shop_reject_keyword_only_matches",
+  "tests/test_cpe_enrichment_matching.py::test_embedded_php_version_does_not_select_other_release_or_similar_product",
+  "tests/test_cpe_enrichment_matching.py::test_laravel_framework_alias_is_restricted_to_laravel_vendor",
+  "tests/test_cpe_enrichment_matching.py::test_missing_product_has_explicit_diagnostic_without_candidate",
+  "tests/test_cpe_enrichment_matching.py::test_missing_version_remains_diagnostic_not_matching_other_release",
+  "tests/test_cpe_enrichment_matching.py::test_no_version_does_not_invent_concrete_release_or_accept_related_product",
+  "tests/test_cpe_enrichment_matching.py::test_normalization_preserves_explicit_version",
+  "tests/test_cpe_enrichment_matching.py::test_product_identity_query_filters_vendor_and_does_not_assign_version",
+  "tests/test_cpe_enrichment_matching.py::test_repository_filters_identity_and_version_before_limit_without_loading_raw_json",
+  "tests/test_cpe_enrichment_matching.py::test_stable_version_does_not_match_release_candidate_update",
+  "tests/test_cpe_enrichment_matching.py::test_unknown_version_exposes_product_identity_without_inventing_target_cpe"
+]

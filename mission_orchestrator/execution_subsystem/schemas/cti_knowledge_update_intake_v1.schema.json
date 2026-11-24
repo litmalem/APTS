@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "attempt_id",
+    "expected_head_sha256",
+    "expected_revision",
+    "feedback_id",
+    "feedback_sha256",
+    "schema_version"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "apts-cti-knowledge-update-intake-v1"
+    },
+    "feedback_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$"
+    },
+    "attempt_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$"
+    },
+    "feedback_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "expected_revision": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 999
+    },
+    "expected_head_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "expected_revision": {
+            "const": 0
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "expected_head_sha256": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "expected_head_sha256": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ]
+}

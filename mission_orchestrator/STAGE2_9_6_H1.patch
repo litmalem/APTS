@@ -1,0 +1,48 @@
+--- /mnt/data/stage2_9_6_H1_diffbase/cti_services/cti_subsystem_orchestrator.py	2026-08-30 10:52:56.789959538 +0000
++++ /mnt/data/stage2_9_6_H1_build/cti_services/cti_subsystem_orchestrator.py	2026-08-30 10:52:56.660044581 +0000
+@@ -286,12 +286,15 @@
+         normalized_type = str(event_type or "UNKNOWN").upper()
+         event_payload = dict(payload or {})
+         runtime = self._runtimes.get(str(mission_id))
+-        # Stage 2.8.8: authoritative Governance lifecycle events are durable
+-        # audit/provenance inputs even when the in-memory mission runtime has
+-        # already terminated or the service has restarted. Revocation retains
+-        # its safety fast-path; issue/revalidation events are accepted as
+-        # audit-only ingress so the aptsGSS transactional outbox can converge.
++        # Stage 2.8.8 / 2.9.6-H1: authoritative Governance lifecycle events are
++        # durable audit/provenance inputs even when the in-memory mission runtime
++        # has already terminated or the service has restarted. SCOPE_CHANGED is
++        # included because it is authoritative governance provenance, not a CTI
++        # operational/reactive trigger. Revocation retains its safety fast-path;
++        # the remaining events are accepted as audit-only ingress so the aptsGSS
++        # transactional outbox can converge without requiring a live runtime.
+         durable_governance_events = {
++            "SCOPE_CHANGED",
+             "POLICY_DECISION_ISSUED",
+             "POLICY_DECISION_REVALIDATED",
+             "POLICY_DECISION_REVALIDATION_FAILED",
+--- /mnt/data/stage2_9_6_H1_diffbase/tests/test_cross_subsystem_lineage_stage2_8_8.py	2026-08-30 10:52:56.790985370 +0000
++++ /mnt/data/stage2_9_6_H1_build/tests/test_cross_subsystem_lineage_stage2_8_8.py	2026-08-30 10:52:56.660221436 +0000
+@@ -247,6 +247,22 @@
+     assert event["upstream_event_id"] == "gevent-late-288"
+ 
+ 
++def test_scope_changed_governance_ingress_is_durable_without_live_runtime():
++    orch = CtiSubsystemOrchestrator(db=CaptureDb(), registry=AlwaysOnRegistry())
++    event = orch.publish_external_event(
++        "mission-terminal-scope",
++        "SCOPE_CHANGED",
++        {
++            "governance_event_id": "gevent-scope-late",
++            "scope_contract_id": "scope-late",
++            "scope_version": 1,
++        },
++        source_component="GOV-PLANE",
++    )
++    assert event["event_type"] == "SCOPE_CHANGED"
++    assert event["upstream_event_id"] == "gevent-scope-late"
++
++
+ def test_non_governance_external_event_still_requires_live_runtime():
+     orch = CtiSubsystemOrchestrator(db=CaptureDb(), registry=AlwaysOnRegistry())
+     try:

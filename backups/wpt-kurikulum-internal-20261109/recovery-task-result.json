@@ -1,0 +1,552 @@
+{
+  "accepted_for_execution": false,
+  "authorization_minted": false,
+  "binding": {
+    "control_version": "stage4.3-pentest-mission-task-contract",
+    "integrity": {
+      "algorithm": "SHA-256",
+      "canonical_sha256": "a38c0e0a4125d656f2ad8cea0ea33edae10041e682873e07ae468b02819b3218",
+      "canonicalization": "UTF8_SORTED_JSON_V1",
+      "hash_domain": "APTS_STAGE4_3_PENTEST_TASK_BINDING_ENVELOPE_V1"
+    },
+    "lineage": {
+      "mission_id": "mission-gmo-57851fd3-1f64-436f-b713-0b49e839bcc2",
+      "pentest_id": "pentest-wpt-kurikulum-internal-20261109",
+      "pentest_task_id": "pentest-task-wpt-kurikulum-internal-20261109",
+      "pip_id": "pip-b8972914-3b60-48d9-bcd0-3d83e6ca1c32",
+      "upstream_task_id": "ptask-wpt-kurikulum-internal-20261109"
+    },
+    "schema_version": "apts-stage4.3-pentest-task-binding-envelope-v1",
+    "semantics": {
+      "accepted_for_execution": false,
+      "authorization_minted": false,
+      "eligible_for_local_repository": true,
+      "external_network_io_performed": false,
+      "local_task_materialized": true,
+      "target_actuation": false,
+      "tool_invocation_performed": false,
+      "workflow_lifecycle_started": false
+    },
+    "stage4_2_pip_binding_sha256": "55eb8376601116808ee58469d0cfa10c6c9e007a017a772782817184c511cd9e",
+    "stage4_2_pip_contract_sha256": "adecfe307e026eb0248e5408d674e04668bec20787333177492cd22728611fc7",
+    "task": {
+      "authorization_reference": {
+        "execution_authorized": true,
+        "policy_decision_hash": "935b90a532978e3fea2ef4bf569bd880347e574fbaf72a3d2319998a0b70c744",
+        "policy_decision_id": "gdec-71a3fdd1-1759-4c9d-8012-f2154adb0e5f",
+        "policy_version": 1
+      },
+      "completion_criteria": {
+        "all_required": true,
+        "criteria": [
+          {
+            "criterion_id": "criterion-handoff-1",
+            "description": "{\"expected\": true, \"metric\": \"t1-pentest-orchestration_artifact_present\"}",
+            "required": true,
+            "type": "MISSION_SUCCESS_CRITERION"
+          },
+          {
+            "criterion_id": "criterion-handoff-context",
+            "description": "{\"evidence_requirements\": [{\"provenance_required\": true, \"type\": \"PENTEST_TASK_AND_ORCHESTRATION_ACK\"}], \"expected_outputs\": [{\"artifact\": \"pentest_task_orchestration_reference\", \"format\": \"STRUCTURED\"}], \"preconditions\": [{\"kind\": \"ACTIVE_GSS_SCOPE_TARGET\", \"required\": true}]}",
+            "required": true,
+            "type": "MISSION_HANDOFF_REQUIREMENTS"
+          }
+        ]
+      },
+      "constraints": {
+        "data_handling_policy": {
+          "execution_authorized": false
+        },
+        "max_actions": 100,
+        "max_duration": 36000,
+        "resource_budget": {
+          "max_network_requests": 6
+        },
+        "risk_threshold": "LOW"
+      },
+      "created_at": "2026-11-09T04:39:12Z",
+      "evidence_requirement": {
+        "integrity_required": true,
+        "minimum_evidence_items": 1,
+        "provenance_required": true,
+        "required_artifact_types": [
+          "OBSERVATION",
+          "TRACE"
+        ]
+      },
+      "integrity": {
+        "algorithm": "SHA-256",
+        "canonical_sha256": "53ba7e0fce79abe660f1bff3bbf43e2131dd05a1ef05ad1631b0ea0c0b61733b",
+        "canonicalization": "UTF8_SORTED_JSON_V1",
+        "hash_domain": "APTS_PENTEST_TASK_CONTRACT_V1"
+      },
+      "mission_id": "mission-gmo-57851fd3-1f64-436f-b713-0b49e839bcc2",
+      "objective": {
+        "environment": "LAB",
+        "goal": "Recover bounded WPT for the explicitly approved internal DNS destination 172.21.2.2",
+        "scope_snapshot_sha256": "0e95080aba3e67dc132fa3485abc0d35a155c5b62904bca71e467c7d5b42807f",
+        "source_gss_scope_contract_id": "scope-424e7282-dad1-49cf-bc66-0a3d2522c468",
+        "source_gss_scope_version": 1,
+        "target_ref": "https://kurikulum.del.ac.id:443",
+        "target_type": "URL"
+      },
+      "pentest_id": "pentest-wpt-kurikulum-internal-20261109",
+      "pentest_task_id": "pentest-task-wpt-kurikulum-internal-20261109",
+      "pip_reference": {
+        "pip_artifact_sha256": "562fe551615e9f9fb7ab32656b916e36af843a8d477a746a54ab5eca5079438d",
+        "pip_binding_sha256": "55eb8376601116808ee58469d0cfa10c6c9e007a017a772782817184c511cd9e",
+        "pip_id": "pip-b8972914-3b60-48d9-bcd0-3d83e6ca1c32",
+        "pip_version": "1"
+      },
+      "schema_version": "apts-pentest-task-contract-v1",
+      "scope": {
+        "domains": [],
+        "excluded_targets": [],
+        "network_ranges": [],
+        "services": [],
+        "targets": [
+          {
+            "environment": "LAB",
+            "metadata": {},
+            "target_type": "URL",
+            "target_value": "https://kurikulum.del.ac.id:443"
+          },
+          {
+            "environment": "LAB",
+            "metadata": {},
+            "target_type": "IP",
+            "target_value": "172.21.2.2"
+          }
+        ]
+      },
+      "target": {
+        "environment": "LAB",
+        "metadata": {},
+        "target_type": "URL",
+        "target_value": "https://kurikulum.del.ac.id:443"
+      },
+      "upstream_task_id": "ptask-wpt-kurikulum-internal-20261109"
+    },
+    "task_contract_sha256": "76ed5c4565cc90b7cbfc74293aa5e93ebaad3a4fc7ccbeb0ad08e368a775df9e",
+    "validation": {
+      "all_required_dimensions_passed": true,
+      "dimensions": [
+        {
+          "dimension": "PIP_BINDING",
+          "pip_binding_sha256": "55eb8376601116808ee58469d0cfa10c6c9e007a017a772782817184c511cd9e",
+          "pip_id": "pip-b8972914-3b60-48d9-bcd0-3d83e6ca1c32",
+          "status": "PASS"
+        },
+        {
+          "dimension": "MISSION_LINEAGE",
+          "mission_id": "mission-gmo-57851fd3-1f64-436f-b713-0b49e839bcc2",
+          "pentest_id": "pentest-wpt-kurikulum-internal-20261109",
+          "pentest_task_id": "pentest-task-wpt-kurikulum-internal-20261109",
+          "status": "PASS",
+          "upstream_task_id": "ptask-wpt-kurikulum-internal-20261109"
+        },
+        {
+          "dimension": "TARGET",
+          "status": "PASS",
+          "target_sha256": "227d7fc3e527e77f6f05fbfabad2d31ece0c9d3ac7f0cecfe167b5112281a51f"
+        },
+        {
+          "dimension": "SCOPE",
+          "scope_sha256": "0387db5e374be1c8aafececfcadfab83a16523f2f30be28f83a9bcb43ae41c7e",
+          "status": "PASS"
+        },
+        {
+          "dimension": "OBJECTIVE",
+          "objective_sha256": "84dcb846cda4b0f16c1be85a63657f22f2d5e6161f6f2ab7af27dea96e6e445d",
+          "status": "PASS"
+        },
+        {
+          "constraints_sha256": "c2da4b21bb2afb35a09017fef9dbd1347b6c3cc46d69d090385cb1e1e960360e",
+          "dimension": "CONSTRAINTS",
+          "status": "PASS"
+        },
+        {
+          "dimension": "AUTHORIZATION_REFERENCE",
+          "policy_decision_id": "gdec-71a3fdd1-1759-4c9d-8012-f2154adb0e5f",
+          "status": "PASS"
+        },
+        {
+          "dimension": "EVIDENCE_REQUIREMENT",
+          "minimum_evidence_items": 1,
+          "status": "PASS"
+        },
+        {
+          "criteria_count": 2,
+          "dimension": "COMPLETION_CRITERIA",
+          "status": "PASS"
+        }
+      ],
+      "status": "VALID"
+    }
+  },
+  "capability_registry_available": true,
+  "capability_selected": false,
+  "component_id": "PENTEST-SUB01",
+  "control_version": "stage4.7-capability-registry-tool-contract",
+  "created": true,
+  "event": {
+    "agent_id": "PENTEST_RUNTIME",
+    "canonical_sha256": "dec082f245de4dd4b0f6ad73a82ce060dbdcc341b9bd2eee70d208ad31a8a983",
+    "event_id": "pevent-d8971932bae090726c3844fab182113ce9e19e2a90d5823a",
+    "event_sequence": 1,
+    "event_type": "PENTEST_TASK_RECEIVED",
+    "evidence_refs": [],
+    "metadata": {
+      "lifecycle_initialized": true,
+      "source_control": "stage4.3-pentest-mission-task-contract",
+      "task_contract_sha256": "53ba7e0fce79abe660f1bff3bbf43e2131dd05a1ef05ad1631b0ea0c0b61733b"
+    },
+    "mission_id": "mission-gmo-57851fd3-1f64-436f-b713-0b49e839bcc2",
+    "parent_event_id": null,
+    "pentest_id": "pentest-wpt-kurikulum-internal-20261109",
+    "previous_event_sha256": null,
+    "schema_version": "apts-pentest-event-v1",
+    "source_component": "APTS-PENTEST",
+    "source_id": "pentest-task-wpt-kurikulum-internal-20261109",
+    "source_sha256": "a38c0e0a4125d656f2ad8cea0ea33edae10041e682873e07ae468b02819b3218",
+    "source_type": "TASK_MATERIALIZATION",
+    "state_after": "RECEIVED",
+    "state_before": null,
+    "state_version_after": 1,
+    "state_version_before": null,
+    "task_id": "pentest-task-wpt-kurikulum-internal-20261109",
+    "timestamp": "2026-11-09T04:39:12Z",
+    "upstream_task_id": "ptask-wpt-kurikulum-internal-20261109"
+  },
+  "event_emitted": true,
+  "event_persisted": true,
+  "execution_started": false,
+  "lifecycle": {
+    "allowed_targets": [
+      "ABORTED",
+      "FAILED",
+      "VALIDATED"
+    ],
+    "entered_at": "2026-11-09T04:39:12Z",
+    "integrity": {
+      "algorithm": "SHA-256",
+      "canonical_sha256": "240be613c2b1029d34f21997761bc13dc28e3992cd6c99ea9cdbe873b768667b",
+      "canonicalization": "UTF8_SORTED_JSON_V1",
+      "hash_domain": "APTS_PENTEST_LIFECYCLE_STATE_V1"
+    },
+    "last_transition_id": null,
+    "mission_id": "mission-gmo-57851fd3-1f64-436f-b713-0b49e839bcc2",
+    "pentest_id": "pentest-wpt-kurikulum-internal-20261109",
+    "pentest_task_id": "pentest-task-wpt-kurikulum-internal-20261109",
+    "schema_version": "apts-pentest-lifecycle-state-v1",
+    "state": "RECEIVED",
+    "state_version": 1,
+    "terminal": false,
+    "upstream_task_id": "ptask-wpt-kurikulum-internal-20261109"
+  },
+  "lifecycle_initialized": true,
+  "materialized": true,
+  "next_stage": "4.8",
+  "persisted": true,
+  "placeholder_worker_assigned": false,
+  "record": {
+    "binding": {
+      "control_version": "stage4.3-pentest-mission-task-contract",
+      "integrity": {
+        "algorithm": "SHA-256",
+        "canonical_sha256": "a38c0e0a4125d656f2ad8cea0ea33edae10041e682873e07ae468b02819b3218",
+        "canonicalization": "UTF8_SORTED_JSON_V1",
+        "hash_domain": "APTS_STAGE4_3_PENTEST_TASK_BINDING_ENVELOPE_V1"
+      },
+      "lineage": {
+        "mission_id": "mission-gmo-57851fd3-1f64-436f-b713-0b49e839bcc2",
+        "pentest_id": "pentest-wpt-kurikulum-internal-20261109",
+        "pentest_task_id": "pentest-task-wpt-kurikulum-internal-20261109",
+        "pip_id": "pip-b8972914-3b60-48d9-bcd0-3d83e6ca1c32",
+        "upstream_task_id": "ptask-wpt-kurikulum-internal-20261109"
+      },
+      "schema_version": "apts-stage4.3-pentest-task-binding-envelope-v1",
+      "semantics": {
+        "accepted_for_execution": false,
+        "authorization_minted": false,
+        "eligible_for_local_repository": true,
+        "external_network_io_performed": false,
+        "local_task_materialized": true,
+        "target_actuation": false,
+        "tool_invocation_performed": false,
+        "workflow_lifecycle_started": false
+      },
+      "stage4_2_pip_binding_sha256": "55eb8376601116808ee58469d0cfa10c6c9e007a017a772782817184c511cd9e",
+      "stage4_2_pip_contract_sha256": "adecfe307e026eb0248e5408d674e04668bec20787333177492cd22728611fc7",
+      "task": {
+        "authorization_reference": {
+          "execution_authorized": true,
+          "policy_decision_hash": "935b90a532978e3fea2ef4bf569bd880347e574fbaf72a3d2319998a0b70c744",
+          "policy_decision_id": "gdec-71a3fdd1-1759-4c9d-8012-f2154adb0e5f",
+          "policy_version": 1
+        },
+        "completion_criteria": {
+          "all_required": true,
+          "criteria": [
+            {
+              "criterion_id": "criterion-handoff-1",
+              "description": "{\"expected\": true, \"metric\": \"t1-pentest-orchestration_artifact_present\"}",
+              "required": true,
+              "type": "MISSION_SUCCESS_CRITERION"
+            },
+            {
+              "criterion_id": "criterion-handoff-context",
+              "description": "{\"evidence_requirements\": [{\"provenance_required\": true, \"type\": \"PENTEST_TASK_AND_ORCHESTRATION_ACK\"}], \"expected_outputs\": [{\"artifact\": \"pentest_task_orchestration_reference\", \"format\": \"STRUCTURED\"}], \"preconditions\": [{\"kind\": \"ACTIVE_GSS_SCOPE_TARGET\", \"required\": true}]}",
+              "required": true,
+              "type": "MISSION_HANDOFF_REQUIREMENTS"
+            }
+          ]
+        },
+        "constraints": {
+          "data_handling_policy": {
+            "execution_authorized": false
+          },
+          "max_actions": 100,
+          "max_duration": 36000,
+          "resource_budget": {
+            "max_network_requests": 6
+          },
+          "risk_threshold": "LOW"
+        },
+        "created_at": "2026-11-09T04:39:12Z",
+        "evidence_requirement": {
+          "integrity_required": true,
+          "minimum_evidence_items": 1,
+          "provenance_required": true,
+          "required_artifact_types": [
+            "OBSERVATION",
+            "TRACE"
+          ]
+        },
+        "integrity": {
+          "algorithm": "SHA-256",
+          "canonical_sha256": "53ba7e0fce79abe660f1bff3bbf43e2131dd05a1ef05ad1631b0ea0c0b61733b",
+          "canonicalization": "UTF8_SORTED_JSON_V1",
+          "hash_domain": "APTS_PENTEST_TASK_CONTRACT_V1"
+        },
+        "mission_id": "mission-gmo-57851fd3-1f64-436f-b713-0b49e839bcc2",
+        "objective": {
+          "environment": "LAB",
+          "goal": "Recover bounded WPT for the explicitly approved internal DNS destination 172.21.2.2",
+          "scope_snapshot_sha256": "0e95080aba3e67dc132fa3485abc0d35a155c5b62904bca71e467c7d5b42807f",
+          "source_gss_scope_contract_id": "scope-424e7282-dad1-49cf-bc66-0a3d2522c468",
+          "source_gss_scope_version": 1,
+          "target_ref": "https://kurikulum.del.ac.id:443",
+          "target_type": "URL"
+        },
+        "pentest_id": "pentest-wpt-kurikulum-internal-20261109",
+        "pentest_task_id": "pentest-task-wpt-kurikulum-internal-20261109",
+        "pip_reference": {
+          "pip_artifact_sha256": "562fe551615e9f9fb7ab32656b916e36af843a8d477a746a54ab5eca5079438d",
+          "pip_binding_sha256": "55eb8376601116808ee58469d0cfa10c6c9e007a017a772782817184c511cd9e",
+          "pip_id": "pip-b8972914-3b60-48d9-bcd0-3d83e6ca1c32",
+          "pip_version": "1"
+        },
+        "schema_version": "apts-pentest-task-contract-v1",
+        "scope": {
+          "domains": [],
+          "excluded_targets": [],
+          "network_ranges": [],
+          "services": [],
+          "targets": [
+            {
+              "environment": "LAB",
+              "metadata": {},
+              "target_type": "URL",
+              "target_value": "https://kurikulum.del.ac.id:443"
+            },
+            {
+              "environment": "LAB",
+              "metadata": {},
+              "target_type": "IP",
+              "target_value": "172.21.2.2"
+            }
+          ]
+        },
+        "target": {
+          "environment": "LAB",
+          "metadata": {},
+          "target_type": "URL",
+          "target_value": "https://kurikulum.del.ac.id:443"
+        },
+        "upstream_task_id": "ptask-wpt-kurikulum-internal-20261109"
+      },
+      "task_contract_sha256": "76ed5c4565cc90b7cbfc74293aa5e93ebaad3a4fc7ccbeb0ad08e368a775df9e",
+      "validation": {
+        "all_required_dimensions_passed": true,
+        "dimensions": [
+          {
+            "dimension": "PIP_BINDING",
+            "pip_binding_sha256": "55eb8376601116808ee58469d0cfa10c6c9e007a017a772782817184c511cd9e",
+            "pip_id": "pip-b8972914-3b60-48d9-bcd0-3d83e6ca1c32",
+            "status": "PASS"
+          },
+          {
+            "dimension": "MISSION_LINEAGE",
+            "mission_id": "mission-gmo-57851fd3-1f64-436f-b713-0b49e839bcc2",
+            "pentest_id": "pentest-wpt-kurikulum-internal-20261109",
+            "pentest_task_id": "pentest-task-wpt-kurikulum-internal-20261109",
+            "status": "PASS",
+            "upstream_task_id": "ptask-wpt-kurikulum-internal-20261109"
+          },
+          {
+            "dimension": "TARGET",
+            "status": "PASS",
+            "target_sha256": "227d7fc3e527e77f6f05fbfabad2d31ece0c9d3ac7f0cecfe167b5112281a51f"
+          },
+          {
+            "dimension": "SCOPE",
+            "scope_sha256": "0387db5e374be1c8aafececfcadfab83a16523f2f30be28f83a9bcb43ae41c7e",
+            "status": "PASS"
+          },
+          {
+            "dimension": "OBJECTIVE",
+            "objective_sha256": "84dcb846cda4b0f16c1be85a63657f22f2d5e6161f6f2ab7af27dea96e6e445d",
+            "status": "PASS"
+          },
+          {
+            "constraints_sha256": "c2da4b21bb2afb35a09017fef9dbd1347b6c3cc46d69d090385cb1e1e960360e",
+            "dimension": "CONSTRAINTS",
+            "status": "PASS"
+          },
+          {
+            "dimension": "AUTHORIZATION_REFERENCE",
+            "policy_decision_id": "gdec-71a3fdd1-1759-4c9d-8012-f2154adb0e5f",
+            "status": "PASS"
+          },
+          {
+            "dimension": "EVIDENCE_REQUIREMENT",
+            "minimum_evidence_items": 1,
+            "status": "PASS"
+          },
+          {
+            "criteria_count": 2,
+            "dimension": "COMPLETION_CRITERIA",
+            "status": "PASS"
+          }
+        ],
+        "status": "VALID"
+      }
+    },
+    "created_at": "2026-11-09T04:39:12Z",
+    "mission_id": "mission-gmo-57851fd3-1f64-436f-b713-0b49e839bcc2",
+    "pentest_id": "pentest-wpt-kurikulum-internal-20261109",
+    "pentest_task_id": "pentest-task-wpt-kurikulum-internal-20261109",
+    "pip_id": "pip-b8972914-3b60-48d9-bcd0-3d83e6ca1c32",
+    "stored_at": "2026-11-09T04:39:12Z",
+    "task": {
+      "authorization_reference": {
+        "execution_authorized": true,
+        "policy_decision_hash": "935b90a532978e3fea2ef4bf569bd880347e574fbaf72a3d2319998a0b70c744",
+        "policy_decision_id": "gdec-71a3fdd1-1759-4c9d-8012-f2154adb0e5f",
+        "policy_version": 1
+      },
+      "completion_criteria": {
+        "all_required": true,
+        "criteria": [
+          {
+            "criterion_id": "criterion-handoff-1",
+            "description": "{\"expected\": true, \"metric\": \"t1-pentest-orchestration_artifact_present\"}",
+            "required": true,
+            "type": "MISSION_SUCCESS_CRITERION"
+          },
+          {
+            "criterion_id": "criterion-handoff-context",
+            "description": "{\"evidence_requirements\": [{\"provenance_required\": true, \"type\": \"PENTEST_TASK_AND_ORCHESTRATION_ACK\"}], \"expected_outputs\": [{\"artifact\": \"pentest_task_orchestration_reference\", \"format\": \"STRUCTURED\"}], \"preconditions\": [{\"kind\": \"ACTIVE_GSS_SCOPE_TARGET\", \"required\": true}]}",
+            "required": true,
+            "type": "MISSION_HANDOFF_REQUIREMENTS"
+          }
+        ]
+      },
+      "constraints": {
+        "data_handling_policy": {
+          "execution_authorized": false
+        },
+        "max_actions": 100,
+        "max_duration": 36000,
+        "resource_budget": {
+          "max_network_requests": 6
+        },
+        "risk_threshold": "LOW"
+      },
+      "created_at": "2026-11-09T04:39:12Z",
+      "evidence_requirement": {
+        "integrity_required": true,
+        "minimum_evidence_items": 1,
+        "provenance_required": true,
+        "required_artifact_types": [
+          "OBSERVATION",
+          "TRACE"
+        ]
+      },
+      "integrity": {
+        "algorithm": "SHA-256",
+        "canonical_sha256": "53ba7e0fce79abe660f1bff3bbf43e2131dd05a1ef05ad1631b0ea0c0b61733b",
+        "canonicalization": "UTF8_SORTED_JSON_V1",
+        "hash_domain": "APTS_PENTEST_TASK_CONTRACT_V1"
+      },
+      "mission_id": "mission-gmo-57851fd3-1f64-436f-b713-0b49e839bcc2",
+      "objective": {
+        "environment": "LAB",
+        "goal": "Recover bounded WPT for the explicitly approved internal DNS destination 172.21.2.2",
+        "scope_snapshot_sha256": "0e95080aba3e67dc132fa3485abc0d35a155c5b62904bca71e467c7d5b42807f",
+        "source_gss_scope_contract_id": "scope-424e7282-dad1-49cf-bc66-0a3d2522c468",
+        "source_gss_scope_version": 1,
+        "target_ref": "https://kurikulum.del.ac.id:443",
+        "target_type": "URL"
+      },
+      "pentest_id": "pentest-wpt-kurikulum-internal-20261109",
+      "pentest_task_id": "pentest-task-wpt-kurikulum-internal-20261109",
+      "pip_reference": {
+        "pip_artifact_sha256": "562fe551615e9f9fb7ab32656b916e36af843a8d477a746a54ab5eca5079438d",
+        "pip_binding_sha256": "55eb8376601116808ee58469d0cfa10c6c9e007a017a772782817184c511cd9e",
+        "pip_id": "pip-b8972914-3b60-48d9-bcd0-3d83e6ca1c32",
+        "pip_version": "1"
+      },
+      "schema_version": "apts-pentest-task-contract-v1",
+      "scope": {
+        "domains": [],
+        "excluded_targets": [],
+        "network_ranges": [],
+        "services": [],
+        "targets": [
+          {
+            "environment": "LAB",
+            "metadata": {},
+            "target_type": "URL",
+            "target_value": "https://kurikulum.del.ac.id:443"
+          },
+          {
+            "environment": "LAB",
+            "metadata": {},
+            "target_type": "IP",
+            "target_value": "172.21.2.2"
+          }
+        ]
+      },
+      "target": {
+        "environment": "LAB",
+        "metadata": {},
+        "target_type": "URL",
+        "target_value": "https://kurikulum.del.ac.id:443"
+      },
+      "upstream_task_id": "ptask-wpt-kurikulum-internal-20261109"
+    },
+    "task_binding_sha256": "a38c0e0a4125d656f2ad8cea0ea33edae10041e682873e07ae468b02819b3218",
+    "task_contract_sha256": "53ba7e0fce79abe660f1bff3bbf43e2131dd05a1ef05ad1631b0ea0c0b61733b",
+    "upstream_task_id": "ptask-wpt-kurikulum-internal-20261109"
+  },
+  "status": "created",
+  "subsystem_id": "PENTEST",
+  "target_actuation": false,
+  "task_control_version": "stage4.3-pentest-mission-task-contract",
+  "tool_invocation_performed": false,
+  "workflow_lifecycle_started": true,
+  "workflow_orchestrator_available": true,
+  "workflow_orchestrator_invoked": false
+}

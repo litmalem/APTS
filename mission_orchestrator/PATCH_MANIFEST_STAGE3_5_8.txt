@@ -1,0 +1,37 @@
+Stage 3.5.8 — Timeout, Cancellation, Abort & Failure Propagation
+
+Core source changes:
+- mission_orchestrator/execution_termination.py                               NEW
+- mission_orchestrator/execution_delivery.py                                  UPDATED
+- mission_orchestrator/errors.py                                              UPDATED
+- mission_orchestrator/mission_events.py                                      UPDATED
+- mission_orchestrator/repository.py                                          UPDATED
+- mission_orchestrator/repository_model.py                                    UPDATED
+- mission_orchestrator/service.py                                             UPDATED
+- mission_orchestrator/api_service.py                                         UPDATED
+- migrations/034_stage3_5_8_timeout_cancellation_abort_failure_propagation.sql NEW
+
+Focused regression:
+- tests/test_stage3_5_8_timeout_cancellation_abort_failure_propagation.py       NEW
+
+Compatibility regression:
+- Prior Stage 3.1–3.5.7 tests rebased where required to active runtime
+  control_version Stage 3.5.8, HTTP server version 3.5.8, repository
+  migration level 34, migration inventory 034, and extended supported-control
+  lineage while preserving historical stage-specific contracts.
+
+Operational artifacts:
+- README_STAGE3_5_8.md
+- PATCH_NOTES_STAGE3_5_8.md
+- INSTALL_STAGE3_5_8.txt
+- PATCH_MANIFEST_STAGE3_5_8.txt
+- REGRESSION_EVIDENCE_STAGE3_5_8.txt
+- SHA256_STAGE3_5_8.txt
+- STAGE3_5_8_ACCEPTANCE.ps1
+
+Final package verification:
+- Python compile: PASS
+- Canonical inventory: 931 tests
+- Full regression: 931 passed in 886.25s (0:14:46)
+- Focused Stage 3.5.8: 20/20 PASS (four deterministic 5-test finalization batches; all 20 also included in full regression)
+- Runtime declaration smoke check: PASS

@@ -1,0 +1,23 @@
+Stage 3.8.10 Hotfix 1 — Supported-Control Regression Rebase
+===========================================================
+
+Target:
+  D:\mission_orchestrator
+
+Apply:
+  Extract this ZIP over D:\mission_orchestrator and allow the two test files to be overwritten.
+
+This hotfix is TEST-ONLY. A Mission Orchestrator restart is not required solely for this hotfix.
+
+Verify:
+  cd D:\mission_orchestrator
+  Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+  .\STAGE3_8_10_HOTFIX1_VERIFY.ps1
+
+Authoritative closure:
+  .\STAGE3_8_10_ACCEPTANCE.ps1
+
+Expected invariant:
+  canonical inventory = 1431 tests
+  migration level = 53
+  current control = stage3.8.10-observe-reconstruct-acceptance-regression-gate

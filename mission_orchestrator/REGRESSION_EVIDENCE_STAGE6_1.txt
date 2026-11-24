@@ -1,0 +1,17 @@
+APTS Stage 6.1 - Canonical Execution Request Contract
+Source snapshot: Mission(20261002-070447).zip
+Baseline: Stage 5.10, 2045 tests, Pentest migration 16 (user-reported Windows PASS).
+Local runtime: Python 3.12.14, pytest 8.4.2, Linux.
+Current canonical inventory: 2118 tests.
+Focused Stage 6.1: 73 passed in 7.66s
+Stage 5.9 -> 5.10 -> 6.1 continuity: 109 passed in 18.34s
+Full historical regression: 2118 passed in 300.09s (0:05:00)
+Full command: python3 -m pytest -q -n 4 --dist loadfile --junitxml=../stage6_1_full_regression.xml
+Full suite uses 4 workers grouped by test file; every test passed, none skipped.
+Windows acceptance uses standard python -m pytest -q and does not require pytest-xdist.
+Compilation/AST: PASS.
+PASS: Draft 2020-12 schemas; real request/envelope; malformed target/control/Unicode strings rejected.
+PASS: standalone CLI from external cwd; health; real HTTP request creation; dispatch HTTP 409; source database bytes unchanged.
+Historical Stage 3-5 code, tests, scripts, contracts, migrations and database bytes: unchanged.
+PowerShell harness: provided for live Windows acceptance; not executed in this Linux runtime.
+No authorization, tool invocation, target I/O, target actuation, ActionResult or target evidence created.

@@ -1,0 +1,209 @@
+{
+  "archive": "D:\\Kuliah S3\\#SK3\\code backup pentestApp VulnDeskApp\\temp\\aptsGS.zip",
+  "archive_sha256": "7f78cabea3de99db48146114c975533edf3bfc126cff9d5790ae4621daa35392",
+  "restored": [
+    {
+      "path": "app/approval_auth.py",
+      "sha256": "4cba4dd35a55e1973b052d88aaa5b3b86132709999873d63bbf92caa9bb93db7"
+    },
+    {
+      "path": "app/architecture.py",
+      "sha256": "3f21e2495c56dde9b5bac2d86bf018ffbc0a05061380351ddd099cd24f95f99f"
+    },
+    {
+      "path": "app/audit_service.py",
+      "sha256": "8a737b3b1a958fcc6468382e081c8b0ef496d7326137626eee1180468310a8f3"
+    },
+    {
+      "path": "app/compliance_service.py",
+      "sha256": "46f192b35038b120e7af65dcd2fbc31510c567e51be56f4e9cbb0e2785a5930a"
+    },
+    {
+      "path": "app/config.py",
+      "sha256": "f850f3a55c1d93a76a537fa134af1e09cd4dd2105d95dfcff1d9cc8ed1f1c785"
+    },
+    {
+      "path": "app/console_api.py",
+      "sha256": "ea020e5665be2cb316b83556b5bfe690c5967551953ca97afbcd498abd95d243"
+    },
+    {
+      "path": "app/console_auth.py",
+      "sha256": "a1fc951de570467476f06ec315c3f3bde7d36e7d1c680fb9d0f4cc5add45d200"
+    },
+    {
+      "path": "app/db.py",
+      "sha256": "4443162142d2a9f7c7fe3111a3e33213806154abe4982a38e71b3dcafd653ac0"
+    },
+    {
+      "path": "app/delegation_preflight.py",
+      "sha256": "7e63f3c61bf27204eb415ed167823c139fcc13d4356245f53825d351627b9c56"
+    },
+    {
+      "path": "app/delegation_profile.py",
+      "sha256": "b5e94ac7a342a4ddc8ecc38d4b2cc716d143ccaad9c17d845d46c9a3f4dc1e78"
+    },
+    {
+      "path": "app/diagnostics.py",
+      "sha256": "594dc405ce9f2d21be67c86a211434125065ad2e29892d9c817415006f4cd2ee"
+    },
+    {
+      "path": "app/event_publisher.py",
+      "sha256": "4b9dc9ee68b02e6ec6ffc02183502b17fe1af07d42d120ac4950f10b98637cb6"
+    },
+    {
+      "path": "app/execution_revalidation.py",
+      "sha256": "4e6b97a7b123d6f0e1a29d1687e0f0c42bfee59d86b1d00ec0c5f56d4397752c"
+    },
+    {
+      "path": "app/governance_service.py",
+      "sha256": "89a1dab5b6cb22987298c5f259d955f5f273fc81271434dabe9219360681eb00"
+    },
+    {
+      "path": "app/human_interaction.py",
+      "sha256": "1b2edcda41e1267c27a1206b0361e14aaf2616c34dde7034de2bc799aeeb0225"
+    },
+    {
+      "path": "app/human_layer.py",
+      "sha256": "68e750d80f4813a4579f758cedffcc04f408e2f801693227a6ad7145f180e086"
+    },
+    {
+      "path": "app/interface_catalog.py",
+      "sha256": "555e64ad6b865ecb12f444a228ce5f968a5a369fb0945021d4fc0e7088fceae7"
+    },
+    {
+      "path": "app/main.py",
+      "sha256": "65e7cb0465d2b8dd21916848852662c295f369e2913e16688d08c94578fc9a5d"
+    },
+    {
+      "path": "app/models.py",
+      "sha256": "8aa072b56352d97fa9aad357453f53dc6cc8361f36e462d74b06da1bad1d5211"
+    },
+    {
+      "path": "app/policy_engine.py",
+      "sha256": "bdf11c626aaf3ee3c873726adf3ab6755f040b20e5d85412af9cd8c1a46544e9"
+    },
+    {
+      "path": "app/repositories.py",
+      "sha256": "b8b216475e6f12ef23f97f87a7aa00f57e88e815cd8e9957469c6de1b00bcd1e"
+    },
+    {
+      "path": "app/risk_engine.py",
+      "sha256": "a72bc88c86313ed761d1f5211fe5603e7a1eb9c3367c0d62a377e9fc5b69e366"
+    },
+    {
+      "path": "app/scope_service.py",
+      "sha256": "f6e27f10695121a9f0707253ae152a94ef02b9f688cec934fe4e4a612d8695f8"
+    },
+    {
+      "path": "app/utils.py",
+      "sha256": "5c6f0d244ebd8d8bfc5aa060c0cc02c297befdf2d68e50ffdcf5b0a4936d9034"
+    },
+    {
+      "path": "app/workflow_profile.py",
+      "sha256": "d52bf764d80971ada611f943c89070d830eddcb9f75b209fc2a2df5ab18e4c97"
+    },
+    {
+      "path": "app/__init__.py",
+      "sha256": "7645616b2774c2385cbfa95ffeae6bab5e82f5140ecbc654e58928ca28fa3a2d"
+    },
+    {
+      "path": "examples/approval_principals.example.json",
+      "sha256": "5a76c6ec693ac03174c2b7b2112f65453a00f96389af9e2fd790a5fa2f5d6e04"
+    },
+    {
+      "path": "examples/create_cti_scope.json",
+      "sha256": "8c9541cfbe5caf8c85efa6eef561fb09f017a7352572cb163e278212e5f25069"
+    },
+    {
+      "path": "examples/create_cti_scope_d1d2.json",
+      "sha256": "ae5f050acec2747d78b50c5a3b87f71b009025bb97c74400311d72ccfb6b800e"
+    },
+    {
+      "path": "examples/cti_a02_authorization_request.json",
+      "sha256": "706b8e8c1607f290a4e1c40a7bd5bafa68286fc1fbfff96291ec345c1223911b"
+    },
+    {
+      "path": "examples/lab_validation_scope.json",
+      "sha256": "0831f3add704e5091457301cf6629a0f602f60cce2fc0174d9b442fc101db56e"
+    },
+    {
+      "path": "gss_web/server.py",
+      "sha256": "10369522f092f30abbf6eb8c1cc82829d07aea6f49f7be4ad9c62498141e57e0"
+    },
+    {
+      "path": "gss_web/static/app.js",
+      "sha256": "fe95787245d14a6c9f7b643c5b22b31e44e389cd43ba4208af6f370106bdc290"
+    },
+    {
+      "path": "gss_web/static/app.js.scope-backup-20261019-221138",
+      "sha256": "a8ae8320fb816710eefc5f0db0eacd73f73b99ab1a398c9ca9afbed27f59efaa"
+    },
+    {
+      "path": "gss_web/static/index.html",
+      "sha256": "d6ed04e689b4f81e5c429d9fcbe70f28b56ac456d48a4a0e4ec50f649ec19bfc"
+    },
+    {
+      "path": "gss_web/static/style.css",
+      "sha256": "3fc0d2f1e3ebe8f18d7cd58ba3f33a56d279abc9c9d1579d8b161aecc8eacf09"
+    },
+    {
+      "path": "gss_web/__init__.py",
+      "sha256": "d5adfb3a59381553779f1b73364e0b433ab74d48bcacefcb0b06b2f030a6202c"
+    },
+    {
+      "path": "sql/01_governance_schema.sql",
+      "sha256": "e41fe497e36f39489dcc439b13608c7da5f6453ae3aeb4cfe75bb633930207d7"
+    },
+    {
+      "path": "sql/02_seed_default_policies.sql",
+      "sha256": "70332d9c6e4b82a94108c9f017b7881a3ce38c222cb47ce59f72b5ec4f78bd25"
+    },
+    {
+      "path": "sql/03_example_lab_scope.sql",
+      "sha256": "dc4560528865ee891b412764262cf4db8f7d3878c0ff9f3d9df5ae5c17f4fe11"
+    },
+    {
+      "path": "sql/APTS_Governance_MariaDB_Full.sql",
+      "sha256": "b0993b5976208ec8499d5b69238d5efe79bc6a483bf595feb4a667718cd075cf"
+    }
+  ],
+  "existing_preserved": [
+    "tests/test_auto_recon_delegation_profile.py",
+    "tests/test_cross_subsystem_lineage_stage2_8_8.py",
+    "tests/test_execution_revalidation_stage6_4.py",
+    "tests/test_governance_correlation_stage2_9_4.py",
+    "tests/test_granular_revocation_stage2_7.py",
+    "tests/test_gss_acceptance_manifest.py",
+    "tests/test_health_diagnostics_stage2_9_6.py",
+    "tests/test_human_approval_mariadb.py",
+    "tests/test_human_approval_security.py",
+    "tests/test_human_layer_modules.py",
+    "tests/test_interface_catalog.py",
+    "tests/test_policydecision_revalidation_stage2_6.py",
+    "tests/test_policy_engine.py",
+    "tests/test_risk_engine.py",
+    "tests/test_scope_contract_boolean_serialization.py",
+    "tests/test_scope_service.py",
+    "tests/test_stage6_9_closed_loop_cti_pentest_integration.py",
+    "tests/test_task_delegation_governance.py",
+    "tests/test_task_delegation_preflight_p0.py",
+    "tests/test_two_phase_pip_web.py",
+    "tests/test_web_console.py",
+    "tests/test_web_console_mariadb.py"
+  ],
+  "compatibility_patches": {
+    "app/governance_service.py": "12cfe6d295adfc05605ae7283ce30ea7a4dfa753757a71d06160623637dc8d21",
+    "app/models.py": "ab5b54c85c1703562a49c289a990d7343d4ff9b8876d5a49509ec8ac7d2cacbc",
+    "app/workflow_profile.py": "18a347bae6bc7887ff7b2cf11ba0d16b5ce6b0376fed6527b064c001468f3f6b"
+  },
+  "verification": {
+    "backend_health": "HTTP 200",
+    "database": "ok",
+    "outbox_worker_running": true,
+    "web_health": "HTTP 200",
+    "web_assets": "HTTP 200",
+    "tests_passed": 118,
+    "tests_deselected": 1,
+    "test_note": "test_scope_revision_identity_and_version uses FakeService without profile keyword arguments; fails independently of successful startup."
+  }
+}

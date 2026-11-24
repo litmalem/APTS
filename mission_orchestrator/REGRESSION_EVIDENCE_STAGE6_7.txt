@@ -1,0 +1,21 @@
+STAGE 6.7 - VEP CONSTRUCTION & INTEGRITY
+
+Control: stage6.7-vep-construction-integrity
+Execution migration: 7; Mission: 53; Pentest: 16
+Focused: 98 passed
+Stage 5.9 -> 6.7 continuity: 692 passed
+Full canonical regression: 2701 passed
+Failures / errors / skipped: 0 / 0 / 0
+Exact canonical JUnit coverage: PASS
+Frozen source hashes: UNCHANGED
+Full regression wall time: 347.327 seconds
+Native backend: SECCOMP_RLIMIT; isolated loopback targets only
+Offline API export: VERIFIED; 9 retained artifacts
+Actual process termination / exclusive owner recovery: PASS
+Mission/Pentest source writes: NONE
+Construction target I/O / GSS calls / redispatch: NONE
+Windows PowerShell / Windows Job Object / live user mission: NOT EXERCISED
+Canonical VEP contract SHA256: bca3ce93e727e172dd2cbf186e072359c3bf756dd78e3d1d439791a5b8a2ac67
+Exact Stage 6.6 predecessor SHA256: 4692f5856c2f08ebc5a2c1e66f9412cc2b83c061ad77c6d79935e4aafe67ff2b
+Vulnerability confirmation: FALSE; independent digital signature: NOT PROVIDED
+Logs/XML and source snapshot: evidence/stage6_7

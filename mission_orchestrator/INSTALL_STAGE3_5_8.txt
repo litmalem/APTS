@@ -1,0 +1,79 @@
+STAGE 3.5.8 — TIMEOUT, CANCELLATION, ABORT & FAILURE PROPAGATION
+================================================================
+
+1. Replace the Mission Orchestrator source tree with this package.
+
+2. Preserve the existing environment and database configuration.
+   Repository migration level becomes 34 and introduces:
+
+     migrations/034_stage3_5_8_timeout_cancellation_abort_failure_propagation.sql
+     mission_execution_termination_controls
+     mission_execution_outcome_propagations
+
+3. Stage 3.5.8 reuses the exact runtime endpoint persisted by Stage 3.5.5.
+   It does NOT resolve the runtime endpoint again.
+
+   The downstream runtime must support the execution-control client contract:
+
+     POST /api/execution/attempts/{execution_attempt_id}/control
+
+   or an equivalent path configured through:
+
+     MISSION_EXECUTION_CONTROL_PATH_TEMPLATE
+
+4. Restart Mission Orchestrator on port 8780.
+
+5. Verify /health:
+
+     control_version = stage3.5.8-timeout-cancellation-abort-failure-propagation
+     mission_repository_migration_level = 34
+     stage358_database_migration_level = 34
+     stage358_schema_version = apts-execution-timeout-cancellation-abort-failure-propagation-v1
+
+     execution_termination_control_schema_version = apts-execution-termination-control-v1
+     execution_termination_control_identity_prefix = xterm-
+     execution_termination_control_persistence_store = mission_execution_termination_controls
+     execution_termination_control_actions = [ABORT, CANCEL, TIMEOUT]
+     execution_termination_control_requires_latest_stage356_running_projection = true
+     execution_termination_control_requires_no_stage357_terminal_result = true
+     execution_termination_control_one_per_execution_attempt = true
+     execution_termination_control_runtime_endpoint_reused_from_stage355 = true
+     execution_termination_control_runtime_endpoint_resolution_performed = false
+     execution_termination_control_runtime_health_probe_performed = true
+     execution_termination_control_runtime_control_io_performed = true
+     execution_termination_control_governance_query_performed = false
+     execution_termination_control_dispatch_redelivery_performed = false
+     execution_termination_control_new_target_action_dispatch_performed = false
+     execution_termination_control_mission_state_transition_performed = false
+
+     execution_outcome_propagation_schema_version = apts-execution-terminal-outcome-propagation-v1
+     execution_outcome_propagation_identity_prefix = xprop-
+     execution_outcome_persistence_store = mission_execution_outcome_propagations
+     execution_outcome_stage357_result_authoritative = true
+     execution_outcome_runtime_result_query_performed = false
+     execution_outcome_runtime_control_io_performed = false
+     execution_outcome_governance_query_performed = false
+     execution_outcome_dispatch_redelivery_performed = false
+     execution_outcome_new_target_action_dispatch_performed = false
+     execution_outcome_success_does_not_imply_mission_completion = true
+     execution_outcome_failure_propagates_via_canonical_stage327_lifecycle = true
+     execution_outcome_failed_target_mission_state = FAILED
+     execution_outcome_timed_out_target_mission_state = FAILED
+     execution_outcome_cancelled_target_mission_state = ABORTED
+
+6. Execute acceptance:
+
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE3_5_8_ACCEPTANCE.ps1
+
+Important boundary:
+- TIMEOUT/CANCEL/ABORT are runtime control intents against an already authorized,
+  already delivered, RUNNING execution attempt.
+- The control request itself does not transition Mission state.
+- Stage 3.5.7 remains authoritative for terminal runtime result/evidence capture.
+- Stage 3.5.8 verifies that immutable result and propagates non-success outcomes.
+- SUCCEEDED is verified but does not complete the Mission.
+- FAILED and TIMED_OUT fail the Mission.
+- CANCELLED aborts the Mission, subject to prior TIMEOUT/ABORT intent semantics.
+- No new Governance decision, endpoint resolution, dispatch redelivery, or target
+  action dispatch is performed by Stage 3.5.8.

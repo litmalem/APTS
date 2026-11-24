@@ -1,0 +1,72 @@
+Stage 5.6 implementation-environment regression evidence
+Date: 2026-10-01
+
+Control:
+  stage5.6-exploitation-agent
+
+Pentest migration:
+  13
+
+Python compilation:
+  PASS
+
+Canonical pytest inventory:
+  1957 tests collected
+
+Focused Stage 5.6:
+  28 passed in 6.76s
+
+Stage 5.1 -> Stage 5.6 specialist predecessor chain:
+  158 passed in 26.73s
+
+Critical governance/evidence + Stage 5.1 -> Stage 5.6 qualification:
+  245 passed in 32.18s
+
+Critical Stage 3.9.10 -> Stage 4.10 -> Stage 5.1/5.5/5.6 regression:
+  110 passed in 22.18s
+
+Broader Stage 4 + Stage 5 aggregate run:
+  attempted in the packaging environment; no failure was observed before the container time limit,
+  but the run did not complete within the available tool window. It is therefore not reported as PASS.
+
+Full historical suite:
+  not executed to completion inside the packaging environment because the repository-wide suite is long-running.
+  The deployment-host STAGE5_6_ACCEPTANCE.ps1 is the final PASS/FAIL authority and executes all
+  1957 collected tests after focused and predecessor-chain qualification.
+
+Implemented Stage 5.6 capabilities:
+  bounded PENTEST_EXPLOITATION_AGENT specialist
+  strict request schema and executable-content injection rejection
+  deterministic xplrun-* run identity
+  exact Stage-5.5 run/output/evidence hash binding
+  candidate selection from deterministic Stage-5.5 ranking
+  Stage-4.8 validation capability eligibility evaluation
+  Stage-4.8 exploitation capability eligibility evaluation
+  non-executing ValidationTask contract
+  non-executing ExploitActionProposal contract
+  proposal state ELIGIBLE_FOR_EXTERNAL_AUTHORIZATION / AWAITING_HUMAN_REVIEW / BLOCKED_BY_SCOPE_ROE
+  Stage-4.9 ACTION_PROPOSAL lineage parented to HYPOTHESIS
+  evidence-basis preservation from Stage-5.5 path provenance
+  SHA-bound Stage-5.6 output and evidence bundle
+  no candidate fabrication when Stage-5.5 has zero candidate paths
+  idempotent replay and restart-safe persistence
+  tamper detection on stored output/evidence
+  Stage-5.1 validation + exploitation handoff that releases Stage-5.7 impact_analysis
+  HTTP contract/run/get/list aliases
+
+Authority boundary:
+  no caller-supplied command/payload/exploit code/shellcode/tool parameters
+  no raw tool access
+  no direct external target-network I/O
+  no target actuation
+  no vulnerability validation execution
+  no exploitation execution
+  no Stage-6 ExecutionRequest creation
+  no ACTION_RESULT creation
+  no new target execution evidence
+  no confirmed FINDING creation
+  no PolicyDecision minting
+  Stage 6 remains controlled execution authority
+
+Next:
+  Stage 5.7 — Post-Exploitation & Impact Agent

@@ -1,0 +1,118 @@
+{
+  "scope_contract": {
+    "id": 182,
+    "scope_contract_id": "scope-c385eb38-e16d-4991-b903-452cd278b0ab",
+    "mission_id": "mission-gmo-17a8fa8a-c6d9-4da5-aad2-0fc73113239c",
+    "name": "Pentest pada http://127.0.0.1:80//dvwa/",
+    "status": "ACTIVE",
+    "policy_set_id": "default-policy",
+    "version": 3,
+    "valid_from": "2026-11-09T02:16:01.764116",
+    "valid_until": "2026-11-30T09:15:00",
+    "created_by": "local-test-operator",
+    "approved_by": "local-test-operator",
+    "approved_at": "2026-11-09T02:26:41.658259",
+    "contract_hash": "7e574e651e9a4c86b30e4982b1fca86fdf66fc14a3992a00769b5cea1d3b2f42",
+    "created_at": "2026-11-09T02:26:41",
+    "updated_at": "2026-11-09T02:26:41",
+    "metadata": {
+      "supersedes_scope_id": "scope-75c27852-b2db-4f37-89cd-458b7d4b5254",
+      "revision_reason": "User explicitly approved bounded LAB DVWA Recon and WPT fingerprinting in Codex chat on 2026-11-09; six GET requests, no state changes.",
+      "revision_actor": "local-test-operator"
+    },
+    "targets": [
+      {
+        "id": 164,
+        "scope_target_id": "stgt-ec7fc5dd-10e9-4773-8de9-ce9d7d1fcda6",
+        "scope_contract_id": "scope-c385eb38-e16d-4991-b903-452cd278b0ab",
+        "target_type": "URL",
+        "target_value": "http://127.0.0.1:80//dvwa/",
+        "normalized_value": "http://127.0.0.1:80//dvwa/",
+        "environment": "LAB",
+        "allowed": 1,
+        "notes": null,
+        "created_at": "2026-11-09T02:26:41"
+      }
+    ],
+    "sources": [],
+    "action_constraints": [
+      {
+        "id": 473,
+        "constraint_id": "sact-60a3c3ee-a20f-4dfa-87c7-4bd68ac42565",
+        "scope_contract_id": "scope-c385eb38-e16d-4991-b903-452cd278b0ab",
+        "action_class": "TARGET_RECON",
+        "action_name": "recon",
+        "effect": "ALLOW",
+        "max_risk_level": "LOW",
+        "requires_approval": false,
+        "created_at": "2026-11-09T02:26:41",
+        "constraints": {
+          "max_network_requests": 6,
+          "allowed_methods": [
+            "GET"
+          ],
+          "state_changing_requests": false
+        }
+      },
+      {
+        "id": 474,
+        "constraint_id": "sact-114ef503-6299-4338-b7a8-9353c9b1ec31",
+        "scope_contract_id": "scope-c385eb38-e16d-4991-b903-452cd278b0ab",
+        "action_class": "TARGET_RECON",
+        "action_name": "web_technology_fingerprinting",
+        "effect": "ALLOW",
+        "max_risk_level": "LOW",
+        "requires_approval": false,
+        "created_at": "2026-11-09T02:26:41",
+        "constraints": {
+          "max_network_requests": 6,
+          "allowed_methods": [
+            "GET"
+          ],
+          "state_changing_requests": false
+        }
+      },
+      {
+        "id": 475,
+        "constraint_id": "sact-09f3627c-1608-4d80-90e1-3890afd57fbe",
+        "scope_contract_id": "scope-c385eb38-e16d-4991-b903-452cd278b0ab",
+        "action_class": "TARGET_RECON",
+        "action_name": "AUTHORIZE_TARGET_EXECUTION",
+        "effect": "ALLOW",
+        "max_risk_level": "LOW",
+        "requires_approval": false,
+        "created_at": "2026-11-09T02:26:41",
+        "constraints": {
+          "allowed_techniques": [
+            "WEB_TECHNOLOGY_FINGERPRINT"
+          ],
+          "max_network_requests": 6,
+          "allowed_methods": [
+            "GET"
+          ],
+          "read_only": true,
+          "state_changing_requests": false
+        }
+      },
+      {
+        "id": 476,
+        "constraint_id": "sact-1daca09c-8251-410e-92a6-3df36a416314",
+        "scope_contract_id": "scope-c385eb38-e16d-4991-b903-452cd278b0ab",
+        "action_class": "TASK_DELEGATION",
+        "action_name": "delegate_planned_task",
+        "effect": "ALLOW",
+        "max_risk_level": "LOW",
+        "requires_approval": false,
+        "created_at": "2026-11-09T02:26:41",
+        "constraints": {
+          "allowed_capabilities": [
+            "PENTEST:pentest.recon"
+          ],
+          "execution_authorized": false,
+          "target_actuation": false,
+          "policy_profile": "GSS_AUTO_RECON_TASK_DELEGATION_V1"
+        }
+      }
+    ]
+  }
+}

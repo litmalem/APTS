@@ -1,0 +1,246 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "affected_asset",
+    "attempt_id",
+    "confidence",
+    "control_version",
+    "evidence",
+    "execution_id",
+    "execution_references",
+    "execution_snapshot",
+    "finding",
+    "finding_id",
+    "hypothesis",
+    "impact",
+    "integrity",
+    "integrity_hashes",
+    "invocation_id",
+    "limitations",
+    "mission_id",
+    "observed_result",
+    "pentest_id",
+    "pentest_task_id",
+    "provenance",
+    "schema_version",
+    "semantics",
+    "source_snapshot",
+    "task_id",
+    "timestamps",
+    "validation_method",
+    "vep_id"
+  ],
+  "properties": {
+    "finding": {
+      "type": "object"
+    },
+    "hypothesis": {
+      "type": "object"
+    },
+    "validation_method": {
+      "type": "object"
+    },
+    "execution_references": {
+      "type": "object"
+    },
+    "observed_result": {
+      "type": "object"
+    },
+    "evidence": {
+      "type": "object"
+    },
+    "affected_asset": {
+      "type": "object"
+    },
+    "impact": {
+      "type": "object"
+    },
+    "confidence": {
+      "type": "object"
+    },
+    "provenance": {
+      "type": "object"
+    },
+    "timestamps": {
+      "type": "object"
+    },
+    "limitations": {
+      "type": "object"
+    },
+    "semantics": {
+      "const": {
+        "vep_created": true,
+        "execution_authorized": false,
+        "authorization_current": false,
+        "usable_for_dispatch": false,
+        "replay_performs_io": false,
+        "target_network_io_performed": false,
+        "additional_target_io": false,
+        "vulnerability_confirmed": false,
+        "impact_confirmed": false,
+        "finding_persisted_to_pentest": false,
+        "cleanup_verified": false,
+        "cti_feedback_written": false
+      }
+    },
+    "source_snapshot": {
+      "type": "object"
+    },
+    "execution_snapshot": {
+      "type": "object"
+    },
+    "attempt_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$"
+    },
+    "invocation_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$"
+    },
+    "execution_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$"
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$"
+    },
+    "pentest_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$"
+    },
+    "pentest_task_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$"
+    },
+    "mission_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$"
+    },
+    "finding_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$"
+    },
+    "vep_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@\\-]{0,199}$"
+    },
+    "schema_version": {
+      "const": "apts-validation-evidence-package-v1"
+    },
+    "control_version": {
+      "const": "stage6.7-vep-construction-integrity"
+    },
+    "integrity_hashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "finding",
+        "hypothesis",
+        "validation_method",
+        "execution_references",
+        "observed_result",
+        "evidence",
+        "affected_asset",
+        "impact",
+        "confidence",
+        "provenance",
+        "timestamps",
+        "limitations",
+        "semantics",
+        "source_snapshot",
+        "execution_snapshot"
+      ],
+      "properties": {
+        "finding": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "hypothesis": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "validation_method": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "execution_references": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "observed_result": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "evidence": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "affected_asset": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "impact": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "confidence": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "provenance": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "timestamps": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "limitations": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "semantics": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "source_snapshot": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "execution_snapshot": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "canonicalization",
+        "hash_domain",
+        "canonical_sha256"
+      ],
+      "properties": {
+        "algorithm": {
+          "const": "SHA-256"
+        },
+        "canonicalization": {
+          "const": "UTF8_SORTED_JSON_V1"
+        },
+        "hash_domain": {
+          "const": "APTS_VALIDATION_EVIDENCE_PACKAGE_V1"
+        },
+        "canonical_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    }
+  },
+  "description": "Canonical VEP structure. Use verify_vep for exact nested fields, lineage, timestamps and derived semantics; use verify_vep_export for retained artifact bytes."
+}

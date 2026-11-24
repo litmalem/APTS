@@ -1,0 +1,51 @@
+APTS Stage 6.3 - Controlled Execution Gateway
+Source snapshot: Mission(20261002-154500).zip
+Baseline SHA256: 0398c58518602079634e0d8658860908b8a7b38877db9c65707fee77688d23db
+Baseline: Stage 6.2, 2229 tests.
+Runtime: Python 3.12.14, pytest 8.4.2, Linux.
+Canonical inventory: 2340 tests (2229 baseline + 111 Stage 6.3).
+
+Focused Stage 6.3: 111 passed in 13.84s
+Stage 5.9 -> 5.10 -> 6.1 -> 6.2 -> 6.3 continuity: 331 passed in 38.63s
+Full historical regression, final source: 2340 passed in 305.70s (0:05:05)
+All tests passed; no skips, failures or errors in JUnit reports.
+Full command: python -m pytest -q -n 4 --dist loadfile --junitxml=evidence/stage6_3/full_regression.xml
+pytest-xdist is build-time only. Windows acceptance uses python -m pytest -q.
+Compileall: PASS.
+
+Standalone CLI from external cwd: PASS.
+Real Stage 6.3 subprocess HTTP health/control/header: PASS.
+Atomic migration 1/2 -> 3 retaining exact request/envelope/authorization: PASS.
+Current Mission 53 / Pentest 16 read-only sources: PASS.
+Fresh external authority over real isolated loopback HTTP: PASS.
+GSS constraints enforced; unsupported/malformed restrictions block admission: PASS.
+Empty allowlists and empty identifier suffixes fail closed: PASS.
+Source/expiry/stop/version changes before commit fail closed: PASS.
+Atomic budget reservations under competing processes: PASS.
+One admission per execution; one binding per authorization: PASS.
+Concurrent duplicate and historical-only replay/restart: PASS.
+Crash after authorization, before admission, retries with new nonce: PASS.
+Append-only audit and index/record/budget/authorization tamper verification: PASS.
+Foreign/incomplete/future metadata rejected without downgrade: PASS.
+Control API requires loopback bind; no raw target/tool transport in gateway modules: PASS.
+Legacy dispatch/results/tool-invocations remain HTTP 409: PASS.
+Draft 2020-12 schema/runtime agreement: PASS.
+Cold additive overlay imports, inventory, runtime, migration and contract: PASS.
+Original extracted baseline files checked byte-for-byte: 1218 unchanged.
+Patch adds new files only and includes no database, cache or baseline replacement.
+
+Boundary and authority limitations:
+- Stage 6.3 implements central gateway admission; zero target adapters are registered.
+- ADMITTED_AWAITING_ADAPTER is not target execution or a reusable dispatch permit.
+- No target I/O, tool invocation, ActionResult or target evidence is created.
+- Admission budgets are conservative lifetime reservations, not executed-action counts.
+- Runtime constraints remain sealed for mandatory Stage 6.4 enforcement.
+- Production aptsGSS source is absent; live production protocol compatibility is not exercised.
+- Required GSS protocol remains apts-gss-execution-revalidation-v1; old/incomplete responses fail closed.
+- Test authority exists only in tests; production requires configured external GSS.
+- Windows PowerShell acceptance was not run because PowerShell is unavailable here.
+- Captured live gateway receipt can be checked read-only using -LiveGatewayId.
+
+Evidence: evidence/stage6_3/focused,continuity,inventory,full_regression logs,
+JUnit XML, standalone_qa.txt and cold_overlay.txt.
+Next: Stage 6.4 - Authorized Tool Adapters & Sandboxing.

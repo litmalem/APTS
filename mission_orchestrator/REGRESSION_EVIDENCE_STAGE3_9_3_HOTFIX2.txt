@@ -1,0 +1,21 @@
+Stage 3.9.3 Hotfix 2 — Local Regression Evidence
+================================================
+
+Patch classification: TEST-ONLY REGRESSION BASELINE REBASE
+Production runtime change: NONE
+Expected control_version: stage3.9.3-planning-task-graph-dependency-verification
+Expected migration level: 53
+Expected canonical inventory: 1473
+
+Local checks performed against the Stage 3.9.3 package baseline:
+
+1. Python compilation of all seven modified test modules
+   RESULT: PASS
+
+2. Canonical test collection
+   RESULT: 1473 tests collected in 1.61s
+
+3. Exact seven tests that failed on the authoritative Windows host
+   RESULT: 7 passed in 3.90s
+
+No claim is made here for the complete 1473-test suite. Authoritative full-regression closure must be obtained by rerunning STAGE3_9_3_ACCEPTANCE.ps1 on the Windows host.

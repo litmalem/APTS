@@ -1,0 +1,11 @@
+mission_orchestrator/observability_trace.py
+mission_orchestrator/service.py
+mission_orchestrator/api_service.py
+tests/test_stage3_8_1_canonical_observability_trace_identity_contract.py
+tests/ (historical regression expectations rebased to active runtime 3.8.1)
+README_STAGE3_8_1.md
+PATCH_NOTES_STAGE3_8_1.md
+INSTALL_STAGE3_8_1.txt
+STAGE3_8_1_ACCEPTANCE.ps1
+REGRESSION_EVIDENCE_STAGE3_8_1.txt
+SHA256_STAGE3_8_1.txt

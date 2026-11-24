@@ -1,0 +1,67 @@
+STAGE 6.5 - EXECUTION RUNTIME CONTROL
+Current verification recorded: 2026-10-03T10:53:59.631421+00:00
+Revision: phase-synchronized timeout/retry tests; failure diagnostics.
+
+Focused Stage 6.5: 70 passed; zero failures/errors/skips.
+Stage 5.9 -> 6.5 continuity: 530 passed; zero failures/errors/skips.
+Full canonical regression: 2539 passed; zero failures/errors/skips.
+Canonical baseline 2469 + Stage 6.5 additions 70 = 2539.
+
+Full regression: 57 isolated pytest groups, 4 parallel pytest processes.
+Wall seconds: 517.52
+Exact canonical per-test JUnit coverage: PASS.
+Frozen Python/SQL/JSON source snapshot: 375 files, unchanged during run.
+Every canonical testcase was executed once; no automatic regression retries.
+
+Windows failure before this fix, supplied by the user:
+- Group 057, test_retry_rejects_completed_or_possible_io[TIMEOUT].
+- Focused 70 and continuity 530 passed; full run had 1 failure / 2539.
+- The 0.3-second timer could expire during startup with proven no target I/O.
+  Manual retry was valid, but the old test expected unconditional rejection.
+- Delayed startup 0.45 seconds reproduced that exact failure and exposed the
+  analogous 0.25-second DNS-test readiness assumption.
+
+Current fix:
+- Wait for actual target I/O or native worker entering the blocked DNS phase.
+- Advance only the fixture clock to the persisted deadline.
+- Assert I/O evidence, resources closed, and the correct retry outcome/reason.
+- Regression runner prints canonical failed node, JUnit traceback, and log path.
+- Production runtime, deadline/retry policies, contract and migrations unchanged.
+- Exactly two changed core files relative to the previous Stage 6.5 package:
+  tests/test_stage6_5_execution_runtime_control.py
+  run/stage6_5_regression.py
+
+Supplemental proof (outside canonical inventory):
+- 2 fixed timeout cases with delayed native startup: PASS.
+- 1 startup timeout with no I/O, followed by authorized manual retry: PASS.
+- The 2 expected pre-fix failures are retained as labeled negative controls.
+
+Cold source overlay from the original uploaded Mission archive:
+- 17 source changes + 6 activation/documentation files + startup probe: PASS.
+- All 375 core source files match the current full-regression snapshot.
+- Compilation: PASS. Canonical inventory: 2539.
+- 70 focused tests: PASS. Native seccomp/rlimits sandbox: PASS.
+- Embedded Python in PowerShell audit helper parses: PASS.
+
+Latest GSS input aptsGS(4).zip:
+- 58 GSS tests and 22 actual-source HTTP runtime scenarios: PASS.
+- Actual FastAPI/GovernanceService/risk/policy/audit/outbox code.
+- GSS repository and clock are isolated test fixtures; native workers and
+  target loopback socket are real; active outbox delivery is disabled.
+- All 78 non-cache GSS input files remain byte-identical to the upload.
+
+Proof scope: isolated Mission/Pentest schema stores, native workers,
+actual Governance HTTP code, loopback targets, and process crash recovery.
+No target action or authorization against a live user Mission was performed.
+Production MySQL and active outbox delivery were not exercised.
+Windows acceptance with the corrected tests has not been run in this build.
+The user's earlier native Job Object/preflight PASS is not a post-fix acceptance.
+
+Mission migration 53 / Pentest 16 remain unchanged; upstream stores read-only.
+Execution migration: 5. Next stage: 6.6 Artifact & Evidence Capture.
+Runtime contract SHA-256: a5772800492241b92e7c8eef0398c3672a215ddae0429dd88436a3dabdea296a
+Exact Stage 6.4 contract SHA-256: 35114f59617ddabcc3e458bc075b841cf27b23ea1782cad24517cc49b36b7812
+
+See regression_summary.json, full_regression.xml, retry_timeout_fix_summary.json,
+and gss_compatibility_summary.json in evidence/stage6_5. Current acceptance
+results are PASS; retry_timeout_before_fix log/XML are expected negative controls.

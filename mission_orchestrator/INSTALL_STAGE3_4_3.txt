@@ -1,0 +1,77 @@
+Stage 3.4.3 - Routing Eligibility & Compatibility Gate
+Installation / Regression Steps
+=====================================================
+
+Target repository:
+  D:\mission_orchestrator
+
+1. Stop Mission Orchestrator before replacing files.
+2. Back up the repository and production database.
+3. Extract the Stage-3.4.3 full package or patch over D:\mission_orchestrator preserving paths.
+4. Database migration:
+   - Existing required level: 19.
+   - Apply:
+       migrations\020_stage3_4_3_routing_eligibility_compatibility_gate.sql
+     to the production MySQL/MariaDB database.
+   - Expected repository migration level after migration: 20.
+   - SQLite test/dev repositories create the equivalent store automatically.
+5. Compile:
+     cd D:\mission_orchestrator
+     python -m compileall -q mission_orchestrator tests
+6. Full regression:
+     python -m pytest -q
+   Expected collection size for this package:
+     586 tests
+   If a shell/session time limit interrupts a complete invocation, run the Stage groups/test modules separately.
+7. Focused Stage-3.4.3 verification:
+     python -m pytest -q tests\test_stage3_4_3_routing_eligibility_compatibility_gate.py
+   Expected:
+     35 passed
+8. Focused Stage-3.4 verification:
+     python -m pytest -q tests\test_stage3_4_1_canonical_subsystem_registry_capability_contract.py tests\test_stage3_4_2_task_routing_intent_candidate_resolution.py tests\test_stage3_4_3_routing_eligibility_compatibility_gate.py
+   Expected:
+     80 passed
+9. Start/restart Mission Orchestrator:
+     python .\run\run_mission_orchestrator.py
+10. Verify health:
+     Invoke-RestMethod http://127.0.0.1:8780/health
+   Expected key values:
+     control_version = stage3.4.3-routing-eligibility-compatibility-gate
+     mission_repository_migration_level = 20
+     task_routing_intent_database_migration_level = 19
+     task_routing_eligibility_database_migration_level = 20
+     task_routing_candidate_resolution_performed = true
+     task_routing_eligibility_gate_performed = true
+     task_routing_eligibility_static_contract_only = true
+     task_routing_eligible_candidate_is_selected_route = false
+     task_routing_eligibility_is_authorization = false
+     task_routing_eligibility_is_runtime_availability = false
+     task_routing_route_selection_performed = false
+     task_routing_route_ranking_performed = false
+     task_routing_runtime_endpoint_resolution_performed = false
+     task_routing_runtime_health_probe_performed = false
+     task_routing_resource_assignment_performed = false
+     task_routing_governance_query_performed = false
+     task_routing_authorization_granted = false
+     task_routing_delegation_performed = false
+     task_routing_dispatch_performed = false
+     task_routing_target_actuation = false
+     governance_authorization_authority = EXTERNAL_APTS_GSS
+11. Run live/control acceptance:
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE3_4_3_ACCEPTANCE.ps1
+12. Expected final result:
+     STAGE 3.4.3 ACCEPTANCE: PASS
+
+Authority invariants:
+  CANDIDATE != ELIGIBLE
+  ELIGIBLE != SELECTED ROUTE
+  ELIGIBILITY != AUTHORIZATION
+  COMPATIBILITY != RUNTIME AVAILABILITY
+  ELIGIBILITY != DELEGATION
+  ELIGIBILITY != EXECUTION
+
+Important:
+  Stage 3.4.3 evaluates static canonical eligibility/compatibility only.
+  It does not rank/select a route, resolve endpoints, probe health, assign resources,
+  query or grant Governance authorization, delegate, dispatch, execute, or actuate.

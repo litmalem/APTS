@@ -1,0 +1,69 @@
+STAGE 3.6.2 INSTALL / REPLACEMENT NOTES
+Task Terminality & Completion Eligibility
+=========================================
+
+Package baseline:
+  Apply over an accepted Stage-3.6.1 Mission Orchestrator tree.
+
+Runtime identity after installation:
+  control_version            = stage3.6.2-task-terminality-completion-eligibility
+  server_version             = APTSMissionOrchestrator/3.6.2
+  repository_migration_level = 37
+  persistence_store          = mission_task_terminality_eligibility_gates
+
+Recommended Windows installation:
+
+  1. Stop the Mission Orchestrator process using port 8780.
+
+  2. Back up:
+       D:\mission_orchestrator
+     especially:
+       D:\mission_orchestrator\data\mission_orchestrator.db
+     plus operator-managed configuration/secrets.
+
+  3. Apply the Stage-3.6.2 patch/replacement files.
+     Do NOT overwrite the live production database with a database from a package.
+
+  4. Database migration:
+       SQLite:
+         MissionRepository.ensure_schema() creates/advances the local schema automatically.
+       MySQL/MariaDB:
+         apply migrations\037_stage3_6_2_task_terminality_completion_eligibility.sql
+         using the existing controlled migration procedure.
+
+  5. Start Mission Orchestrator on port 8780.
+
+  6. Verify runtime activation:
+
+       Invoke-RestMethod http://127.0.0.1:8780/health |
+           Select-Object status,control_version,mission_repository_migration_level,task_terminality_contract_schema_version,task_terminality_identity_prefix,task_terminality_persistence_store
+
+     Expected:
+       status                                      = ok
+       control_version                             = stage3.6.2-task-terminality-completion-eligibility
+       mission_repository_migration_level          = 37
+       task_terminality_contract_schema_version    = apts-task-terminality-completion-eligibility-contract-v1
+       task_terminality_identity_prefix            = telig-
+       task_terminality_persistence_store           = mission_task_terminality_eligibility_gates
+
+  7. Run canonical acceptance:
+
+       cd D:\mission_orchestrator
+       Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+       .\STAGE3_6_2_ACCEPTANCE.ps1
+
+     Acceptance requires:
+       - Python compile PASS;
+       - exact pytest inventory = 1002;
+       - full Stage 3.1-3.6.2 regression PASS;
+       - focused Stage-3.6.2 = 20 PASS;
+       - runtime identity and migration 37 checks PASS;
+       - deterministic four-status terminality/eligibility checks PASS;
+       - strict no-acceptance/no-completion/no-release/no-runtime/no-Governance boundary checks PASS.
+
+Operational boundary:
+  Stage 3.6.2 only confirms terminality and derives completion eligibility from an immutable
+  Stage-3.6.1 task outcome. Eligibility is not acceptance and is not a completion commit.
+
+Next implementation boundary:
+  Stage 3.6.3

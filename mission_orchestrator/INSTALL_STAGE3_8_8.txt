@@ -1,0 +1,30 @@
+STAGE 3.8.8 — WINDOWS DEPLOYMENT
+
+Baseline: D:\mission_orchestrator running Stage 3.8.7.
+Patch: Stage3_8_8_Observability_Metrics_Health_Operator_Diagnostics_Patch.zip.
+
+1. Preserve a copy of the current mission_orchestrator/ and tests/ directories
+   and the existing service configuration. The patch contains no data/ directory
+   and does not replace the Mission database.
+
+2. Change the downloaded patch path as needed, then overlay it:
+
+   Expand-Archive `
+       -Path 'C:\path\to\Stage3_8_8_Observability_Metrics_Health_Operator_Diagnostics_Patch.zip' `
+       -DestinationPath 'D:\mission_orchestrator' `
+       -Force
+
+3. Restart Mission Orchestrator using the existing service procedure.
+   Confirm GET http://127.0.0.1:8780/health reports
+   stage3.8.8-observability-metrics-health-operator-diagnostics.
+
+4. Run the acceptance script in PowerShell:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_8_8_ACCEPTANCE.ps1
+
+   Recommended read check for a Mission already in the database:
+   .\STAGE3_8_8_ACCEPTANCE.ps1 -MissionId '<existing-mission-id>'
+
+Stage 3.8.8 keeps repository migration_level=53. No migration is required.

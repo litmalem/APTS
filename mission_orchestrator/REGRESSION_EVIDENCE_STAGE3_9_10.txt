@@ -1,0 +1,38 @@
+Stage 3.9.10 local implementation evidence
+==========================================
+
+Environment: sandbox validation against uploaded Mission(20260929-101712).zip
+
+PASS - Python compilation:
+  python -m compileall -q mission_orchestrator tests
+
+PASS - Canonical pytest inventory:
+  1575 tests collected in 0.41s
+
+PASS - Focused Stage 3.9.10 suite + targeted supported-control compatibility:
+  17 passed in 7.90s
+
+  Included:
+    - all 15 Stage 3.9.10 focused tests
+    - Stage 3.4.10 final supported-control ordering check
+    - Stage 3.5.10 final supported-control ordering check
+
+PASS - Earlier broad Stage 3.9 chain probe produced no failure before sandbox timeout.
+  The cumulative chain is long-running and the authoritative complete execution remains
+  part of the deployment-host acceptance harness.
+
+Verified local invariants:
+  active control               = stage3.9.10-global-mission-orchestrator-acceptance-regression-gate
+  server version               = APTSMissionOrchestrator/3.9.10
+  repository migration         = 53
+  Stage 3.9 prior controls     = 9
+  final gate                   = declared-only
+  runtime self-certification   = false
+  external acceptance required = true
+  full historical regression  = required
+  Stage 3 output               = GLOBAL_MISSION_ORCHESTRATOR
+  next stage                   = 4.1
+
+The complete 1575-test historical suite is intentionally left as the deployment-host
+acceptance gate. Run STAGE3_9_10_ACCEPTANCE.ps1 on the target host and record its final
+full-regression result before declaring Stage 3 closed.

@@ -1,0 +1,13 @@
+Stage 2.9.6 local build validation
+==================================
+
+PASS: python -m compileall -q vulndesk/cti_services aptsGSS/app
+PASS: VulnDesk Stage 2.9.6 + Stage 2.9.5 targeted tests: 16 passed
+PASS: VulnDesk regression excluding the DB-driver-only collection test: 131 passed
+      command: python -m pytest -q --ignore=tests/test_nvd_bulk_upsert.py
+PASS: aptsGSS Stage 2.9.6 unit tests: 3 passed
+
+Sandbox limitation:
+The full baseline suites that import the live MariaDB stack cannot collect because `pymysql`
+is not installed in the sandbox Python environment. No Stage 2.9.6 assertion failed. Run the
+normal project virtual environments on the target Windows hosts for final runtime regression.

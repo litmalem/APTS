@@ -1,0 +1,112 @@
+Stage 3.4.10 — Routing & Delegation Acceptance / Regression Gate
+=================================================================
+
+Target project
+--------------
+D:\mission_orchestrator
+
+Runtime identity after installation
+-----------------------------------
+control_version = stage3.4.10-routing-delegation-acceptance-regression-gate
+server_version  = APTSMissionOrchestrator/3.4.10
+repository_migration_level = 26
+new_database_migration = NONE
+new_durable_store = NONE
+
+Important
+---------
+Stage 3.4.10 is a closure/acceptance gate only. It must not add route-selection,
+Governance, delegation, ownership-transfer, dispatch, execution, or target-actuation
+authority.
+
+Installation
+------------
+1. Stop the Mission Orchestrator process listening on port 8780.
+
+2. Back up D:\mission_orchestrator and the Mission repository database.
+
+3. Extract the Stage-3.4.10 package over D:\mission_orchestrator, preserving the
+   directory structure.
+
+4. Verify these new files exist:
+
+   mission_orchestrator\routing_delegation_acceptance_gate.py
+   tests\test_stage3_4_10_routing_delegation_acceptance_regression_gate.py
+   README_STAGE3_4_10.md
+   PATCH_NOTES_STAGE3_4_10.md
+   PATCH_MANIFEST_STAGE3_4_10.txt
+   STAGE3_4_10_ACCEPTANCE.ps1
+   SHA256_STAGE3_4_10.txt
+
+5. Database migration:
+
+   NO NEW MIGRATION IS REQUIRED FOR STAGE 3.4.10.
+
+   The repository must remain at migration level 26. Do not create or apply a
+   migration 027 for this closure gate.
+
+6. From PowerShell, perform source-level preflight:
+
+   cd D:\mission_orchestrator
+   python -m compileall -q mission_orchestrator tests
+   python -m pytest -q tests\test_stage3_4_10_routing_delegation_acceptance_regression_gate.py
+
+   Expected focused result:
+
+   12 passed
+
+7. Start/restart Mission Orchestrator using the normal project launcher.
+
+8. Verify runtime activation:
+
+   Invoke-RestMethod http://127.0.0.1:8780/health | ConvertTo-Json -Depth 10
+
+   Expected minimum values:
+
+   control_version
+     stage3.4.10-routing-delegation-acceptance-regression-gate
+
+   mission_repository_migration_level
+     26
+
+   stage3_4_routing_delegation_acceptance_gate_schema_version
+     apts-mission-stage3.4-routing-delegation-acceptance-gate-v1
+
+   stage3_4_routing_delegation_acceptance_gate_baseline
+     STAGE_3_4_1_THROUGH_3_4_9
+
+   stage3_4_routing_delegation_acceptance_gate_declared_only
+     true
+
+   stage3_4_routing_delegation_acceptance_gate_runtime_self_certification
+     false
+
+   stage3_4_routing_delegation_acceptance_gate_external_execution_required
+     true
+
+   stage3_4_routing_delegation_acceptance_gate_new_database_migration_added
+     false
+
+   stage3_4_routing_delegation_acceptance_gate_new_durable_store_added
+     false
+
+9. Run the canonical external acceptance harness:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_4_10_ACCEPTANCE.ps1
+
+Expected regression cardinality
+-------------------------------
+Previous Stage-3.4.9 baseline = 767
+Stage-3.4.10 new tests        = 12
+Expected Stage-3.4.10 total   = 779
+
+The official PASS result is the final output of STAGE3_4_10_ACCEPTANCE.ps1.
+The runtime itself does not self-certify acceptance.
+
+Rollback
+--------
+Application rollback requires restoring the pre-Stage-3.4.10 source tree as one
+consistent unit. Stage 3.4.10 introduces no database migration, so the repository
+schema remains at level 26. Preserve the database backup anyway because acceptance
+runs may create normal Mission test data if operators invoke additional live probes.

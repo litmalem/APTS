@@ -1,0 +1,14 @@
+pentest_migrations/010_stage5_3_enumeration_agent.sql
+pentest_subsystem/enumeration.py
+pentest_subsystem/api_service.py
+pentest_subsystem/__init__.py
+run/pentest_subsystem.py
+tests/test_stage5_3_enumeration_agent.py
+STAGE5_3_ACCEPTANCE.ps1
+README_STAGE5_3.md
+PATCH_NOTES_STAGE5_3.md
+INSTALL_STAGE5_3.txt
+REGRESSION_EVIDENCE_STAGE5_3.txt
+PATCH_FILE_LIST_STAGE5_3.txt
+PATCH_MANIFEST_STAGE5_3.txt
+SHA256_STAGE5_3.txt

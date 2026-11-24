@@ -1,0 +1,54 @@
+STAGE 3.5.7 — EXECUTION RESULT / EVIDENCE / ARTIFACT CAPTURE
+===========================================================
+
+1. Replace the Mission Orchestrator source tree with this package.
+
+2. Preserve your existing environment and database configuration.
+   Repository migration level becomes 33 and introduces:
+
+     migrations/033_stage3_5_7_execution_result_evidence_artifact_capture.sql
+     mission_execution_result_captures
+
+3. Stage 3.5.7 reuses the exact downstream runtime endpoint persisted by
+   Stage 3.5.5. It does NOT perform endpoint resolution again.
+
+   The downstream runtime must expose its terminal execution-result read
+   through the execution-delivery client contract and return identities bound
+   to the mission, xattempt, xenv, and target subsystem.
+
+4. Restart Mission Orchestrator on port 8780.
+
+5. Verify /health:
+
+     control_version = stage3.5.7-execution-result-evidence-artifact-capture
+     mission_repository_migration_level = 33
+     execution_result_database_migration_level = 33
+     execution_result_persistence_store = mission_execution_result_captures
+     execution_result_schema_version = apts-execution-result-evidence-artifact-capture-v1
+     execution_result_identity_prefix = xresult-
+     execution_result_requires_latest_stage356_running_projection = true
+     execution_result_one_terminal_result_per_execution_attempt = true
+     execution_result_evidence_required = true
+     execution_result_artifact_optional = true
+     execution_result_runtime_endpoint_resolution_performed = false
+     execution_result_runtime_terminal_result_query_performed = true
+     execution_result_governance_query_performed = false
+     execution_result_dispatch_redelivery_performed = false
+     execution_result_target_action_dispatch_performed = false
+     execution_result_inline_artifact_payload_persisted = false
+     execution_result_is_not_task_completion_authority = true
+     execution_result_mission_state_transition_performed = false
+
+6. Execute acceptance:
+
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE3_5_7_ACCEPTANCE.ps1
+
+Important boundary:
+- A terminal runtime result is captured as authoritative execution evidence.
+- At least one evidence reference is mandatory; artifacts are optional.
+- Inline evidence/artifact payloads are rejected.
+- No new Governance authorization is requested.
+- No dispatch is redelivered.
+- No task or mission completion transition is performed.
+- Stage 3.5.8 remains responsible for outcome verification/completion authority.

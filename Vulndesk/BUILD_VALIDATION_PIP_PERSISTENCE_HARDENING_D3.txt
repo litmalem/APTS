@@ -1,0 +1,34 @@
+VulnDesk Patch D3 Build Validation
+Date: 2026-08-14
+Control version: hybrid-event-driven-2.3-pip-persistence-hardening
+
+Targeted + regression suite:
+  tests.test_pip_persistence_hardening_d3
+  tests.test_execution_hardening_stage2_d1_d2
+  tests.test_governance_client
+  tests.test_policydecision_taskcontract_stage2
+  tests.test_cti_event_driven_runtime
+  tests.test_stage1_closure_fixes
+  tests.test_cti_harmonized_architecture
+  tests.test_interface_catalog
+
+Result:
+  Ran 42 tests
+  OK
+
+Python compileall:
+  cti_services + tests
+  COMPILE_OK
+
+Full unittest discovery:
+  43 tests discovered/run path; one import error remains in legacy
+  tests.test_nvd_bulk_upsert because the build container does not have the
+  optional/runtime PyMySQL package installed. Application requirements already
+  declare PyMySQL; this is not a D3 regression.
+
+D3 persistence invariant validated:
+  - no native dict/list/list[dict] reaches cti_pip_artifacts SQL params
+  - PIP artifact is serialized to canonical artifact_json
+  - validation summary and gate details are serialized to JSON text
+  - immutable=1 and execution_authorized=0 remain enforced at publication
+  - no database migration is required

@@ -1,0 +1,25 @@
+APTS Stage 5.10 — Agentic Pentest Acceptance & Regression Gate
+
+1. Stop the current Pentest Subsystem process.
+2. Extract this package over the existing D:\mission_orchestrator tree.
+3. Preserve the existing data directory / SQLite databases.
+4. No new Pentest migration is introduced; migration remains 16.
+5. Start the Pentest Subsystem:
+
+   python run\pentest_subsystem.py --host 127.0.0.1 --port 8790
+
+6. Confirm:
+
+   GET http://127.0.0.1:8790/health
+
+   Expected:
+   control_version = stage5.10-agentic-pentest-acceptance-regression-gate
+   pentest_repository_migration_level = 16
+   stage5_10_next_stage = 6.1
+
+7. Run acceptance:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE5_10_ACCEPTANCE.ps1
+
+Stage 5.10 closes the Agentic Pentest decision/coordination plane. Controlled execution begins at Stage 6.1.

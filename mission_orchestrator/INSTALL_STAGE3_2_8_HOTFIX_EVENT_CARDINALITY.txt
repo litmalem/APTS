@@ -1,0 +1,26 @@
+Stage 3.2.8 Acceptance Hotfix — installation
+
+1. Stop nothing; the Mission Orchestrator runtime source is not changed.
+2. From the extracted hotfix package, copy/overwrite these files into D:\mission_orchestrator:
+
+   STAGE3_2_8_ACCEPTANCE.ps1
+   tests\test_stage3_2_8_cleanup_verified_completion_gate.py
+
+3. Validate:
+
+   cd D:\mission_orchestrator
+   python -m compileall -q mission_orchestrator tests
+   python -m pytest -q
+
+   Expected: 234 passed
+
+4. Keep Mission Orchestrator listening at http://127.0.0.1:8780 and run:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_2_8_ACCEPTANCE.ps1
+
+Expected Section [9]:
+[PASS] Verified COMPLETE uses the existing command journal for replay-safe exactly-once persistence
+
+The acceptance must then continue through Sections [10]-[13] and finish with:
+STAGE 3.2.8 ACCEPTANCE: PASS

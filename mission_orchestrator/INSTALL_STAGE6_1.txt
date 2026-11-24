@@ -1,0 +1,40 @@
+APTS Stage 6.1 - Canonical Execution Request Contract
+
+Root proyek tetap D:\mission_orchestrator.
+
+1. Ekstrak PATCH ke D:\mission_orchestrator. Patch hanya menambahkan file Stage 6.1.
+   Seluruh file dan migration Stage 3-5 tetap sama.
+2. Jika menggunakan full snapshot, pertahankan folder data dan database lokal yang
+   sedang digunakan. Snapshot membawa database baseline unggahan; jangan menimpa
+   database yang telah berubah sejak unggahan dengan database snapshot tersebut.
+3. Pertahankan Global Mission Orchestrator (8780, Stage 3.9.10) dan Pentest
+   Subsystem (8790, Stage 5.10) tetap berjalan.
+4. Buka PowerShell baru:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\START_STAGE6_1_EXECUTION.ps1
+
+   Atau:
+   python run\execution_subsystem.py --host 127.0.0.1 --port 8791
+
+5. GET http://127.0.0.1:8791/health
+   control_version = stage6.1-canonical-execution-request-contract
+   execution_repository_migration_level = 1
+   pentest_repository_migration_level = 16
+   execution_authorized = false
+   next_stage = 6.2
+
+6. Dari PowerShell lain:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE6_1_ACCEPTANCE.ps1
+
+Target: STAGE 6.1 ACCEPTANCE: PASS
+Inventory: 2118 tests (2045 baseline + 73 Stage 6.1).
+
+Layanan baru menggunakan data\execution_subsystem.db (migration 1 otomatis).
+Database Pentest dibaca read-only; Pentest migration tetap 16.
+Stage 6.1 membentuk request berstatus AWAITING_AUTHORIZATION.
+Authoritative execution authorization adalah Stage 6.2.

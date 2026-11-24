@@ -1,0 +1,7 @@
+﻿{
+    "status":  "accepted",
+    "mission_id":  "mission-stage298-e2e-20260902-022733",
+    "plan_id":  "plan-7bf110aa-a09a-4426-9441-384589c14373",
+    "architecture_version":  "2026-08-harmonized",
+    "control_version":  "hybrid-event-driven-2.17-health-diagnostics"
+}

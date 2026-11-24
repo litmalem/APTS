@@ -1,0 +1,34 @@
+Stage 5.6 installation / validation
+===================================
+
+1. Replace the working tree with this package or apply the files listed in PATCH_FILE_LIST_STAGE5_6.txt.
+2. The Pentest repository upgrades automatically from migration 12 to migration 13 on first Stage-5.6 startup.
+3. Start the Global Mission Orchestrator as usual on http://127.0.0.1:8780.
+4. Start the Pentest Subsystem:
+
+   cd D:\mission_orchestrator
+   python run\pentest_subsystem.py --host 127.0.0.1 --port 8790
+
+5. In another PowerShell:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE5_6_ACCEPTANCE.ps1
+
+Expected active Pentest control:
+  stage5.6-exploitation-agent
+
+Expected Pentest migration:
+  13
+
+Expected canonical inventory:
+  1957 tests
+
+Important authority boundary:
+  Stage 5.6 consumes the exact authoritative Stage-5.5 Attack-Path Planning output/evidence,
+  evaluates candidate validation/exploitation eligibility against Stage-4.8 scope/RoE, and
+  materializes ExploitActionProposal + ValidationTask artifacts with Stage-4.9 lineage.
+  It does NOT accept raw executable content, create Stage-6 ExecutionRequest/ActionResult,
+  perform validation/exploitation, invoke target tools, contact target networks, actuate targets,
+  create execution evidence/findings, or mint PolicyDecision authorization.
+  Controlled execution remains Stage 6 authority.

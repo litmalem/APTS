@@ -1,0 +1,86 @@
+VulnDesk Stage 2.9.5 — Integrity / Violation Probe
+Build validation date: 2026-08-29
+
+Baseline artifacts analyzed:
+  Vulndesk(20260829-081222).zip
+  Vulndesk(20260829-081215).sql
+  aptsGSS(20260829-081215).zip
+  AptsGSS(20260829-081214).sql
+
+Baseline control version:
+  hybrid-event-driven-2.15-cross-subsystem-governance-correlation
+
+New VulnDesk control version:
+  hybrid-event-driven-2.16-integrity-violation-probe
+
+Database migration:
+  NONE REQUIRED
+
+aptsGSS Stage 2.9.5 application/schema changes:
+  NONE REQUIRED
+
+Implemented:
+  IntegrityViolationProbe
+  cti-integrity-probe-v1
+  GET /api/cti/tasks/{task_id}/integrity
+  GET /api/cti/missions/{mission_id}/integrity
+
+Core violation classes validated:
+  DISPATCH_WITHOUT_POLICY_DECISION
+  DISPATCH_AFTER_REVOCATION
+  TASK_SCOPE_POLICY_SCOPE_MISMATCH
+  COMPLETED_WITHOUT_DISPATCHED
+  GOVERNANCE_REQUIRED_REFERENCE_MISSING
+  GOVERNANCE_FIELD_MISMATCH
+  GOVERNANCE_EVENT_REFERENCE_MISSING
+
+Positive revocation semantics validated:
+  TASK_AUTHORIZATION_REVOKED -> TASK_DISPATCH_BLOCKED with no later dispatch
+  is PASS and is classified as CORRECTLY_BLOCKED_AFTER_REVOCATION.
+
+Governance outage semantics validated:
+  clean local lineage + unavailable authority => UNVERIFIABLE
+  no invented violation / no invented authority
+
+Compile validation:
+  python -m py_compile cti_services/integrity_probe.py
+  python -m py_compile cti_services/cti_subsystem_orchestrator.py
+  python -m py_compile cti_services/pentest_enrichment_api_service.py
+  python -m py_compile cti_services/interface_catalog.py
+  python -m py_compile cti_services/__init__.py
+  PASS
+
+Focused Stage 2.9.5 tests:
+  python -m pytest -q tests/test_integrity_violation_probe_stage2_9_5.py
+  12 passed
+
+Stage 2.9.1–2.9.5 focused lineage/correlation regression:
+  38 passed
+
+Broad VulnDesk regression available in the build container:
+  python -m pytest -q --ignore=tests/test_nvd_bulk_upsert.py
+  127 passed
+
+Full-suite environment note:
+  tests/test_nvd_bulk_upsert.py cannot be collected in this sandbox because PyMySQL is
+  not installed and outbound package installation is unavailable. requirements.txt already
+  declares PyMySQL>=1.1. No Stage 2.9.5 regression failure was observed in the 127 tests
+  that were executable in this environment.
+
+aptsGSS validation note:
+  Stage 2.9.5 does not change aptsGSS. Its local test suite could not be collected in this
+  sandbox for the same missing PyMySQL dependency. The supplied Stage 2.9.4 authoritative
+  endpoint/source was inspected and is sufficient for the Stage 2.9.5 classifier.
+
+Runtime acceptance artifacts:
+  STAGE2_9_5_ACCEPTANCE.ps1
+  STAGE2_9_5_ACCEPTANCE.sql
+
+Stage status:
+  2.9.1 COMPLETE
+  2.9.2 COMPLETE
+  2.9.3 COMPLETE
+  2.9.4 COMPLETE baseline / authoritative correlation available
+  2.9.5 IMPLEMENTED / BUILD-REGRESSION PASS
+  2.9.5 runtime acceptance remains to be executed on the user's running services
+  2.9.6 NEXT after Stage 2.9.5 runtime acceptance

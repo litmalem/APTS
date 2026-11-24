@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "exact_source_copy_files": 13,
+  "corresponding_gss_test_nodes": 135,
+  "historical_mission_bridge_preserved": true,
+  "native_test_removed": false,
+  "quarantine_receipt_and_file_hashes_verified": true
+}

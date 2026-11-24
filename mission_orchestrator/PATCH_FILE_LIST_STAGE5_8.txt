@@ -1,0 +1,14 @@
+pentest_migrations/015_stage5_8_cross_agent_feedback_shared_state_replanning.sql
+pentest_subsystem/cross_agent_feedback.py
+pentest_subsystem/api_service.py
+pentest_subsystem/__init__.py
+run/pentest_subsystem.py
+tests/test_stage5_8_cross_agent_feedback_shared_state_replanning.py
+STAGE5_8_ACCEPTANCE.ps1
+README_STAGE5_8.md
+PATCH_NOTES_STAGE5_8.md
+INSTALL_STAGE5_8.txt
+REGRESSION_EVIDENCE_STAGE5_8.txt
+PATCH_FILE_LIST_STAGE5_8.txt
+PATCH_MANIFEST_STAGE5_8.txt
+SHA256_STAGE5_8.txt

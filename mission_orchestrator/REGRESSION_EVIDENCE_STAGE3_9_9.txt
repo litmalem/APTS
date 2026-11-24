@@ -1,0 +1,33 @@
+Stage 3.9.9 local implementation evidence
+=========================================
+
+Environment: sandbox validation against uploaded Mission(20260929-081249).zip
+
+PASS - Python compilation:
+  python -m compileall -q mission_orchestrator tests
+
+PASS - Canonical pytest inventory:
+  1560 tests collected in 1.65s
+
+PASS - Focused Stage 3.9.9 suite:
+  15 passed in 27.21s
+
+PASS - Selected active-control / supported-control compatibility checks:
+  15 passed in 11.32s
+
+PASS - Canonical Stage 3.9.9 qualification during focused suite:
+  qualification             = QUALIFIED
+  mission state             = RUNNING(v4)
+  active plan               = v2
+  mission/normalized/timeline events = 50 / 50 / 50
+  causal graph              = 51 nodes / 50 edges
+  diagnostics               = PASS
+  observability health      = HEALTHY
+  forensic bundle           = VERIFIED
+  reconstruction            = VERIFIED
+  forensic queries          = VERIFIED
+  equivalence               = PASS
+
+The complete 1560-test historical suite is intentionally left as the deployment-host
+acceptance gate because the cumulative regression is long-running. Run
+STAGE3_9_9_ACCEPTANCE.ps1 on the target host and record its final full-regression result.

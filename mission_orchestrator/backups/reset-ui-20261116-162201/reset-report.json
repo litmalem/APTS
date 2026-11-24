@@ -1,0 +1,204 @@
+{
+  "D:\\APTS\\mission_orchestrator\\data\\mission_orchestrator.db": {
+    "database": "D:\\APTS\\mission_orchestrator\\data\\mission_orchestrator.db",
+    "rows_removed": 96,
+    "selected": true
+  },
+  "D:\\APTS\\mission_orchestrator\\data\\pentest_subsystem.db": {
+    "database": "D:\\APTS\\mission_orchestrator\\data\\pentest_subsystem.db",
+    "rows_removed": 58,
+    "selected": true
+  },
+  "D:\\APTS\\mission_orchestrator\\data\\execution_subsystem.db": {
+    "database": "D:\\APTS\\mission_orchestrator\\data\\execution_subsystem.db",
+    "rows_removed": 68,
+    "selected": true
+  },
+  "D:\\APTS\\mission_orchestrator\\data\\cti_feedback_repository.db": {
+    "database": "D:\\APTS\\mission_orchestrator\\data\\cti_feedback_repository.db",
+    "rows_removed": 0,
+    "selected": true
+  },
+  "D:\\APTS\\WebTechnologyProfiler\\data\\profiler.sqlite3": {
+    "database": "D:\\APTS\\WebTechnologyProfiler\\data\\profiler.sqlite3",
+    "rows_removed": 4,
+    "selected": true
+  },
+  "vulndesk": {
+    "module": "Vulndesk",
+    "tables": [
+      {
+        "table": "cti_wpt_verified_evidence",
+        "rows": 1
+      }
+    ],
+    "rows_removed": 1,
+    "database_selected": false,
+    "cti_enrichment_selected": true,
+    "uploaded_files_removed": 0,
+    "uploaded_bytes_removed": 0,
+    "uploads_selected": false,
+    "backup_sql": "D:\\APTS\\mission_orchestrator\\backups\\reset-ui-20261116-162201\\vulndesk-operational-before.sql",
+    "backup_files": null
+  },
+  "vulndesk_backup": {
+    "tables": [
+      {
+        "table": "cti_missions",
+        "rows": 41
+      },
+      {
+        "table": "cti_events",
+        "rows": 4650
+      },
+      {
+        "table": "cti_plans",
+        "rows": 58
+      },
+      {
+        "table": "cti_task_contracts",
+        "rows": 198
+      },
+      {
+        "table": "cti_action_proposals",
+        "rows": 241
+      },
+      {
+        "table": "cti_decision_traces",
+        "rows": 430
+      },
+      {
+        "table": "cti_event_deliveries",
+        "rows": 478
+      },
+      {
+        "table": "cti_raw_artifacts",
+        "rows": 0
+      },
+      {
+        "table": "cti_normalized_objects",
+        "rows": 0
+      },
+      {
+        "table": "cti_provenance_records",
+        "rows": 0
+      },
+      {
+        "table": "cti_asset_profiles",
+        "rows": 25
+      },
+      {
+        "table": "cti_cpe_resolution_claims",
+        "rows": 0
+      },
+      {
+        "table": "cti_enrichment_requirements",
+        "rows": 0
+      },
+      {
+        "table": "cti_vulnerability_correlations",
+        "rows": 0
+      },
+      {
+        "table": "cti_attack_mappings",
+        "rows": 0
+      },
+      {
+        "table": "cti_attack_graph_snapshots",
+        "rows": 22
+      },
+      {
+        "table": "cti_attack_paths",
+        "rows": 0
+      },
+      {
+        "table": "cti_threat_contexts",
+        "rows": 0
+      },
+      {
+        "table": "cti_beliefs",
+        "rows": 198
+      },
+      {
+        "table": "cti_intentions",
+        "rows": 0
+      },
+      {
+        "table": "cti_priority_portfolios",
+        "rows": 22
+      },
+      {
+        "table": "cti_pip_artifacts",
+        "rows": 122
+      },
+      {
+        "table": "cti_pip_validation_results",
+        "rows": 1220
+      },
+      {
+        "table": "cti_audit_log",
+        "rows": 765
+      },
+      {
+        "table": "cti_policy_decision_revocations",
+        "rows": 4
+      },
+      {
+        "table": "cti_source_state",
+        "rows": 3
+      },
+      {
+        "table": "cti_wpt_verified_evidence",
+        "rows": 1
+      },
+      {
+        "table": "pentest_enrichment_requests",
+        "rows": 43
+      },
+      {
+        "table": "pentest_enrichment_request_results",
+        "rows": 12522
+      },
+      {
+        "table": "dataset_uploads",
+        "rows": 2
+      },
+      {
+        "table": "tweet_topic_records",
+        "rows": 28180
+      },
+      {
+        "table": "topic_master_records",
+        "rows": 77
+      },
+      {
+        "table": "sync_audit",
+        "rows": 65
+      }
+    ],
+    "backup_sql": "D:\\APTS\\mission_orchestrator\\backups\\reset-ui-20261116-162201\\vulndesk-operational-before.sql",
+    "backup_files": null,
+    "uploaded_files": 0,
+    "uploaded_bytes": 0
+  },
+  "governance_selected": [
+    "gov_approval_decisions",
+    "gov_approval_requests",
+    "gov_policy_decisions",
+    "gov_risk_assessments",
+    "gov_authorization_requests",
+    "gov_scope_action_constraints",
+    "gov_scope_sources",
+    "gov_scope_targets",
+    "gov_scope_contracts",
+    "gov_event_outbox",
+    "gov_audit_log"
+  ],
+  "selected_sqlite_databases": [
+    "D:\\APTS\\WebTechnologyProfiler\\data\\profiler.sqlite3",
+    "D:\\APTS\\mission_orchestrator\\data\\cti_feedback_repository.db",
+    "D:\\APTS\\mission_orchestrator\\data\\execution_subsystem.db",
+    "D:\\APTS\\mission_orchestrator\\data\\mission_orchestrator.db",
+    "D:\\APTS\\mission_orchestrator\\data\\pentest_subsystem.db"
+  ]
+}

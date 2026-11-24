@@ -1,0 +1,113 @@
+VulnDesk / aptsGSS Stage 2.9.4 — Cross-Subsystem Governance Correlation
+Build validation date: 2026-08-29
+
+Baseline artifacts analyzed:
+  Vulndesk(20260829-023750).zip
+  Vulndesk(20260829-023743).sql
+  aptsGSS(20260829-023743).zip
+  AptsGSS(20260829-023743).sql
+
+Baseline capability:
+  Stage 2.9.3 Mission Lineage Reconstruction
+  control_version = hybrid-event-driven-2.14-mission-lineage-reconstruction
+
+New VulnDesk control version:
+  hybrid-event-driven-2.15-cross-subsystem-governance-correlation
+
+Database migration:
+  NONE REQUIRED
+
+Reason:
+  VulnDesk baseline already persists PolicyDecision/request/scope/gevent/revalidation/
+  revocation references, and aptsGSS already persists the authoritative corresponding
+  records with mission indexes. Stage 2.9.4 is a read-side service/API correlation layer.
+
+Implemented aptsGSS read contract:
+  GET /api/governance/correlation/missions/{mission_id}
+
+Authoritative snapshot sources:
+  gov_scope_contracts
+  gov_authorization_requests
+  gov_policy_decisions
+  gov_event_outbox
+  gov_audit_log
+
+Implemented VulnDesk correlation engine:
+  CrossSubsystemGovernanceCorrelator
+
+Correlated identities:
+  authorization_request_id
+  policy_decision_id
+  scope_contract_id
+  authorization_governance_event_id
+  pre_dispatch_governance_event_id
+  revocation_event_id
+  mission event upstream_event_id=gevent-*
+
+Compared binding dimensions:
+  mission_id
+  request_id
+  decision_hash
+  decision value/status identity
+  scope_contract_id / scope_version
+  policy_set_id / policy_version
+  subject component
+  action class/name
+  resource type/value
+  revalidation task_id / revalidation_id
+  revocation_id
+
+Stage boundary:
+  classification = CORRELATION_FACTS_ONLY_STAGE_2_9_4
+  integrity_classification_status = NOT_EVALUATED_STAGE_2_9_5
+
+Governance outage semantics:
+  Local canonical lineage is preserved.
+  Correlation status becomes UNAVAILABLE/PROTOCOL_ERROR rather than inventing authority
+  or converting an observability outage into an integrity violation.
+
+Compile validation:
+  VulnDesk: python -m compileall -q cti_services tests
+  PASS
+  aptsGSS: python -m compileall -q app tests
+  PASS
+
+Focused VulnDesk Stage 2.9.4 + GovernanceClient:
+  15 passed
+
+Broad VulnDesk regression:
+  python -m pytest -q tests --ignore=tests/test_nvd_bulk_upsert.py
+  115 passed
+
+VulnDesk full-suite note:
+  The build container does not contain the real PyMySQL package used during collection
+  of tests/test_nvd_bulk_upsert.py. The baseline requirements.txt already declares
+  PyMySQL>=1.1. No Stage 2.9.4 failure was observed.
+
+Focused aptsGSS Stage 2.9.4 + Stage 2.8.8 lineage:
+  4 passed
+
+Full aptsGSS regression:
+  23 passed
+
+aptsGSS test-environment note:
+  The build container lacks the real PyMySQL package. As in previous build validation,
+  a private import-only stub outside the shipped source tree was used only for test
+  collection. It is NOT included in the deliverable.
+
+Acceptance artifacts:
+  STAGE2_9_4_ACCEPTANCE.ps1
+  STAGE2_9_4_ACCEPTANCE.sql
+
+Closure condition recommended:
+  Run a FRESH governed mission after both services are restarted, then require the
+  mission lineage governance_correlation.status to be CORRELATED. For revocation
+  coverage, run a separate fresh revocation mission and verify the revocation gevent.
+
+Stage status:
+  2.9.1 COMPLETE
+  2.9.2 COMPLETE
+  2.9.3 COMPLETE
+  2.9.4 IMPLEMENTED / BUILD-REGRESSION PASS
+  2.9.4 runtime cross-database acceptance remains to be executed on the user's services
+  2.9.5 NEXT

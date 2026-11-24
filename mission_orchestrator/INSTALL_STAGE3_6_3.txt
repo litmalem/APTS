@@ -1,0 +1,70 @@
+STAGE 3.6.3 INSTALL / REPLACEMENT NOTES
+Evidence Binding Verification
+=========================================
+
+Package baseline:
+  Apply over an accepted Stage-3.6.2 Mission Orchestrator tree.
+
+Runtime identity after installation:
+  control_version            = stage3.6.3-evidence-binding-verification
+  server_version             = APTSMissionOrchestrator/3.6.3
+  repository_migration_level = 38
+  persistence_store          = mission_task_evidence_binding_verifications
+
+Recommended Windows installation:
+
+  1. Stop the Mission Orchestrator process using port 8780.
+
+  2. Back up:
+       D:\mission_orchestrator
+     especially:
+       D:\mission_orchestrator\data\mission_orchestrator.db
+     plus operator-managed configuration/secrets.
+
+  3. Apply the Stage-3.6.3 patch/replacement files.
+     Do NOT overwrite the live production database with a database from a package.
+
+  4. Database migration:
+       SQLite:
+         MissionRepository.ensure_schema() creates/advances the local schema automatically.
+       MySQL/MariaDB:
+         apply migrations\038_stage3_6_3_evidence_binding_verification.sql
+         using the existing controlled migration procedure.
+
+  5. Start Mission Orchestrator on port 8780.
+
+  6. Verify runtime activation:
+
+       Invoke-RestMethod http://127.0.0.1:8780/health |
+           Select-Object status,control_version,mission_repository_migration_level,task_evidence_binding_contract_schema_version,task_evidence_binding_identity_prefix,task_evidence_binding_persistence_store
+
+     Expected:
+       status                                          = ok
+       control_version                                 = stage3.6.3-evidence-binding-verification
+       mission_repository_migration_level              = 38
+       task_evidence_binding_contract_schema_version   = apts-task-evidence-binding-verification-contract-v1
+       task_evidence_binding_identity_prefix            = ebind-
+       task_evidence_binding_persistence_store          = mission_task_evidence_binding_verifications
+
+  7. Run canonical acceptance:
+
+       cd D:\mission_orchestrator
+       Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+       .\STAGE3_6_3_ACCEPTANCE.ps1
+
+     Acceptance requires:
+       - Python compilation PASS;
+       - exact pytest inventory = 1022;
+       - full Stage 3.1-3.6.3 regression PASS;
+       - focused Stage-3.6.3 = 20 PASS;
+       - runtime identity and migration 38 checks PASS;
+       - reference/hash binding and source-lineage checks PASS;
+       - strict no-content-dereference/no-acceptance/no-completion/no-release/no-runtime/no-Governance boundary checks PASS.
+
+Operational boundary:
+  Stage 3.6.3 verifies immutable local evidence/artifact reference and SHA-256 bindings.
+  It does not dereference external content, attest external content authenticity, accept outcomes,
+  or commit task completion.
+
+Next implementation boundary:
+  Stage 3.6.4

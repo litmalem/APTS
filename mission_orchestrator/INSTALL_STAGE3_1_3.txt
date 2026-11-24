@@ -1,0 +1,37 @@
+Stage 3.1.3 - Mission Scope, RoE & Constraint Contract
+=====================================================
+
+1. Stop the running mission_orchestrator service.
+
+2. Back up the current D:\mission_orchestrator folder and database.
+
+3. Copy the Stage-3.1.3 patch files over D:\mission_orchestrator.
+
+4. SQLite local mode:
+   No manual SQL migration is required. Repository startup creates the new tables.
+
+5. MariaDB/MySQL mode:
+   Apply:
+
+   mysql -u root -p < .\migrations\003_stage3_1_3_mission_scope_roe_constraint_contract.sql
+
+6. Start the service:
+
+   cd D:\mission_orchestrator
+   python .\run\run_mission_orchestrator.py --host 127.0.0.1 --port 8780
+
+7. In another PowerShell:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process Bypass -Force
+   .\STAGE3_1_3_ACCEPTANCE.ps1
+
+8. Expected final result:
+
+   STAGE 3.1.3 ACCEPTANCE: PASS
+
+Notes
+-----
+- This stage does not require code changes in VulnDesk or aptsGSS.
+- It does not call Governance yet; Governance Binding remains a later sub-stage.
+- It does not dispatch tasks and cannot actuate a target.

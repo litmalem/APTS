@@ -1,0 +1,101 @@
+STAGE 3.6.2 PATCH MANIFEST
+Task Terminality & Completion Eligibility
+======================================================================
+
+RUNTIME IDENTITY
+----------------
+control_version            = stage3.6.2-task-terminality-completion-eligibility
+server_version             = APTSMissionOrchestrator/3.6.2
+repository_migration_level = 37
+new migration              = 037_stage3_6_2_task_terminality_completion_eligibility.sql
+new durable store          = mission_task_terminality_eligibility_gates
+expected test inventory    = 1002
+focused Stage-3.6.2        = 20
+next stage                 = 3.6.3
+
+NEW FILES
+---------
++ INSTALL_STAGE3_6_2.txt
++ PATCH_MANIFEST_STAGE3_6_2.txt
++ PATCH_NOTES_STAGE3_6_2.md
++ README_STAGE3_6_2.md
++ REGRESSION_EVIDENCE_STAGE3_6_2.txt
++ STAGE3_6_2_ACCEPTANCE.ps1
++ migrations/037_stage3_6_2_task_terminality_completion_eligibility.sql
++ mission_orchestrator/task_terminality.py
++ tests/test_stage3_6_2_task_terminality_completion_eligibility.py
+
+MODIFIED FILES
+--------------
+* mission_orchestrator/api_service.py
+* mission_orchestrator/errors.py
+* mission_orchestrator/mission_events.py
+* mission_orchestrator/repository.py
+* mission_orchestrator/repository_model.py
+* mission_orchestrator/service.py
+* tests/test_stage3_1_10_acceptance_regression_gate.py
+* tests/test_stage3_1_6_mission_versioning_concurrency.py
+* tests/test_stage3_1_7_mission_persistence_repository_model.py
+* tests/test_stage3_1_8_canonical_mission_api_validation_layer.py
+* tests/test_stage3_1_9_mission_event_lineage_foundation.py
+* tests/test_stage3_2_10_lifecycle_acceptance_regression_gate.py
+* tests/test_stage3_2_1_mission_lifecycle_command_contract.py
+* tests/test_stage3_2_2_lifecycle_transition_guard_matrix.py
+* tests/test_stage3_2_3_mission_pip_activation.py
+* tests/test_stage3_2_4_planning_run_activation.py
+* tests/test_stage3_2_5_waiting_dependency_control.py
+* tests/test_stage3_2_6_pause_resume_replanning_control.py
+* tests/test_stage3_2_7_abort_failure_expiration_semantics.py
+* tests/test_stage3_2_8_cleanup_verified_completion_gate.py
+* tests/test_stage3_2_9_event_driven_lifecycle_automation_reliability.py
+* tests/test_stage3_3_10_planning_acceptance_regression_gate.py
+* tests/test_stage3_3_1_canonical_plan_contract_identity.py
+* tests/test_stage3_3_2_planner_input_snapshot_context_binding.py
+* tests/test_stage3_3_3_canonical_task_decomposition_contract.py
+* tests/test_stage3_3_4_task_dependency_graph_structural_validation.py
+* tests/test_stage3_3_5_planner_invocation_plan_generation.py
+* tests/test_stage3_3_6_plan_validation_feasibility_gate.py
+* tests/test_stage3_3_7_plan_versioning_replanning_supersession.py
+* tests/test_stage3_3_8_task_readiness_scheduling_projection.py
+* tests/test_stage3_3_9_planning_event_lineage_replay_recovery.py
+* tests/test_stage3_4_10_routing_delegation_acceptance_regression_gate.py
+* tests/test_stage3_4_1_canonical_subsystem_registry_capability_contract.py
+* tests/test_stage3_4_2_task_routing_intent_candidate_resolution.py
+* tests/test_stage3_4_3_routing_eligibility_compatibility_gate.py
+* tests/test_stage3_4_4_deterministic_route_selection_decision_record.py
+* tests/test_stage3_4_5_governance_bound_delegation_authorization.py
+* tests/test_stage3_4_6_canonical_delegation_contract_handoff_envelope.py
+* tests/test_stage3_4_7_delegation_delivery_acknowledgement_ownership.py
+* tests/test_stage3_4_8_retry_fallback_reassignment_conflict_control.py
+* tests/test_stage3_4_9_routing_delegation_event_lineage_replay_recovery.py
+* tests/test_stage3_5_10_execution_dispatch_acceptance_regression_gate.py
+* tests/test_stage3_5_1_canonical_execution_dispatch_contract_identity.py
+* tests/test_stage3_5_2_dispatch_eligibility_execution_preconditions.py
+* tests/test_stage3_5_3_authoritative_pre_dispatch_governance_revalidation.py
+* tests/test_stage3_5_4_idempotent_dispatch_execution_attempt_identity.py
+* tests/test_stage3_5_5_dispatch_delivery_execution_acknowledgement.py
+* tests/test_stage3_5_6_running_execution_state_heartbeat_projection.py
+* tests/test_stage3_5_7_execution_result_evidence_artifact_capture.py
+* tests/test_stage3_5_8_timeout_cancellation_abort_failure_propagation.py
+* tests/test_stage3_5_9_execution_event_lineage_replay_recovery.py
+* tests/test_stage3_6_1_canonical_task_outcome_contract_identity.py
+
+CHANGE CLASSIFICATION
+---------------------
+- task_terminality.py: deterministic terminality/completion-eligibility classifier and immutable telig-* contract.
+- migration 037: durable mission_task_terminality_eligibility_gates store with one-gate-per-outcome and idempotency guards.
+- service.py: activates Stage 3.6.2, evaluates/retrieves gates, records lineage, and extends repository integrity + health metadata.
+- repository.py / repository_model.py: Stage-3.6.2 persistence, schema, reads, uniqueness, counts, and manifest support.
+- api_service.py: server identity 3.6.2 plus Stage-3.6.2 POST/GET/definition routes.
+- mission_events.py: MISSION_TASK_TERMINALITY_COMPLETION_ELIGIBILITY_EVALUATED event type.
+- errors.py: Stage-3.6.2 conflict/not-found/guard exceptions.
+- focused Stage-3.6.2 tests: 20 terminality/eligibility/idempotency/restart/integrity/boundary proofs.
+- historical tests: current-head, supported-control slice, and migration assertions rebased for Stage 3.6.2.
+
+AUTHORITY BOUNDARY
+------------------
+Stage 3.6.2 performs deterministic local classification only. It does NOT accept the task outcome, evaluate domain acceptance criteria, commit task completion, transition task state, release dependencies, recalculate readiness, progress the Plan, complete the Mission, query Governance/runtime, redispatch, create another execution attempt, perform target-action dispatch, use external target network I/O, actuate a target, or transition Mission state.
+
+INSTALLATION MODEL
+------------------
+Apply over an accepted Stage-3.6.1 D:\mission_orchestrator tree. Preserve the live data/mission_orchestrator.db and operator-managed configuration. Apply migration 037 according to the deployment database procedure and run STAGE3_6_2_ACCEPTANCE.ps1 after runtime restart.

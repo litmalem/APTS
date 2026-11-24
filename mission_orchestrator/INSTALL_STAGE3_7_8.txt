@@ -1,0 +1,28 @@
+STAGE 3.7.8 INSTALL / ACCEPTANCE
+================================
+
+1. Stop the currently running Mission Orchestrator instance.
+2. Back up D:\mission_orchestrator and its database.
+3. Overlay the Stage-3.7.8 patch contents onto D:\mission_orchestrator.
+4. Apply database migration 052 using the same migration mechanism used for prior stages.
+5. Start Mission Orchestrator normally.
+6. Verify:
+
+   Invoke-RestMethod http://127.0.0.1:8780/health |
+       Select-Object status,control_version,mission_repository_migration_level,replan_handoff_stage_schema_version,replan_handoff_contract_schema_version,replan_handoff_identity_prefix,replan_handoff_persistence_store,replan_handoff_status,replan_handoff_effective_episode_state,replan_handoff_next_control
+
+Expected essentials:
+  control_version                    stage3.7.8-atomic-replan-commit-supersession-handoff
+  mission_repository_migration_level 52
+  replan_handoff_identity_prefix     rphof-
+  replan_handoff_persistence_store   mission_replan_handoffs
+  replan_handoff_status              HANDOFF_READY
+  replan_handoff_effective_episode_state HANDOFF_READY
+  replan_handoff_next_control        STAGE3_4_ROUTING_THEN_STAGE3_5_DISPATCH
+
+7. Run acceptance from D:\mission_orchestrator:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_7_8_ACCEPTANCE.ps1
+
+The acceptance script requires exactly 1322 collected tests, 18 focused Stage-3.7.8 tests, and 22 focused Stage-3.7.7 predecessor tests.

@@ -1,0 +1,12 @@
+INSTALL_STAGE4_2.txt
+PATCH_NOTES_STAGE4_2.md
+README_STAGE4_2.md
+REGRESSION_EVIDENCE_STAGE4_2.txt
+START_STAGE4_2_PENTEST.ps1
+STAGE4_2_ACCEPTANCE.ps1
+pentest_subsystem/__init__.py
+pentest_subsystem/api_service.py
+pentest_subsystem/pip_contract.py
+pentest_subsystem/pip_service.py
+run/pentest_subsystem.py
+tests/test_stage4_2_pip_ingestion_validation_binding.py

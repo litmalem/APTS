@@ -1,0 +1,123 @@
+STAGE 3.7.4 INSTALLATION
+========================
+Stage: Canonical Replan Snapshot & Context Binding
+Expected predecessor: Stage 3.7.3 — Replan Eligibility & Governance Gate
+Expected predecessor repository migration: 47
+Target repository migration: 48
+
+1. STOP THE CURRENT MISSION ORCHESTRATOR
+----------------------------------------
+Stop the Stage-3.7.3 Mission Orchestrator process before replacing files.
+
+2. BACK UP THE INSTALLATION AND DATABASE
+----------------------------------------
+Back up at minimum:
+
+  mission_orchestrator/
+  migrations/
+  tests/
+  data/mission_orchestrator.db
+
+Do not overwrite a production database without a recoverable backup.
+
+3. APPLY THE PATCH PAYLOAD
+--------------------------
+From PATCH_STAGE3_7_4.zip, copy the listed files into the Mission Orchestrator root while preserving relative paths.
+
+Important new runtime files:
+
+  mission_orchestrator/replan_snapshot.py
+  migrations/048_stage3_7_4_canonical_replan_snapshot_context_binding.sql
+  tests/test_stage3_7_4_canonical_replan_snapshot_context_binding.py
+
+Core modified runtime files include:
+
+  mission_orchestrator/api_service.py
+  mission_orchestrator/errors.py
+  mission_orchestrator/mission_events.py
+  mission_orchestrator/repository.py
+  mission_orchestrator/repository_model.py
+  mission_orchestrator/service.py
+
+The patch also contains regression tests rebased only where assertions intentionally follow the current repository head.
+
+4. VERIFY RELEASE HASHES
+------------------------
+Use PATCH_STAGE3_7_4.zip.sha256 to verify the patch archive. Use SHA256_STAGE3_7_4.txt to verify the individual payload files after extraction.
+
+5. START MISSION ORCHESTRATOR
+-----------------------------
+Start the service using the same command/service configuration used for Stage 3.7.3.
+
+Stage 3.7.4 repository initialization will bring the repository migration head to 48 and create:
+
+  mission_replan_snapshots
+
+6. VERIFY RUNTIME HEALTH
+------------------------
+Run:
+
+  Invoke-RestMethod http://127.0.0.1:8780/health |
+      Select-Object `
+          status,
+          control_version,
+          mission_repository_migration_level,
+          replan_snapshot_stage_schema_version,
+          replan_snapshot_contract_schema_version,
+          replan_snapshot_identity_prefix,
+          replan_snapshot_status,
+          replan_snapshot_context_mode,
+          replan_snapshot_persistence_store
+
+Expected values:
+
+  status                              = ok
+  control_version                     = stage3.7.4-canonical-replan-snapshot-context-binding
+  mission_repository_migration_level  = 48
+  replan_snapshot_stage_schema_version = apts-canonical-replan-snapshot-context-binding-v1
+  replan_snapshot_contract_schema_version = apts-replan-snapshot-context-binding-contract-v1
+  replan_snapshot_identity_prefix      = rpsnap-
+  replan_snapshot_status               = SNAPSHOT_BOUND
+  replan_snapshot_context_mode         = CANONICAL_DURABLE_LOCAL_FACTS_NO_EXTERNAL_REFRESH
+  replan_snapshot_persistence_store    = mission_replan_snapshots
+
+7. RUN AUTHORITATIVE ACCEPTANCE
+-------------------------------
+From the Mission Orchestrator root:
+
+  Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+  .\STAGE3_7_4_ACCEPTANCE.ps1
+
+The script requires:
+
+  - Stage-3.7.4 runtime control active;
+  - migration level 48;
+  - Stage-3.7.1/3.7.2/3.7.3 migration metadata preserved at 45/46/47;
+  - Python compilation PASS;
+  - exactly 1236 canonical pytest tests collected;
+  - full Stage 3.1-3.7.4 regression PASS;
+  - exactly 20 focused Stage-3.7.4 tests PASS;
+  - current-head regression probes PASS;
+  - migration/module/source metadata proof PASS;
+  - all Stage-3.7.4 future-authority health flags remain false.
+
+Do not record formal Stage-3.7.4 acceptance unless the script terminates with:
+
+  STAGE 3.7.4 ACCEPTANCE: PASS
+
+8. OPERATIONAL BOUNDARY
+-----------------------
+Stage 3.7.4 freezes canonical local context only. It must not be interpreted as permission to:
+
+  issue lifecycle REPLAN;
+  refresh external context;
+  query Governance again;
+  invoke the planner;
+  create a ReplanCandidate or successor Plan;
+  compute/validate/commit a Plan delta;
+  supersede a Plan;
+  transition Mission state;
+  dispatch work;
+  actuate an external target.
+
+Those capabilities remain outside Stage 3.7.4. The next planned control is Stage 3.7.5.

@@ -1,0 +1,148 @@
+{
+  "scope_contract": {
+    "id": 185,
+    "scope_contract_id": "scope-c250f7b4-d02a-4c69-8ea3-077a1dd45c2d",
+    "mission_id": "mission-gmo-f3ef7325-c13a-4a46-b9b6-d97b505b1433",
+    "name": "Pentest pada http://127.0.0.1:80//dvwa/",
+    "status": "ACTIVE",
+    "policy_set_id": "default-policy",
+    "version": 2,
+    "valid_from": "2026-11-09T02:57:35.581910",
+    "valid_until": "2026-11-30T09:57:00",
+    "created_by": "local-test-operator",
+    "approved_by": "local-test-operator",
+    "approved_at": "2026-11-09T03:03:59.649006",
+    "contract_hash": "176164ca8a625b7a79aa70936eb1feab579d400614e56eaf8398f6c9012b0607",
+    "created_at": "2026-11-09T03:03:59",
+    "updated_at": "2026-11-09T03:03:59",
+    "metadata": {
+      "supersedes_scope_id": "scope-eb6d4055-fce5-4bd6-8bed-adbb3831d17a",
+      "revision_reason": "User requested autonomous fingerprinting on 2026-11-09. Apply the bounded WPT-only profile to the existing exact LAB target: six GET requests, no state changes; normal fresh Stage 6 authorization remains required.",
+      "revision_actor": "local-test-operator",
+      "gss_workflow_profile": {
+        "profile_id": "WPT_FINGERPRINT_AUTONOMOUS_V1",
+        "profile_label": "Fingerprinting WPT otonom terbatas",
+        "version": 1,
+        "execution_authorized": false,
+        "target_actuation": false,
+        "delegation_capabilities": [
+          "PENTEST:pentest.recon"
+        ],
+        "recon_techniques": [
+          "WEB_TECHNOLOGY_FINGERPRINT"
+        ],
+        "max_network_requests": 6
+      }
+    },
+    "targets": [
+      {
+        "id": 167,
+        "scope_target_id": "stgt-d5ea85bf-0ea5-4434-9e0c-c76d72bf1fde",
+        "scope_contract_id": "scope-c250f7b4-d02a-4c69-8ea3-077a1dd45c2d",
+        "target_type": "URL",
+        "target_value": "http://127.0.0.1:80//dvwa/",
+        "normalized_value": "http://127.0.0.1:80//dvwa/",
+        "environment": "LAB",
+        "allowed": 1,
+        "notes": null,
+        "created_at": "2026-11-09T03:03:59"
+      }
+    ],
+    "sources": [],
+    "action_constraints": [
+      {
+        "id": 481,
+        "constraint_id": "sact-09c1a2dc-a3b2-479e-a104-bdfe0ff19cf5",
+        "scope_contract_id": "scope-c250f7b4-d02a-4c69-8ea3-077a1dd45c2d",
+        "action_class": "TARGET_RECON",
+        "action_name": "recon",
+        "effect": "ALLOW",
+        "max_risk_level": "LOW",
+        "requires_approval": false,
+        "created_at": "2026-11-09T03:03:59",
+        "constraints": {
+          "max_network_requests": 6,
+          "max_requests": 6,
+          "allowed_methods": [
+            "GET"
+          ],
+          "allowed_techniques": [
+            "WEB_TECHNOLOGY_FINGERPRINT"
+          ],
+          "read_only": true,
+          "state_changing_requests": false,
+          "workflow_profile": "WPT_FINGERPRINT_AUTONOMOUS_V1"
+        }
+      },
+      {
+        "id": 482,
+        "constraint_id": "sact-831841bc-3c19-4b3c-8aa3-b24ecd6990a0",
+        "scope_contract_id": "scope-c250f7b4-d02a-4c69-8ea3-077a1dd45c2d",
+        "action_class": "TARGET_RECON",
+        "action_name": "web_technology_fingerprinting",
+        "effect": "ALLOW",
+        "max_risk_level": "LOW",
+        "requires_approval": false,
+        "created_at": "2026-11-09T03:03:59",
+        "constraints": {
+          "max_network_requests": 6,
+          "max_requests": 6,
+          "allowed_methods": [
+            "GET"
+          ],
+          "allowed_techniques": [
+            "WEB_TECHNOLOGY_FINGERPRINT"
+          ],
+          "read_only": true,
+          "state_changing_requests": false,
+          "workflow_profile": "WPT_FINGERPRINT_AUTONOMOUS_V1"
+        }
+      },
+      {
+        "id": 483,
+        "constraint_id": "sact-fa92183e-12c7-4c7f-bbf8-bab570b1ea4e",
+        "scope_contract_id": "scope-c250f7b4-d02a-4c69-8ea3-077a1dd45c2d",
+        "action_class": "TARGET_RECON",
+        "action_name": "AUTHORIZE_TARGET_EXECUTION",
+        "effect": "ALLOW",
+        "max_risk_level": "LOW",
+        "requires_approval": false,
+        "created_at": "2026-11-09T03:03:59",
+        "constraints": {
+          "max_network_requests": 6,
+          "max_requests": 6,
+          "allowed_methods": [
+            "GET"
+          ],
+          "allowed_techniques": [
+            "WEB_TECHNOLOGY_FINGERPRINT"
+          ],
+          "read_only": true,
+          "state_changing_requests": false,
+          "workflow_profile": "WPT_FINGERPRINT_AUTONOMOUS_V1"
+        }
+      },
+      {
+        "id": 484,
+        "constraint_id": "sact-5b2df0fa-3037-4856-8a10-8d421bb0e74e",
+        "scope_contract_id": "scope-c250f7b4-d02a-4c69-8ea3-077a1dd45c2d",
+        "action_class": "TASK_DELEGATION",
+        "action_name": "delegate_planned_task",
+        "effect": "ALLOW",
+        "max_risk_level": "LOW",
+        "requires_approval": false,
+        "created_at": "2026-11-09T03:03:59",
+        "constraints": {
+          "allowed_capabilities": [
+            "PENTEST:pentest.recon"
+          ],
+          "execution_authorized": false,
+          "target_actuation": false,
+          "authorized_subject_component": "APTS-MO01",
+          "authorization_purpose": "PRE_DELEGATION_ONLY",
+          "workflow_profile": "WPT_FINGERPRINT_AUTONOMOUS_V1"
+        }
+      }
+    ]
+  }
+}

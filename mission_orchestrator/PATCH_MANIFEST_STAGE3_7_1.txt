@@ -1,0 +1,41 @@
+STAGE 3.7.1 PATCH MANIFEST
+==========================
+Stage: Canonical Adaptation / Replan Contract & Identity
+Build input: Mission(20260919-015704).zip
+
+NEW DOMAIN / PERSISTENCE
+------------------------
+mission_orchestrator/adaptation_replan.py
+migrations/045_stage3_7_1_canonical_adaptation_replan_contract_identity.sql
+tests/test_stage3_7_1_canonical_adaptation_replan_contract_identity.py
+
+CORE FILES MODIFIED
+-------------------
+mission_orchestrator/__init__.py
+mission_orchestrator/api_service.py
+mission_orchestrator/errors.py
+mission_orchestrator/mission_events.py
+mission_orchestrator/repository.py
+mission_orchestrator/repository_model.py
+mission_orchestrator/service.py
+
+PACKAGE / ACCEPTANCE ARTIFACTS ADDED
+------------------------------------
+README_STAGE3_7_1.md
+PATCH_NOTES_STAGE3_7_1.md
+INSTALL_STAGE3_7_1.txt
+PATCH_MANIFEST_STAGE3_7_1.txt
+REGRESSION_EVIDENCE_STAGE3_7_1.txt
+STAGE3_7_1_ACCEPTANCE.ps1
+PATCH_FILE_LIST_STAGE3_7_1.txt
+SHA256_STAGE3_7_1.txt
+
+HISTORICAL REGRESSION FILES REBASED
+-----------------------------------
+Historical tests whose assertions intentionally follow the current repository head were
+rebased from Stage 3.6.10 / migration 44 / server 3.6.10 to Stage 3.7.1 / migration 45 /
+server 3.7.1. Historical stage-local constants remain unchanged where they describe the
+stage under test rather than the current repository head.
+
+See PATCH_FILE_LIST_STAGE3_7_1.txt for the exact changed/new payload file list.
+See SHA256_STAGE3_7_1.txt for SHA-256 hashes of the patch payload.

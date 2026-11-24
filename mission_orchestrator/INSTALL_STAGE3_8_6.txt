@@ -1,0 +1,30 @@
+STAGE 3.8.6 — WINDOWS DEPLOYMENT
+
+Baseline: D:\mission_orchestrator running Stage 3.8.5.
+Patch: Stage3_8_6_Deterministic_Mission_Timeline_Patch.zip.
+
+1. Keep a copy of the current D:\mission_orchestrator\mission_orchestrator,
+   D:\mission_orchestrator\tests, and the existing runtime/service configuration.
+   The patch contains no data\ directory and does not replace the Mission database.
+
+2. In PowerShell, replace the path below with the downloaded patch location:
+
+   Expand-Archive `
+       -Path 'C:\path\to\Stage3_8_6_Deterministic_Mission_Timeline_Patch.zip' `
+       -DestinationPath 'D:\mission_orchestrator' `
+       -Force
+
+3. Restart the Mission Orchestrator service using the same service procedure
+   used for the previous Stage. Confirm GET http://127.0.0.1:8780/health
+   reports stage3.8.6-deterministic-mission-timeline-reconstruction.
+
+4. Run acceptance:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_8_6_ACCEPTANCE.ps1
+
+   Optional read test for a Mission that already exists:
+   .\STAGE3_8_6_ACCEPTANCE.ps1 -MissionId '<existing-mission-id>'
+
+Stage 3.8.6 keeps repository migration_level=53. Do not run a new migration.

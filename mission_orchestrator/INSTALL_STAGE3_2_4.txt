@@ -1,0 +1,29 @@
+Stage 3.2.4 installation
+========================
+
+1. Stop Mission Orchestrator.
+2. Back up the Mission Orchestrator database.
+3. Extract STAGE3_2_4_PLANNING_RUN_ACTIVATION_PATCH.zip directly into D:\mission_orchestrator with overwrite enabled.
+4. Do NOT create migration 009. Repository migration level remains 8.
+5. Run:
+
+   cd D:\mission_orchestrator
+   python -m compileall -q mission_orchestrator tests
+   python -m pytest -q
+
+   Expected: 166 passed
+
+6. Start Mission Orchestrator and verify /health reports:
+
+   control_version = stage3.2.4-planning-run-activation
+   mission_planning_run_activation_schema_version = apts-mission-planning-run-activation-v1
+   mission_planning_activation_transition = PIP_BOUND->PLANNING
+   mission_run_activation_transition = PLANNING->RUNNING
+   mission_planning_run_planner_invocation_performed = False
+   mission_planning_run_governance_query_performed = False
+   mission_repository_migration_level = 8
+   governance_authorization_authority = EXTERNAL_APTS_GSS
+   target_action_dispatch_enabled = False
+   target_actuation = False
+
+7. Run STAGE3_2_4_ACCEPTANCE.ps1.

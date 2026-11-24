@@ -1,0 +1,559 @@
+﻿{
+    "schema_version":  "stage2-9-8-e2e-acceptance-v1.1-h1",
+    "stage":  "2.9.8",
+    "title":  "End-to-End Acceptance",
+    "status":  "PASS",
+    "mission_id":  "mission-stage298-e2e-20260902-022733",
+    "started_at_utc":  "2026-09-01T19:40:14.6706928Z",
+    "finished_at_utc":  "2026-09-01T19:40:27.9211828Z",
+    "duration_seconds":  13.25,
+    "expected_architecture_version":  "2026-08-harmonized",
+    "expected_control_version":  "hybrid-event-driven-2.17-health-diagnostics",
+    "check_count":  77,
+    "pass_count":  75,
+    "fail_count":  0,
+    "warn_count":  0,
+    "skip_count":  2,
+    "mandatory_fail_count":  0,
+    "checks":  [
+                   {
+                       "stage":  "REGRESSION",
+                       "name":  "Test file present: .\\tests\\test_health_diagnostics_stage2_9_6.py",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "Found."
+                   },
+                   {
+                       "stage":  "REGRESSION",
+                       "name":  "Test file present: .\\tests\\test_integrity_violation_probe_stage2_9_5.py",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "Found."
+                   },
+                   {
+                       "stage":  "REGRESSION",
+                       "name":  "Test file present: .\\tests\\test_cross_subsystem_lineage_stage2_8_8.py",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "Found."
+                   },
+                   {
+                       "stage":  "REGRESSION",
+                       "name":  "Orchestrator source present",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  ".\\cti_services\\cti_subsystem_orchestrator.py"
+                   },
+                   {
+                       "stage":  "REGRESSION",
+                       "name":  "Python compile",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "cti_subsystem_orchestrator.py compiles."
+                   },
+                   {
+                       "stage":  "REGRESSION",
+                       "name":  "Focused Stage 2.8.8/2.9.5/2.9.6 regression",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "Focused regression passed."
+                   },
+                   {
+                       "stage":  "REGRESSION",
+                       "name":  "Full VulnDesk pytest suite",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "Full regression passed."
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Preflight CTI /health status",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "CTI runtime status=ok."
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Preflight CTI architecture version",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "architecture_version=2026-08-harmonized"
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Preflight CTI control version",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "control_version=hybrid-event-driven-2.17-health-diagnostics"
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Preflight CTI readiness",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "CTI deep diagnostics readiness=READY."
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Preflight CTI mandatory diagnostics",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "CTI mandatory_fail_count=0."
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Preflight governance /health",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "Governance status=ok."
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Preflight governance readiness",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "Governance deep diagnostics readiness=READY."
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Preflight governance mandatory diagnostics",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "Governance mandatory_fail_count=0."
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Preflight governance outbox pending",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "pending=0."
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Preflight governance outbox failed",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "failed=0."
+                   },
+                   {
+                       "stage":  "2.9.8",
+                       "name":  "Mission creation",
+                       "status":  "SKIP",
+                       "mandatory":  false,
+                       "detail":  "Reusing existing mission mission-stage298-e2e-20260902-022733; validating persisted creation evidence."
+                   },
+                   {
+                       "stage":  "2.9.8",
+                       "name":  "Persisted ScopeContract evidence present",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "21_scope_response.json found."
+                   },
+                   {
+                       "stage":  "2.9.8",
+                       "name":  "Persisted mission-start evidence present",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "23_mission_start_response.json found."
+                   },
+                   {
+                       "stage":  "2.9.8",
+                       "name":  "ScopeContract recovered",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "scope_contract_id=scope-faea0abb-8259-4e2c-b304-5d90efa8ef57"
+                   },
+                   {
+                       "stage":  "2.9.8",
+                       "name":  "Scope mission binding",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "Persisted ScopeContract is bound to the canonical E2E mission identity."
+                   },
+                   {
+                       "stage":  "2.9.8",
+                       "name":  "Scope active",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "Persisted ScopeContract status=ACTIVE."
+                   },
+                   {
+                       "stage":  "2.9.8",
+                       "name":  "Mission accepted",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "Persisted mission start status=accepted."
+                   },
+                   {
+                       "stage":  "2.9.8",
+                       "name":  "Canonical mission identity preserved",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "mission-stage298-e2e-20260902-022733"
+                   },
+                   {
+                       "stage":  "2.9.8",
+                       "name":  "Mission completed",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "mission.status=COMPLETED."
+                   },
+                   {
+                       "stage":  "2.9.8",
+                       "name":  "Mission last_error empty",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "last_error is empty."
+                   },
+                   {
+                       "stage":  "2.9.3",
+                       "name":  "Mission lineage projection scope",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "projection_scope=MISSION."
+                   },
+                   {
+                       "stage":  "2.9.1",
+                       "name":  "Canonical projection quality",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "projection_metadata.quality=CANONICAL_V2."
+                   },
+                   {
+                       "stage":  "2.9.3",
+                       "name":  "Mission has reconstructed tasks",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "task_count=8."
+                   },
+                   {
+                       "stage":  "2.9.3",
+                       "name":  "Mission has causal edges",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "causal_edge_count=21."
+                   },
+                   {
+                       "stage":  "2.9.4",
+                       "name":  "Cross-subsystem governance correlation",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "governance_correlation.status=CORRELATED."
+                   },
+                   {
+                       "stage":  "2.9.4",
+                       "name":  "Governed task coverage exists",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "governed_task_count=1."
+                   },
+                   {
+                       "stage":  "2.9.4",
+                       "name":  "All governed tasks correlated",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "correlated=1/1."
+                   },
+                   {
+                       "stage":  "2.9.4",
+                       "name":  "No missing governance references",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "missing_required_reference_count=0."
+                   },
+                   {
+                       "stage":  "2.9.4",
+                       "name":  "No governance field mismatch",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "field_mismatch_count=0."
+                   },
+                   {
+                       "stage":  "2.9.4",
+                       "name":  "No missing external governance events",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "missing_external_event_count=0."
+                   },
+                   {
+                       "stage":  "2.9.4",
+                       "name":  "Governance coverage complete",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "coverage_complete=true."
+                   },
+                   {
+                       "stage":  "2.9.5",
+                       "name":  "Mission integrity PASS",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "integrity.status=PASS."
+                   },
+                   {
+                       "stage":  "2.9.5",
+                       "name":  "Integrity verification complete",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "verification_complete=true."
+                   },
+                   {
+                       "stage":  "2.9.5",
+                       "name":  "Zero integrity violations",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "violation_count=0."
+                   },
+                   {
+                       "stage":  "2.9.5",
+                       "name":  "Zero violated tasks",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "violated_task_count=0."
+                   },
+                   {
+                       "stage":  "2.9.5",
+                       "name":  "Zero unverifiable tasks",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "unverifiable_task_count=0."
+                   },
+                   {
+                       "stage":  "2.9.5",
+                       "name":  "Governed integrity task identifiable",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "governed task count=1."
+                   },
+                   {
+                       "stage":  "2.9.2",
+                       "name":  "Task lineage projection",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "projection_scope=TASK; task_id=task-f89928ee-c8e7-4aee-9c8f-e49db337745d."
+                   },
+                   {
+                       "stage":  "2.9.2",
+                       "name":  "Governed authorization mode",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "authorization_mode=REQUIRED."
+                   },
+                   {
+                       "stage":  "2.9.2",
+                       "name":  "PolicyDecision binding present",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "policy_decision_id=gdec-171166bf-59a5-4a3f-a92a-61fc1531bcf8."
+                   },
+                   {
+                       "stage":  "2.9.2",
+                       "name":  "AuthorizationRequest binding present",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "authorization_request_id=greq-260cb564-9097-4f70-aa8e-25a9bc5bf779."
+                   },
+                   {
+                       "stage":  "2.9.2",
+                       "name":  "Pre-dispatch revalidation valid",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "pre_dispatch_revalidation_status=VALID."
+                   },
+                   {
+                       "stage":  "2.9.2",
+                       "name":  "Task bound to E2E ScopeContract",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "scope_contract_id=scope-faea0abb-8259-4e2c-b304-5d90efa8ef57."
+                   },
+                   {
+                       "stage":  "2.9.1",
+                       "name":  "Committed event captured",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "committed_event_id=event-44f851d8-16e3-47c8-a283-db9bf5fdae4f."
+                   },
+                   {
+                       "stage":  "2.9.1",
+                       "name":  "Authorization revalidation event captured",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "authorization_revalidated_event_id=event-2f8280b4-7bff-4a46-b70a-78671c7306ac."
+                   },
+                   {
+                       "stage":  "2.9.1",
+                       "name":  "Dispatch event captured",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "dispatched_event_id=event-1692df73-6445-4dfe-baf3-728aa7668a5e."
+                   },
+                   {
+                       "stage":  "2.9.1",
+                       "name":  "Terminal event captured",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "terminal_event_id=event-8deea996-f1c1-4d12-9f53-1f56c8121ac4; terminal_event_type=SOURCE_SYNC_COMPLETED."
+                   },
+                   {
+                       "stage":  "2.9.1",
+                       "name":  "Canonical causal chain: commit -\u003e revalidate",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "TASK_AUTHORIZATION_REVALIDATED causally follows TASK_COMMITTED."
+                   },
+                   {
+                       "stage":  "2.9.1",
+                       "name":  "Canonical causal chain: revalidate -\u003e dispatch",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "TASK_DISPATCHED causally follows authorization revalidation."
+                   },
+                   {
+                       "stage":  "2.9.1",
+                       "name":  "Terminal event participates in causal chain",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "terminal causation_event_id=event-be389ca0-d391-4d7e-959f-9c5458d7b7de."
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Mission diagnostics HEALTHY",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "diagnostics.status=HEALTHY."
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Mission diagnostics canonical projection",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "projection_quality=CANONICAL_V2."
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Mission diagnostics governance correlated",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "governance_correlation_status=CORRELATED."
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Mission diagnostics integrity PASS",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "integrity_status=PASS; integrity_violation_count=0."
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Mission diagnostics no issues",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "issues=[]"
+                   },
+                   {
+                       "stage":  "2.9.3",
+                       "name":  "Mission lineage read-only semantic stability",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "semantic_hash=c22a4e37f6bde37f17922d5cc9d1f531ec5d400c3679117c18c3e81603b965a1."
+                   },
+                   {
+                       "stage":  "2.9.5",
+                       "name":  "Integrity probe read-only semantic stability",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "semantic_hash=6f7c190d0f0e5a527cdc14a77d53b2b5276ea532aa7823116d04ab7ea5a75531."
+                   },
+                   {
+                       "stage":  "2.9.2",
+                       "name":  "Task lineage read-only semantic stability",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "semantic_hash=c0008c36547bed9e891b3dab620602fea98f6ea50941681741e87e6dc61b808f."
+                   },
+                   {
+                       "stage":  "2.9.4",
+                       "name":  "Governance outbox settled",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "pending=0; failed=0; delivered=101/101."
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Postflight CTI /health status",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "CTI runtime status=ok."
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Postflight CTI architecture version",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "architecture_version=2026-08-harmonized"
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Postflight CTI control version",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "control_version=hybrid-event-driven-2.17-health-diagnostics"
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Postflight CTI readiness",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "CTI deep diagnostics readiness=READY."
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Postflight CTI mandatory diagnostics",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "CTI mandatory_fail_count=0."
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Postflight governance /health",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "Governance status=ok."
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Postflight governance readiness",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "Governance deep diagnostics readiness=READY."
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Postflight governance mandatory diagnostics",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "Governance mandatory_fail_count=0."
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Postflight governance outbox pending",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "pending=0."
+                   },
+                   {
+                       "stage":  "2.9.6",
+                       "name":  "Postflight governance outbox failed",
+                       "status":  "PASS",
+                       "mandatory":  true,
+                       "detail":  "failed=0."
+                   },
+                   {
+                       "stage":  "2.9.7",
+                       "name":  "Optional GUI",
+                       "status":  "SKIP",
+                       "mandatory":  false,
+                       "detail":  "Stage 2.9.7 is optional and is not a prerequisite for CLI/API E2E closure."
+                   }
+               ]
+}

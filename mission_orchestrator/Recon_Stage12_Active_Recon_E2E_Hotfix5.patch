@@ -1,0 +1,28 @@
+diff --git a/pentest_subsystem/reconnaissance.py b/pentest_subsystem/reconnaissance.py
+index 9520235..c0f4e37 100644
+--- a/pentest_subsystem/reconnaissance.py
++++ b/pentest_subsystem/reconnaissance.py
+@@ -2186,7 +2186,9 @@ class ReconnaissanceAgentService(AgenticPentestOrchestratorService):
+         latest = self._get_stage6_execution_result(action_id)
+         if latest.get("proposal_ref") != action["proposal_ref"] or latest.get("orchestration_id") != orchestration_id:
+             raise ReconnaissanceAgentIntegrityError("Stage 6 result proposal or orchestration binding mismatch")
+-        if latest.get("mission_id") != parent["mission_id"] or latest.get("task_id") != parent["pentest_task_id"]:
++        if (latest.get("mission_id") != parent["mission_id"]
++                or latest.get("task_id") != parent["request"]["boundary"]["task_id"]
++                or latest.get("pentest_task_id") != parent["pentest_task_id"]):
+             raise ReconnaissanceAgentIntegrityError("Stage 6 result mission/task binding mismatch")
+         result_sha = latest["integrity"]["canonical_sha256"]
+         digest = sha256_hex({"parent_recon_run_id": parent_id, "action_id": action_id, "result_sha256": result_sha})
+diff --git a/tests/test_stage5_2_recon_iteration.py b/tests/test_stage5_2_recon_iteration.py
+index e2773b1..2185203 100644
+--- a/tests/test_stage5_2_recon_iteration.py
++++ b/tests/test_stage5_2_recon_iteration.py
+@@ -35,7 +35,7 @@ def _stage6_result(action, task, orchestration):
+         "head_sha256": "a" * 64,
+         "record": {
+             "mission_id": task["mission_id"], "pentest_id": task["pentest_id"],
+-            "task_id": task["pentest_task_id"], "pentest_task_id": task["pentest_task_id"],
++            "task_id": task["upstream_task_id"], "pentest_task_id": task["pentest_task_id"],
+             "execution_id": "exec-stage10", "attempt_number": 1, "retry_of_attempt_id": None,
+             "integrity": {"canonical_sha256": "b" * 64},
+         },

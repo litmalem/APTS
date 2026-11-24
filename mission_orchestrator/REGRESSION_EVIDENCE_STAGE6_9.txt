@@ -1,0 +1,79 @@
+STAGE 6.9 - FINAL BUILD REGRESSION EVIDENCE
+
+Baseline: Mission(20261004-012953).zip, Stage 6.8 including completion fence.
+Runtime control: stage6.9-closed-loop-cti-pentest-integration
+Migrations: Execution 9 / CTI feedback 1 / Mission 53 / Pentest 16.
+
+BUILD LINUX: PASS
+
+Focused Stage 6.9: 72 passed, 64.96 seconds.
+Continuity Stage 5.9 through 6.9: 856 passed, 271.64 seconds.
+Full canonical regression: 2865 passed, 0 failures, 0 errors, 0 skipped.
+Full runner wall time: 387.464 seconds; 62 isolated groups; 4 pytest workers.
+Exact per-test inventory/JUnit coverage: PASS.
+Frozen source snapshot unchanged: PASS, 427 files including startup/acceptance.
+Compileall mission_orchestrator / pentest_subsystem / execution_subsystem /
+run / tests: PASS.
+Native sandbox probe: PASS, SECCOMP_RLIMIT, no target I/O.
+
+DATABASE / OFFLINE AUDIT
+
+Archive Execution database copy upgraded migration 8 -> 9; original data files
+remain byte-identical. Archived Execution has no populated application rows.
+Additional populated Stage 6.8 fixture upgrade: 24 rows preserved; retained
+post-action/VEP artifact bytes verified after migration; new feedback table empty.
+CTI feedback repository initialized as separate migration 1 owner database.
+Feedback and two-revision knowledge offline exports: VERIFIED_INTERNAL_LINEAGE.
+These exports come from an isolated loopback pytest fixture, not a user mission.
+
+TEST COVERAGE ADDED
+
+- Exact cleanup predecessor, schema migrations, current runtime authority limits.
+- Native VEP/post-action -> feedback -> actual CTI knowledge persistence.
+- Inconclusive hypothesis, unchanged prior confidence/unvalidated risk, graph
+  annotation and retained cleanup blockers; failed primitives do not reject.
+- Replay/concurrent import, sequential CAS, stale head rejection and restart.
+- Scoped source IDs/hashes, duplicate/nonfinite JSON and query rejection,
+  forbidden uploads/verdicts/content/path/command/authority overrides.
+- Append-only SQL guards, atomic insert failures, quotas, storage unavailable,
+  missing/foreign/read-only sources, and source bytes unchanged during CTI import.
+- Retained blob/assessment/index/predecessor tampering even after re-signing.
+- Mission-owned durable CTI_CHANGE episode/event; knowledge/Mission/plan CAS,
+  PIP/scope rejection, exact replay after state/source-head change, terminal guard.
+- Trusted CTI context binding into governed replan snapshots/candidates;
+  generic metadata impersonation rejected; Governance DENY/REVIEW remain blocking.
+- Legacy Mission, Pentest and Execution suites included in canonical regression.
+
+EVIDENCE FILES
+
+evidence/stage6_9/regression_summary.json
+evidence/stage6_9/full_regression.xml
+evidence/stage6_9/inventory.log
+evidence/stage6_9/regression_groups.json
+evidence/stage6_9/source_snapshot.json
+evidence/stage6_9/full_batch_*.log / full_batch_*.xml
+evidence/stage6_9/focused.xml / focused.log
+evidence/stage6_9/continuity.xml / continuity.log
+evidence/stage6_9/native_sandbox_probe.json
+evidence/stage6_9/archive_database_upgrade.json
+evidence/stage6_9/populated_database_upgrade.json
+evidence/stage6_9/feedback_offline_export.json / feedback_offline_audit.json
+evidence/stage6_9/knowledge_offline_export.json / knowledge_offline_audit.json
+evidence/stage6_9/offline_example_provenance.json
+evidence/stage6_9/build_validation.json
+
+BOUNDARY OF EVIDENCE
+
+All mutating tests use isolated databases, authority fixtures and loopback
+targets. Actual Windows PowerShell acceptance, Windows Job Object and user
+mission execution were not exercised by this Linux build. Run
+STAGE6_9_ACCEPTANCE.ps1 on the deployment host.
+
+Hashes/audits verify internal lineage and retained bytes, not independent
+signatures or target ground truth. Current fixed adapters cannot produce
+confirmed/rejected vulnerability outcomes or validated risk score. CTI feedback
+knowledge is persisted in its dedicated repository; no core VulnDesk writes.
+No automatic plan activation, target rollback, issuer revocation, or redispatch
+is implied by feedback/knowledge/API success.
+
+Next: Stage 6.10 - Full APTS End-to-End Acceptance & Regression Gate.

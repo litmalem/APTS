@@ -1,0 +1,39 @@
+Stage 3.3.5 - Planner Invocation & Plan Generation
+Installation / Regression Steps
+=================================================
+
+Target repository:
+  D:\mission_orchestrator
+
+1. Stop Mission Orchestrator before replacing files.
+2. Back up the repository and database.
+3. Extract the Stage-3.3.5 patch over D:\mission_orchestrator preserving paths.
+4. Apply database migration 013 if the production database is external/manual-migration managed:
+     migrations\013_stage3_3_5_planner_invocation_plan_generation.sql
+   Required resulting repository migration level: 13.
+   SQLite local/test repositories are bootstrapped by repository schema initialization.
+5. Compile:
+     cd D:\mission_orchestrator
+     python -m compileall -q mission_orchestrator tests
+6. Focused Stage-3.3.5 tests:
+     python -m pytest -q tests\test_stage3_3_5_planner_invocation_plan_generation.py
+   Expected: 37 passed
+7. Full regression:
+     python -m pytest -q
+   Expected: 381 passed
+8. Start/restart Mission Orchestrator and verify:
+     Invoke-RestMethod http://127.0.0.1:8780/health
+   Expected control_version:
+     stage3.3.5-planner-invocation-plan-generation
+   Expected mission_repository_migration_level:
+     13
+9. Run live acceptance:
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE3_3_5_ACCEPTANCE.ps1
+10. Expected final result:
+     STAGE 3.3.5 ACCEPTANCE: PASS
+
+Stage 3.3.5 intentionally enables planner invocation and candidate-plan generation.
+It must NOT enable external model/network planner calls, Stage-3.3.6 feasibility
+validation, Stage-3.3.8 readiness/scheduling, Governance authorization, target-action
+dispatch, or target actuation.

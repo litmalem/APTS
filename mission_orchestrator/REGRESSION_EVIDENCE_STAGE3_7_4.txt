@@ -1,0 +1,102 @@
+STAGE 3.7.4 BUILD REGRESSION EVIDENCE
+========================================================================
+Stage: Canonical Replan Snapshot & Context Binding
+Build source: user-supplied Mission(20260921-034650).zip (Stage-3.7.3 baseline)
+
+STATIC / COLLECTION VALIDATION
+------------------------------
+python -m compileall -q mission_orchestrator tests
+RESULT: PASS
+
+python -m pytest --collect-only -q
+RESULT: 1236 tests collected
+
+FOCUSED STAGE-3.7.4 VALIDATION
+------------------------------
+python -m pytest -q tests/test_stage3_7_4_canonical_replan_snapshot_context_binding.py
+RESULT: 20 passed in 22.20s
+
+STAGE-3.7.4 SEMANTIC COVERAGE
+-----------------------------
+The focused suite validates:
+  - Stage-3.7.4 control/server/migration/store activation;
+  - canonical ReplanSnapshot definition and Stage-3.7.5 boundary;
+  - ELIGIBLE Stage-3.7.3 gate -> immutable SNAPSHOT_BOUND materialization;
+  - canonical Stage-3.7.1/3.7.2/3.7.3 source identity/hash bindings;
+  - bound authoritative Governance PolicyDecision hash;
+  - exact detection/classification/eligibility Mission-event binding;
+  - Mission state/version and active Plan-head concurrency binding;
+  - current Mission scope and Governance-binding verification;
+  - local-durable-only context semantics;
+  - no additional Governance query or external context refresh;
+  - canonical planned-task/dependency/outcome/completion context digest;
+  - NOT_ELIGIBLE and REVIEW_REQUIRED gate rejection;
+  - predecessor, PolicyDecision, state, Plan, scope, and Governance-binding drift rejection;
+  - rejection of caller-supplied lifecycle REPLAN/planner/delta/commit/supersession/dispatch/actuation fields;
+  - exact idempotent retry and one-event cardinality;
+  - idempotency conflict and one-snapshot-per-episode enforcement;
+  - restart retrieval, persistence constraints, repository reconstruction, and integrity;
+  - Stage-3.7.4 HTTP routes and absence of replan-commit/replan-supersession endpoints.
+
+CURRENT-HEAD REGRESSION REBASE
+------------------------------
+Historical tests whose assertions intentionally follow the current repository head were
+rebased to:
+
+  control_version                  = stage3.7.4-canonical-replan-snapshot-context-binding
+  server_version                   = APTSMissionOrchestrator/3.7.4
+  repository migration level       = 48
+
+During the complete-suite proof, residual current-head tail assertions were found in the
+Stage-3.4.10, Stage-3.5.10, and Stage-3.6.10 closure suites. These assertions had been
+partially rebased but still omitted the Stage-3.7.3 predecessor or retained positional
+indices from the prior tail length. They were corrected without changing historical
+stage-local contract constants.
+
+Post-correction closure proof:
+
+  Stage 3.4.10 acceptance regression       12 tests
+  Stage 3.5.10 acceptance regression       12 tests
+  Stage 3.6.10 acceptance regression       12 tests
+  combined result                          36 passed in 30.73s
+
+FULL BUILD-SANDBOX REGRESSION
+-----------------------------
+python -m pytest -q
+RESULT: 1236 passed in 882.22s (0:14:42)
+
+RELEASE ARCHIVE SMOKE VALIDATION
+--------------------------------
+The patch payload was applied over a clean copy of the Stage-3.7.3 baseline and verified as an extracted release candidate.
+
+RESULTS:
+  SHA-256 payload verification            74/74 files OK
+  Python compile                          PASS
+  canonical pytest inventory              1236 tests collected
+  focused Stage-3.7.4                     20/20 PASS
+
+
+AUTHORITATIVE TARGET-HOST ACCEPTANCE
+------------------------------------
+The release gate is:
+
+  STAGE3_7_4_ACCEPTANCE.ps1
+
+It requires:
+
+  control_version                    = stage3.7.4-canonical-replan-snapshot-context-binding
+  repository migration level         = 48
+  Stage-3.7.1 migration metadata      = 45
+  Stage-3.7.2 migration metadata      = 46
+  Stage-3.7.3 migration metadata      = 47
+  canonical pytest inventory         = 1236
+  focused Stage-3.7.4                = 20 passed
+  full Stage 3.1-3.7.4 regression    = PASS
+  Stage-3.7.3 predecessor/head probes = PASS
+  migration 048                      = PRESENT
+  durable store                      = mission_replan_snapshots
+
+Formal target-host Stage-3.7.4 acceptance should be recorded only when the PowerShell
+acceptance runner terminates with:
+
+  STAGE 3.7.4 ACCEPTANCE: PASS

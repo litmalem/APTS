@@ -1,0 +1,50 @@
+STAGE 3.5.6 — RUNNING EXECUTION STATE & HEARTBEAT PROJECTION
+============================================================
+
+1. Replace the Mission Orchestrator source tree with this package.
+
+2. Preserve your existing environment/database configuration.
+   Repository migration level becomes 32 and introduces:
+
+     migrations/032_stage3_5_6_running_execution_state_heartbeat_projection.sql
+     mission_execution_running_projections
+
+3. Runtime execution-status endpoint:
+
+   Default:
+     /api/execution/attempts/{execution_attempt_id}/status
+
+   Optional override:
+     MISSION_EXECUTION_STATUS_PATH_TEMPLATE
+
+   Stage 3.5.6 reuses the exact endpoint persisted by Stage 3.5.5.
+   It does NOT perform endpoint resolution again.
+
+4. Restart Mission Orchestrator on port 8780.
+
+5. Verify /health:
+
+     control_version = stage3.5.6-running-execution-state-heartbeat-projection
+     mission_repository_migration_level = 32
+     running_execution_database_migration_level = 32
+     running_execution_persistence_store = mission_execution_running_projections
+     running_execution_state = RUNNING
+     running_execution_heartbeat_status = ALIVE
+     running_execution_runtime_endpoint_resolution_performed = false
+     running_execution_runtime_execution_state_query_performed = true
+     running_execution_execution_started = true
+     running_execution_running_state_recorded = true
+     running_execution_heartbeat_recorded = true
+     running_execution_target_actuation = false
+
+6. Execute acceptance:
+
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE3_5_6_ACCEPTANCE.ps1
+
+Important boundary:
+- Stage 3.5.6 is runtime observation/projection, not a new execution authorization.
+- No Governance query is made.
+- No dispatch is redelivered.
+- No target action is dispatched by Stage 3.5.6.
+- Target actuation remains false.

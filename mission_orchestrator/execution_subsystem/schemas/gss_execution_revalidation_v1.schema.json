@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "evaluation_sha256",
+    "request_sha256",
+    "envelope_sha256",
+    "context_sha256",
+    "schema_version",
+    "nonce",
+    "execution_id",
+    "checked_at",
+    "checks",
+    "revoked",
+    "emergency_stop",
+    "human_approval_verified"
+  ],
+  "properties": {
+    "evaluation_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "request_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "envelope_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "context_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "schema_version": {
+      "const": "apts-gss-execution-revalidation-v1"
+    },
+    "nonce": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "execution_id": {
+      "type": "string",
+      "pattern": "^exec-[A-Za-z0-9._:@\\-]+$",
+      "maxLength": 200
+    },
+    "checked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "SCOPE",
+        "ROE",
+        "POLICY",
+        "RISK",
+        "EXPIRY",
+        "REVOCATION",
+        "TARGET",
+        "TECHNIQUE"
+      ],
+      "properties": {
+        "SCOPE": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "REVIEW"
+          ]
+        },
+        "ROE": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "REVIEW"
+          ]
+        },
+        "POLICY": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "REVIEW"
+          ]
+        },
+        "RISK": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "REVIEW"
+          ]
+        },
+        "EXPIRY": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "REVIEW"
+          ]
+        },
+        "REVOCATION": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "REVIEW"
+          ]
+        },
+        "TARGET": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "REVIEW"
+          ]
+        },
+        "TECHNIQUE": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "REVIEW"
+          ]
+        }
+      }
+    },
+    "revoked": {
+      "type": "boolean"
+    },
+    "emergency_stop": {
+      "type": "boolean"
+    },
+    "human_approval_verified": {
+      "type": "boolean"
+    }
+  }
+}

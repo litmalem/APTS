@@ -1,0 +1,36 @@
+Stage 5.1 installation / verification
+
+1. Stop the Pentest Subsystem currently listening on 127.0.0.1:8790.
+2. Keep the Mission Orchestrator Stage 3.9.10 service running on 127.0.0.1:8780.
+3. Back up data\pentest_subsystem.db.
+4. Replace the project tree with this package.
+5. Stage 5.1 introduces Pentest migration level 8. The migration is applied automatically at runtime startup.
+6. From D:\mission_orchestrator start the Pentest Subsystem:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   python -m run.pentest_subsystem --host 127.0.0.1 --port 8790
+
+7. In another PowerShell run the authoritative acceptance harness:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE5_1_ACCEPTANCE.ps1
+
+Expected active Pentest control:
+  stage5.1-full-agentic-pentest-workflow-orchestrator
+
+Expected server header:
+  APTSPentestSubsystem/5.1
+
+Expected Pentest migration:
+  8
+
+Expected canonical inventory:
+  1823 tests
+
+Stage 5.1 enables the local multi-agent orchestration control plane only. It does not enable
+specialist execution, raw tool access, external target network I/O, or target actuation.
+Controlled execution remains Stage 6 authority.
+
+Next stage:
+  5.2 — Reconnaissance Agent

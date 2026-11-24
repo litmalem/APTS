@@ -1,0 +1,38 @@
+======================================================================
+STAGE 3.6.8 PATCH MANIFEST
+Verified Completion Declaration & Lifecycle Handoff
+======================================================================
+
+RUNTIME IDENTITY
+----------------
+control_version            = stage3.6.8-verified-completion-declaration-lifecycle-handoff
+server_version             = APTSMissionOrchestrator/3.6.8
+repository_migration_level = 43
+new migration              = 043_stage3_6_8_verified_completion_declaration_lifecycle_handoff.sql
+new durable store          = mission_verified_completion_declarations
+identity prefix            = mdecl-
+declaration event          = MISSION_VERIFIED_COMPLETION_DECLARED
+handoff event              = MISSION_COMPLETION_LIFECYCLE_HANDOFF_COMPLETED
+expected test inventory    = 1122
+focused Stage-3.6.8        = 20
+Stage-3.6 chain            = 159
+lifecycle handoff          = BEGIN_CLEANUP -> COMPLETE
+final Mission state        = COMPLETED
+next stage                 = 3.6.9
+
+PRIMARY PATCH CONTENTS
+----------------------
++ INSTALL_STAGE3_6_8.txt
++ PATCH_NOTES_STAGE3_6_8.md
++ README_STAGE3_6_8.md
++ STAGE3_6_8_ACCEPTANCE.ps1
++ migrations/043_stage3_6_8_verified_completion_declaration_lifecycle_handoff.sql
++ mission_orchestrator/verified_completion.py
++ mission_orchestrator/api_service.py
++ mission_orchestrator/errors.py
++ mission_orchestrator/mission_events.py
++ mission_orchestrator/repository.py
++ mission_orchestrator/repository_model.py
++ mission_orchestrator/service.py
++ tests/test_stage3_6_8_verified_completion_declaration_lifecycle_handoff.py
++ current-head regression assertion updates under tests/

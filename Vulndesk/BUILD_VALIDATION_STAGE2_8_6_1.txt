@@ -1,0 +1,29 @@
+VulnDesk Stage 2.8.6.1 build validation
+=======================================
+
+Control version:
+  hybrid-event-driven-2.9.1-revocation-race-hardening
+
+New focused race-hardening tests:
+  3 passed
+
+Stage 2.x combined regression through 2.8.6.1:
+  45 passed
+
+Broad regression excluding NVD bulk-upsert integration test:
+  78 passed
+
+Full build-container suite:
+  collection stops at tests/test_nvd_bulk_upsert.py because this container does
+  not provide pymysql. This is the same environment limitation as earlier builds,
+  not a Stage 2.8.6.1 regression.
+
+Expected local Windows baseline (previously 79 passed) after adding 3 tests:
+  approximately 82 passed, 0 failed
+
+Focused invariants:
+  - invalid revalidation cannot downgrade verified/fail-closed revocation to BLOCKED_AUTHORIZATION
+  - terminal mission does not replan/resurrect on queued revocation
+  - terminal mission still emits TASK_AUTHORIZATION_REVOKED causal audit projection
+  - TASK_DISPATCH_BLOCKED is caused by TASK_AUTHORIZATION_REVOKED
+  - gevent-* upstream identity is preserved across the terminal audit projection

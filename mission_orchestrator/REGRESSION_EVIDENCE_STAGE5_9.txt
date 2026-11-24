@@ -1,0 +1,45 @@
+APTS Stage 5.9 — Governance-Bound Multi-Agent Pentest E2E
+Regression evidence generated in the implementation sandbox.
+
+Canonical inventory:
+  2030 tests collected
+
+Focused Stage 5.9:
+  tests/test_stage5_9_governance_bound_multi_agent_pentest_e2e.py
+  21 passed in 5.67s
+
+Immediate predecessor continuity:
+  tests/test_stage5_8_cross_agent_feedback_shared_state_replanning.py
+  tests/test_stage5_9_governance_bound_multi_agent_pentest_e2e.py
+  45 passed in 10.38s
+
+Critical governance/evidence/global acceptance regression:
+  tests/test_stage3_9_10_global_mission_orchestrator_acceptance_regression_gate.py
+  tests/test_stage4_8_governance_scope_roe_enforcement.py
+  tests/test_stage4_9_evidence_finding_lineage_foundation.py
+  tests/test_stage4_10_pentest_foundation_acceptance_gate.py
+  tests/test_stage5_8_cross_agent_feedback_shared_state_replanning.py
+  tests/test_stage5_9_governance_bound_multi_agent_pentest_e2e.py
+  135 passed in 20.72s
+
+Stage 5 specialist chain, split to fit sandbox execution limits:
+  Stage 5.1 -> 5.5: 130 passed in 19.94s
+  Stage 5.6 -> 5.9: 101 passed in 23.07s
+
+Python compilation:
+  PASS
+
+Full historical regression:
+  Not completed inside the sandbox because the monolithic command exceeded the execution-window limit.
+  STAGE5_9_ACCEPTANCE.ps1 includes the authoritative full `python -m pytest -q` gate for the target Windows deployment.
+
+Authority evidence:
+  - no execution request creation
+  - no action-result creation
+  - no new target-evidence creation
+  - no confirmed-finding creation
+  - no raw tool invocation
+  - no external network I/O
+  - no target actuation
+  - no authorization minting
+  - Stage 6 remains controlled execution and target-evidence authority

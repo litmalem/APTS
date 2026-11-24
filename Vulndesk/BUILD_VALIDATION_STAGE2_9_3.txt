@@ -1,0 +1,87 @@
+VulnDesk Stage 2.9.3 — Mission Lineage Reconstruction
+Build validation date: 2026-08-29
+
+Baseline artifacts analyzed:
+  Vulndesk(20260829-001656).zip
+  Vulndesk(10).sql
+  aptsGSS(20260829-001650).zip
+  AptsGSS(10).sql
+
+Baseline control version:
+  hybrid-event-driven-2.13-task-lineage-probe
+
+New control version:
+  hybrid-event-driven-2.14-mission-lineage-reconstruction
+
+Database baseline verification:
+  cti_missions            OK
+  cti_task_contracts      OK
+  cti_events              OK
+  cti_decision_traces     OK
+  cti_audit_log           OK
+  BASELINE_SCHEMA_STAGE2_9_3_READY
+
+Database migration:
+  NONE REQUIRED
+
+aptsGSS source/schema change:
+  NONE REQUIRED
+  Reason: Stage 2.9.3 reconstructs VulnDesk-local mission lineage only.
+          Cross-subsystem Governance correlation is Stage 2.9.4.
+
+Compile validation:
+  python -m compileall -q cti_services tests
+  PASS
+
+Focused Stage 2.9.3 test:
+  python -m pytest -q tests/test_mission_lineage_reconstruction_stage2_9_3.py
+  7 passed
+
+Stage 2.9.1 + 2.9.2 + 2.9.3 lineage regression:
+  python -m pytest -q tests/test_canonical_lineage_projection_stage2_9_1.py tests/test_task_lineage_probe_stage2_9_2.py tests/test_mission_lineage_reconstruction_stage2_9_3.py
+  20 passed
+
+Broad regression:
+  python -m pytest -q tests --ignore=tests/test_nvd_bulk_upsert.py
+  107 passed
+
+Full suite:
+  Collection blocked only by missing `pymysql` in this build container while
+  importing tests/test_nvd_bulk_upsert.py. requirements.txt already declares
+  PyMySQL>=1.1. No Stage 2.9.3 failure was observed.
+
+New canonical service operation:
+  CanonicalLineageProjector.project_mission(mission_id)
+  CtiSubsystemOrchestrator.project_mission_lineage(mission_id)
+
+New HTTP API:
+  GET /api/cti/missions/{mission_id}/lineage
+
+HTTP error semantics:
+  400 INVALID_MISSION_ID
+  404 MISSION_LINEAGE_NOT_FOUND
+  503 LINEAGE_SCHEMA_UNAVAILABLE
+
+Mission reconstruction capabilities validated:
+  - canonical cti_missions root snapshot
+  - composition of all Stage 2.9.1 Task projections
+  - mission-wide events, decision traces, and audit records
+  - cross-Task causal edge resolution at mission scope
+  - stable parent-before-child causal ordering
+  - explicit causal root identification
+  - mission/task lifecycle reconstruction and terminal-task summary
+  - unresolved parent detection as structural fact
+  - orphan task-event detection as structural fact
+  - TaskContract-without-events detection as structural fact
+  - preservation of trace_id and causation_event_id
+
+Stage boundaries preserved:
+  - read-only; no TaskContract/event mutation
+  - no PolicyDecision authority creation/change
+  - Governance correlation remains NOT_EVALUATED_STAGE_2_9_4
+  - structural facts are not classified as violations
+  - integrity classification remains NOT_EVALUATED_STAGE_2_9_5
+
+Runtime acceptance artifacts:
+  STAGE2_9_3_ACCEPTANCE.ps1
+  STAGE2_9_3_ACCEPTANCE.sql

@@ -1,0 +1,77 @@
+Stage 3.4.6 — Canonical Delegation Contract & Handoff Envelope
+===============================================================
+
+Target project
+--------------
+D:\mission_orchestrator
+
+Runtime identity after installation
+-----------------------------------
+control_version = stage3.4.6-canonical-delegation-contract-handoff-envelope
+server_version  = APTSMissionOrchestrator/3.4.6
+repository_migration_level = 23
+new_store = mission_task_delegations
+new_event = MISSION_TASK_DELEGATION_HANDOFF_MATERIALIZED
+
+Installation
+------------
+1. Stop the Mission Orchestrator process currently listening on port 8780.
+
+2. Back up D:\mission_orchestrator and its Mission repository database before replacing files.
+
+3. Apply the Stage-3.4.6 package over D:\mission_orchestrator. Preserve your local environment/configuration files if they are deployment-specific.
+
+4. From PowerShell:
+
+   cd D:\mission_orchestrator
+
+5. Activate the same Python environment used by the previous Stage-3.4.5 runtime.
+
+6. Optional compile preflight:
+
+   python -m compileall -q mission_orchestrator tests
+
+7. Start Mission Orchestrator through the same startup path used for Stage 3.4.5. Normal repository bootstrap must apply migration level 23 and create:
+
+   mission_task_delegations
+
+8. Verify runtime health:
+
+   Invoke-RestMethod http://127.0.0.1:8780/health | ConvertTo-Json -Depth 12
+
+   Expected critical values:
+
+   control_version = stage3.4.6-canonical-delegation-contract-handoff-envelope
+   mission_repository_migration_level = 23
+   task_delegation_database_migration_level = 23
+   task_delegation_persistence_store = mission_task_delegations
+   task_delegation_delegation_performed = true
+   task_delegation_handoff_envelope_materialized = true
+   task_delegation_handoff_transmitted = false
+   task_delegation_handoff_acknowledged = false
+   task_delegation_ownership_accepted = false
+   task_delegation_dispatch_performed = false
+   task_delegation_execution_authorized = false
+   task_delegation_pre_dispatch_governance_revalidation_required = true
+
+9. Run the acceptance harness:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_4_6_ACCEPTANCE.ps1
+
+10. Expected terminal result:
+
+   STAGE 3.4.6 ACCEPTANCE: PASS
+
+Operational boundary
+--------------------
+Stage 3.4.6 materializes a logical delegation and immutable handoff envelope only.
+It does NOT transmit the envelope, resolve a runtime endpoint, probe target health,
+assign a worker/resource, accept ownership, dispatch work, authorize execution, or
+actuate a target. Do not treat DELEGATED as DISPATCHED or EXECUTION_AUTHORIZED.
+
+Governance boundary
+-------------------
+Stage 3.4.6 consumes the Stage-3.4.5 authoritative pre-delegation authorization but
+performs no new Governance query. A later dispatch/execution control must perform the
+required authoritative pre-dispatch Governance revalidation.

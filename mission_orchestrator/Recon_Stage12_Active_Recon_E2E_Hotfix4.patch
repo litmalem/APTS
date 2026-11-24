@@ -1,0 +1,29 @@
+diff --git a/execution_subsystem/execution_result_contract.py b/execution_subsystem/execution_result_contract.py
+index 1e989ce..c3bf393 100644
+--- a/execution_subsystem/execution_result_contract.py
++++ b/execution_subsystem/execution_result_contract.py
+@@ -75,7 +75,11 @@ def build_recon_execution_result(*, action_id, proposal_ref, orchestration_id, i
+         "evidence": None if manifest is None else {
+             "evidence_id": manifest["evidence_id"],
+             "manifest_sha256": manifest["integrity"]["canonical_sha256"],
+-            "capture_status": manifest["capture_status"],
++            # Stage 6.6 calls a complete terminal capture CAPTURED. Recon's
++            # read model calls that same sealed state SEALED; partial captures
++            # retain their explicit status and cannot authorize an iteration.
++            "capture_status": "SEALED" if manifest["capture_status"] == "CAPTURED"
++                else manifest["capture_status"],
+             "target_io_uncertain": manifest["target_io_uncertain"],
+             "artifact_refs": [{"artifact_id": a["artifact_id"], "kind": a["kind"],
+                                "content_sha256": a["content_sha256"]} for a in manifest["artifacts"]],
+diff --git a/tests/test_stage6_6_artifact_evidence_capture.py b/tests/test_stage6_6_artifact_evidence_capture.py
+index 8bb5337..8e22265 100644
+--- a/tests/test_stage6_6_artifact_evidence_capture.py
++++ b/tests/test_stage6_6_artifact_evidence_capture.py
+@@ -159,6 +159,7 @@ def test_recon_execution_result_projection_is_hash_bound_and_non_authorizing():
+     assert verify_recon_execution_result(result)
+     assert result["action_id"] == action_id and result["proposal_ref"] == proposal_ref
+     assert result["evidence"]["evidence_id"] == manifest["evidence_id"]
++    assert result["evidence"]["capture_status"] == "SEALED"
+     assert result["semantics"]["result_is_authorization"] is False
+     forged = {**result, "runtime_state":"FAILED"}
+     assert not verify_recon_execution_result(forged)

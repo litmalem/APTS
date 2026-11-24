@@ -1,0 +1,63 @@
+Stage 5.3 implementation-environment regression evidence
+Date: 2026-10-01
+
+Control:
+  stage5.3-enumeration-agent
+
+Pentest migration:
+  10
+
+Python compilation:
+  PASS
+
+Canonical pytest inventory:
+  1873 tests collected
+
+Focused Stage 5.3:
+  26 passed in 4.11s
+
+Stage 4.1 -> Stage 5.3 Pentest qualification chain:
+  298 passed in 22.13s
+
+Critical Stage 3.9.10 -> Stage 4.10 -> Stage 5.1 -> Stage 5.2 -> Stage 5.3 regression:
+  104 passed in 16.45s
+
+Focused Stage 4.8 + Stage 4.9 + Stage 5.1 + Stage 5.2 + Stage 5.3 predecessor regression:
+  134 passed in 12.64s
+
+Full historical suite:
+  not executed inside the packaging environment because prior full-suite runs for this
+  repository are long-running. The deployment-host STAGE5_3_ACCEPTANCE.ps1 is the final
+  PASS/FAIL authority and executes all 1873 tests.
+
+Implemented Stage 5.3 capabilities:
+  bounded PENTEST_ENUMERATION_AGENT specialist
+  strict imported enumeration observation contract
+  deterministic Enumeration run identity
+  exact Stage-5.2 recon_run/output/evidence hash binding
+  service enumeration normalization
+  technology identification normalization
+  version discovery normalization
+  endpoint discovery normalization
+  configuration observation normalization
+  deterministic SHA-bound Enumerated Asset Model
+  local-task-scope-only canonical asset projection
+  out-of-scope observed-only evidence preservation
+  Stage-4.9 Observation + Evidence lineage binding
+  Stage-4.8 scope/RoE governance on enumeration proposals
+  narrower local-task target-scope fail-closed enforcement
+  governed ACTION_PROPOSAL publication
+  durable Enumeration Evidence Bundle
+  idempotent replay and restart
+  Stage-5.1 progress handoff that releases Vulnerability Hypothesis analysis
+
+Authority boundary:
+  no raw tool access
+  no direct external target network I/O
+  no target actuation
+  no PolicyDecision minting
+  Stage-4.8 eligibility decision is not authorization
+  Stage 6 remains controlled execution authority
+
+Next:
+  Stage 5.4 — Vulnerability Hypothesis Agent

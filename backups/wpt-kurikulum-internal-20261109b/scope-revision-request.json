@@ -1,0 +1,129 @@
+{
+  "contract": {
+    "mission_id": "mission-gmo-887dae4f-1611-4b07-8ee7-7f184b7379be",
+    "name": "Pentest pada https://kurikulum.del.ac.id:443",
+    "policy_set_id": "default-policy",
+    "valid_from": "2026-11-09T04:46:40.561334",
+    "valid_until": "2026-11-30T11:46:00",
+    "created_by": "local-test-operator",
+    "approved_by": "local-test-operator",
+    "metadata": {
+      "revision_reason": "https://kurikulum.del.ac.id:443",
+      "revision_actor": "local-test-operator",
+      "gss_workflow_profile": {
+        "profile_id": "WPT_FINGERPRINT_AUTONOMOUS_V1",
+        "profile_label": "Fingerprinting WPT otonom terbatas",
+        "version": 1,
+        "execution_authorized": false,
+        "target_actuation": false,
+        "delegation_capabilities": [
+          "PENTEST:pentest.recon"
+        ],
+        "recon_techniques": [
+          "WEB_TECHNOLOGY_FINGERPRINT"
+        ],
+        "max_network_requests": 6
+      }
+    },
+    "targets": [
+      {
+        "target_type": "URL",
+        "target_value": "https://kurikulum.del.ac.id:443",
+        "environment": "LAB",
+        "allowed": 1,
+        "notes": null
+      },
+      {
+        "target_type": "IP",
+        "target_value": "172.21.2.2",
+        "environment": "LAB",
+        "allowed": true,
+        "notes": "Exact internal DNS destination explicitly approved by user for kurikulum WPT recovery on 2026-11-09."
+      }
+    ],
+    "sources": [],
+    "action_constraints": [
+      {
+        "action_class": "TARGET_RECON",
+        "action_name": "recon",
+        "effect": "ALLOW",
+        "max_risk_level": "LOW",
+        "requires_approval": false,
+        "constraints": {
+          "max_network_requests": 6,
+          "max_requests": 6,
+          "allowed_methods": [
+            "GET"
+          ],
+          "allowed_techniques": [
+            "WEB_TECHNOLOGY_FINGERPRINT"
+          ],
+          "read_only": true,
+          "state_changing_requests": false,
+          "workflow_profile": "WPT_FINGERPRINT_AUTONOMOUS_V1"
+        }
+      },
+      {
+        "action_class": "TARGET_RECON",
+        "action_name": "web_technology_fingerprinting",
+        "effect": "ALLOW",
+        "max_risk_level": "LOW",
+        "requires_approval": false,
+        "constraints": {
+          "max_network_requests": 6,
+          "max_requests": 6,
+          "allowed_methods": [
+            "GET"
+          ],
+          "allowed_techniques": [
+            "WEB_TECHNOLOGY_FINGERPRINT"
+          ],
+          "read_only": true,
+          "state_changing_requests": false,
+          "workflow_profile": "WPT_FINGERPRINT_AUTONOMOUS_V1"
+        }
+      },
+      {
+        "action_class": "TARGET_RECON",
+        "action_name": "AUTHORIZE_TARGET_EXECUTION",
+        "effect": "ALLOW",
+        "max_risk_level": "LOW",
+        "requires_approval": false,
+        "constraints": {
+          "max_network_requests": 6,
+          "max_requests": 6,
+          "allowed_methods": [
+            "GET"
+          ],
+          "allowed_techniques": [
+            "WEB_TECHNOLOGY_FINGERPRINT"
+          ],
+          "read_only": true,
+          "state_changing_requests": false,
+          "workflow_profile": "WPT_FINGERPRINT_AUTONOMOUS_V1"
+        }
+      },
+      {
+        "action_class": "TASK_DELEGATION",
+        "action_name": "delegate_planned_task",
+        "effect": "ALLOW",
+        "max_risk_level": "LOW",
+        "requires_approval": false,
+        "constraints": {
+          "allowed_capabilities": [
+            "PENTEST:pentest.recon"
+          ],
+          "execution_authorized": false,
+          "target_actuation": false,
+          "authorized_subject_component": "APTS-MO01",
+          "authorization_purpose": "PRE_DELEGATION_ONLY",
+          "workflow_profile": "WPT_FINGERPRINT_AUTONOMOUS_V1"
+        }
+      }
+    ]
+  },
+  "previous_id": "scope-4093ea23-a882-4da7-8005-8bd79000d867",
+  "expected_version": 1,
+  "apply_auto_recon_task_delegation_profile": false,
+  "reason": "User explicitly selected internal server 172.21.2.2 and approved this exact IP in scope in Codex chat on 2026-11-09. Preserve existing six-GET read-only WPT action permissions."
+}

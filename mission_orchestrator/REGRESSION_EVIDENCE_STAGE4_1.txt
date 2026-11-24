@@ -1,0 +1,47 @@
+Stage 4.1 — Pentest Boundary & Canonical Contract
+Local patch-build evidence
+===============================================
+
+Source baseline:
+- Stage 3.9.10 Global Mission Orchestrator closure
+- Mission Orchestrator repository migration level: 53
+- Baseline canonical inventory: 1575 tests
+
+Stage 4.1 changes:
+- Separate pentest_subsystem runtime/package
+- No Mission Orchestrator production-code mutation
+- No database migration
+- No Pentest durable store
+- No execution intake or target actuation
+
+Local qualification:
+1. python -m compileall -q mission_orchestrator pentest_subsystem run tests
+   PASS
+
+2. python -m pytest --collect-only -q
+   1590 tests collected
+
+3. python -m pytest -q tests/test_stage4_1_pentest_boundary_canonical_contract.py
+   15 passed in 1.26s
+
+4. python -m pytest -q tests/test_stage3_9_10_global_mission_orchestrator_acceptance_regression_gate.py
+   15 passed in 11.61s
+
+5. python -m pytest -q tests/test_stage3_4_1_canonical_subsystem_registry_capability_contract.py tests/test_stage3_1_3_scope_roe_constraint_contract.py
+   32 passed in 1.91s
+
+6. Runtime smoke proof on an isolated local port:
+   - GET /health => stage4.1-pentest-boundary-canonical-contract / PENTEST / migration 0
+   - GET /api/pentest/boundary-contract => read_only=true / next_stage=4.2
+   - POST /api/execution/dispatches => HTTP 409 / STAGE4_1_EXECUTION_INTAKE_NOT_ENABLED
+
+A combined Governance-binding + Stage-3.5.5 delivery regression was attempted in the
+build container but exceeded the interactive execution window because those historical
+runtime-facing tests can wait on environment-bound delivery paths. No existing Mission
+Orchestrator production file was changed by Stage 4.1. The authoritative result is therefore
+intentionally delegated to STAGE4_1_ACCEPTANCE.ps1 on the deployment host, which runs the
+boundary-critical regressions and the complete 1590-test historical suite.
+
+Acceptance authority:
+- runtime self-certification: NO
+- deployment-host STAGE4_1_ACCEPTANCE.ps1: YES

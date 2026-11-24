@@ -1,0 +1,106 @@
+{
+  "schema_version": "apts-gss-human-approval-patch-manifest-v1",
+  "component": "GOV-PLANE",
+  "baseline_archive": "aptsGS(6).zip",
+  "baseline_archive_sha256": "5034767f6ac3a8f58519dfc40e42bec165a33861154cd65c59f30ccae7320de0",
+  "source_digest": "63480df9dfe52bb84908e09b8e58f5ff1b21d7f50b9ab0675e5c552096685909",
+  "source_file_count": 59,
+  "modified_files": {
+    "README.md": {
+      "before": "99f17e87e2b24c77002d346be941d8da3c24b5bc7b1659c901e2b2f10ea5c3fd",
+      "after": "ef84c9173300cca2bb1a2ca8d0c1524481fd0853004b0cec008fe4ddbfcbb8ea"
+    },
+    "STAGE6_4_GSS_ACCEPTANCE.ps1": {
+      "before": "f918d2c19ad0e7edb7356103535cefb2b8da20445e0ae0e98e39b118d838ca4c",
+      "after": "daae74ebc577f40477a4fe2691f799f255e3bbe8e35d66d2042a73eb61a80bc7"
+    },
+    "app/config.py": {
+      "before": "64f2b9bb36de6eeaedbbd81f66c3c46ce3fe4268da38f3a4b463f6709131536b",
+      "after": "88eb81cd87728b44257dc9a9896f0ce1ae8e98dc23322ec99ec8292215dac4b3"
+    },
+    "app/db.py": {
+      "before": "f118a41375df553debc88f90ea2ed485116b553938899d552cd098af263d9043",
+      "after": "4443162142d2a9f7c7fe3111a3e33213806154abe4982a38e71b3dcafd653ac0"
+    },
+    "app/governance_service.py": {
+      "before": "9ac0b4be14e62c3e401a7b662c73130ab05ec063f8baaf14a862bcee2142be68",
+      "after": "7e3684fa06f93a5f5faca60dd2772c97c0930dd78da16f375fe9c8505b4be621"
+    },
+    "app/main.py": {
+      "before": "8390dce23738e3cb53d68ae9474bc52827c6263d083f873a0bab823455ca98f7",
+      "after": "6a04dff5542a3685f944ba24c710ff1c6641194182200a48271bdb4b6cfd345a"
+    },
+    "app/models.py": {
+      "before": "ba66f6997f25f46fdea23cecdd8bdd2e6028f45a9ad42c5f9795ba75520a6625",
+      "after": "d1182ff6e544c20eab50044ff628b0bba1b4e45842cee0d18d3a7e5dee1a54eb"
+    },
+    "app/repositories.py": {
+      "before": "569e0066ab945151d405f7178923c40f44a38ff1d20d80e00a4744c4c79ea6bf",
+      "after": "a04a921210004bfab90757e80f7a5f9dcdd0157bb8defd68f7a34b03492b28ef"
+    },
+    "requirements.txt": {
+      "before": "a0b983f60ac28c050e46a14b3d31012bf5a280324d9b3bdcbbb66df95cc1125b",
+      "after": "1737e84317efe16d03957fb4fa80bb4217fa6afc6a7f4fbffb98d7396c8ec132"
+    },
+    "scripts/smoke_test.py": {
+      "before": "dc964d8d5bae2d1fbf5702631e4122ab58e11a01bc9b1e41d2d2bafe531e0d2d",
+      "after": "cf7ffb22df151757e83e759cdb226505ee24ba0f064006453911678366da951c"
+    },
+    "tests/test_execution_revalidation_stage6_4.py": {
+      "before": "c48bd5b55ea3151c833497fe1db4cfeb33afa6bb4c821894f263c142de78d6ad",
+      "after": "ff846a32db9c36bdd45f4b76332c7eb738a4472036bc92873ed3ad2bf3b512a5"
+    }
+  },
+  "added_files": {
+    "GSS_APPROVAL_ACCEPTANCE.ps1": "d62503170225371cfb04a95cfbc56e443d7d884f56aa76146b4e1cdd7517493f",
+    "GSS_DEPENDENCIES.json": "da5a52f6634e067e4977314b9cff3117ed2f975e87aa6469b945b46cded28190",
+    "GSS_SOURCE_MANIFEST.json": "2b320a9d138fb9921b394ab70ac410627e54665bbd86cba0231532198591213f",
+    "README_GSS_APPROVAL_FIX.md": "23ae908cf21b3bd4dcc8d27b38494f36604dd8a94471a437602b852bc467afc4",
+    "app/approval_auth.py": "4cba4dd35a55e1973b052d88aaa5b3b86132709999873d63bbf92caa9bb93db7",
+    "evidence/gss_approval_fix/acceptance_summary.json": "55812857e9bb5e39b6b1b4c31e6756fe0762b950edc01813fff7c9d49b38f37c",
+    "evidence/gss_approval_fix/dependency_check.log": "9261363b733079a641c2e4cc9bc46ffa1d8336945a87f807b6cf68847dbc9b09",
+    "evidence/gss_approval_fix/gss_regression.log": "22684b1ea29f65487acf06f73086b0fa89dc7ac798cd5b27a6bb43477b1e8d9f",
+    "evidence/gss_approval_fix/gss_regression.xml": "8e967e825280d0ad69eb27d778080c84cfac1621d65080d3c2794c8d83b6f022",
+    "evidence/gss_approval_fix/mariadb_regression.log": "11c0fd7d9119ae3f7fa788ec857c8da50bcc09b1f75bfe57690610cff18908d3",
+    "evidence/gss_approval_fix/mariadb_regression.xml": "f7ac889211ca86df1c568c8c558e2ea1e7943e76ea3669d10d4b5855e1861f38",
+    "evidence/gss_approval_fix/source_snapshot.json": "7f4783713d46a9f728f449fbe08402b1586722dba6fa20b7721ed9c1f19738ed",
+    "examples/approval_principals.example.json": "5a76c6ec693ac03174c2b7b2112f65453a00f96389af9e2fd790a5fa2f5d6e04",
+    "requirements-dev.txt": "b1c730fff5c99e79a03a930bdb247fa76f4879d9d1b68a905e253fded7e057cf",
+    "requirements-gui.txt": "173a30f2da2c96cc41985f15aa4576fdbbb4112af8a55cbafe31362ac5a5af89",
+    "scripts/gss_approval_acceptance.py": "6c437938574b1ab84cd2916777a793802f81078a4e2ecf8e49d4cf0458e5e5cd",
+    "scripts/gss_source_manifest.py": "be05719b6010c159af77000a8ddb20193b809d25c96a93de8284f6b8f00871c4",
+    "scripts/provision_human_approver.py": "25d4efad23cff043101f4be1c2a414db646fc81617548a45b868303ec00c0353",
+    "tests/test_gss_acceptance_manifest.py": "d538eb0288456fe703293acd328eee32d996c78c973500c7fedb8fe1bea1f4f2",
+    "tests/test_human_approval_mariadb.py": "2d33d307df2f99e74df607cab8e5950fa38eb5ac86e086ebccb41bb17aaa8eb0",
+    "tests/test_human_approval_security.py": "ae6544fd773c1428aaa6b322ea768c307c231110de93693066672bf80c608ed1"
+  },
+  "database_schema_migration_required": false,
+  "supplied_database_dump_modified": false,
+  "historical_acceptance_evidence_reused_for_new_source": false,
+  "gss_acceptance": {
+    "status": "PASS",
+    "tests": 125,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "mariadb_acceptance": {
+    "status": "PASS",
+    "tests": 10,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "live_full_apts_acceptance_performed": false,
+  "checksum_exclusions": [
+    "GSS_SHA256SUMS.txt"
+  ],
+  "packaging_exclusions": [
+    "__pycache__",
+    ".pytest_cache",
+    "*.pyc"
+  ],
+  "installation_root": "D:\\aptsGS",
+  "authoritative_source_manifest": "GSS_SOURCE_MANIFEST.json",
+  "acceptance_script": "GSS_APPROVAL_ACCEPTANCE.ps1"
+}

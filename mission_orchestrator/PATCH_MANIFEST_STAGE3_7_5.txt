@@ -1,0 +1,39 @@
+STAGE 3.7.5 PATCH MANIFEST
+==========================
+Stage: Deterministic Replan Candidate Generation
+Build input: user-supplied Mission(20260921-083501).zip (Stage-3.7.4 baseline)
+
+NEW DOMAIN / PERSISTENCE
+------------------------
+mission_orchestrator/replan_candidate.py
+migrations/049_stage3_7_5_deterministic_replan_candidate_generation.sql
+tests/test_stage3_7_5_deterministic_replan_candidate_generation.py
+
+CORE FILES MODIFIED
+-------------------
+mission_orchestrator/api_service.py
+mission_orchestrator/errors.py
+mission_orchestrator/mission_events.py
+mission_orchestrator/repository.py
+mission_orchestrator/repository_model.py
+mission_orchestrator/service.py
+
+PACKAGE / ACCEPTANCE ARTIFACTS ADDED
+------------------------------------
+README_STAGE3_7_5.md
+PATCH_NOTES_STAGE3_7_5.md
+INSTALL_STAGE3_7_5.txt
+PATCH_MANIFEST_STAGE3_7_5.txt
+REGRESSION_EVIDENCE_STAGE3_7_5.txt
+STAGE3_7_5_ACCEPTANCE.ps1
+PATCH_FILE_LIST_STAGE3_7_5.txt
+SHA256_STAGE3_7_5.txt
+
+HISTORICAL REGRESSION FILES REBASED
+-----------------------------------
+Historical tests whose assertions intentionally follow the current repository head were rebased from Stage 3.7.4 / migration 48 / server 3.7.4 to Stage 3.7.5 / migration 49 / server 3.7.5. Stage-local historical constants remain unchanged where they describe the historical stage rather than the current repository head.
+
+The Stage-3.1.10 closure test's stale migration-count assertion was corrected from 48 to 49; its explicit migration-name list already contained migration 049.
+
+See PATCH_FILE_LIST_STAGE3_7_5.txt for the exact changed/new patch payload list.
+See SHA256_STAGE3_7_5.txt for SHA-256 hashes of non-self-referential payload files. The release archive hash is published separately as PATCH_STAGE3_7_5.zip.sha256.

@@ -1,0 +1,26 @@
+PHASE 1 - READ-ONLY MISSION CONSOLE
+
+Modified:
+- mission_orchestrator/api_service.py
+- mission_orchestrator/service.py
+- mission_orchestrator/repository.py
+
+Added:
+- mission_web/index.html
+- mission_web/app.css
+- mission_web/app.js
+- README_MISSION_CONSOLE_PHASE1.md
+- START_MISSION_CONSOLE_PHASE1.ps1
+- tests/test_mission_console_phase1_readonly.py
+
+Read-only API added:
+- GET /api/missions
+- GET /api/dashboard/summary
+- GET /api/operator/attention
+
+Web route:
+- GET /ui/
+- GET /ui/app.css
+- GET /ui/app.js
+
+No Phase-1 mutation route or direct DB write was added.

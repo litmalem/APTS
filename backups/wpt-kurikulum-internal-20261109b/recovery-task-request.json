@@ -1,0 +1,323 @@
+{
+  "boundary": {
+    "mission_id": "mission-gmo-887dae4f-1611-4b07-8ee7-7f184b7379be",
+    "task_id": "ptask-wpt-kurikulum-internal-20261109b",
+    "pentest_id": "pentest-wpt-kurikulum-internal-20261109b",
+    "scope": {
+      "domains": [],
+      "excluded_targets": [],
+      "network_ranges": [],
+      "services": [],
+      "targets": [
+        {
+          "environment": "LAB",
+          "metadata": {},
+          "target_type": "URL",
+          "target_value": "https://kurikulum.del.ac.id:443"
+        },
+        {
+          "environment": "LAB",
+          "metadata": {},
+          "target_type": "IP",
+          "target_value": "172.21.2.2"
+        }
+      ]
+    },
+    "objective": {
+      "environment": "LAB",
+      "goal": "Recover bounded WPT for the explicitly approved internal DNS destination 172.21.2.2",
+      "scope_snapshot_sha256": "758264f2ce80e4f108a31ea79ad1a14c966e87fe64905ec7085ea96b237e342f",
+      "source_gss_scope_contract_id": "scope-43e8b177-4b23-4149-afef-87adedfc78a1",
+      "source_gss_scope_version": 1,
+      "target_ref": "https://kurikulum.del.ac.id:443",
+      "target_type": "URL"
+    },
+    "constraints": {
+      "data_handling_policy": {
+        "execution_authorized": false
+      },
+      "max_actions": 100,
+      "max_duration": 36000,
+      "resource_budget": {
+        "max_network_requests": 6
+      },
+      "risk_threshold": "LOW"
+    },
+    "roe": {
+      "allowed_action_classes": [
+        "TARGET_RECON"
+      ],
+      "allowed_time_window": {
+        "end_at": "2026-11-30T11:46:00Z",
+        "start_at": "2026-11-09T04:46:40Z"
+      },
+      "credential_usage_allowed": false,
+      "destructive_actions_allowed": false,
+      "human_approval_required_for": [],
+      "maximum_concurrency": 1,
+      "persistence_allowed": false,
+      "prohibited_action_classes": []
+    },
+    "authorization_reference": {
+      "policy_decision_id": "gdec-04e0ed3a-e50f-4fad-ac62-530e3df25608",
+      "policy_decision_hash": "9c2b0a98751f99a7cae61eee3c6b0d94e621a5cf927bdb0963759df0af3bc928",
+      "policy_version": 1,
+      "execution_authorized": true
+    }
+  },
+  "pip": {
+    "schema_version": "apts-pentest-intelligence-package-v1",
+    "pip_id": "pip-fe71091c-5fc8-442a-a270-42402c401873",
+    "pip_version": "1",
+    "mission_id": "mission-gmo-887dae4f-1611-4b07-8ee7-7f184b7379be",
+    "pentest_id": "pentest-wpt-kurikulum-internal-20261109b",
+    "task_id": "ptask-wpt-kurikulum-internal-20261109b",
+    "source_cti": {
+      "source_type": "CTI",
+      "source_system": "VULNDESK_CTI",
+      "artifact_id": "pip-fe71091c-5fc8-442a-a270-42402c401873",
+      "artifact_version": "1",
+      "artifact_sha256": "741eedfc9c6f0dcbe5b694c45b0b2e63731f44ac39a83edb7370c9c2d485f66c"
+    },
+    "issued_at": "2026-11-09T04:49:54Z",
+    "expires_at": "2026-11-09T05:49:54Z",
+    "scope": {
+      "domains": [],
+      "excluded_targets": [],
+      "network_ranges": [],
+      "services": [],
+      "targets": [
+        {
+          "environment": "LAB",
+          "metadata": {},
+          "target_type": "URL",
+          "target_value": "https://kurikulum.del.ac.id:443"
+        },
+        {
+          "environment": "LAB",
+          "metadata": {},
+          "target_type": "IP",
+          "target_value": "172.21.2.2"
+        }
+      ]
+    },
+    "confidence": 0.0,
+    "provenance": {
+      "producer": "VULNDESK_CTI",
+      "source_refs": [
+        "pip-fe71091c-5fc8-442a-a270-42402c401873"
+      ],
+      "collection_method": "CTI_PIP_VERIFIED_BRIDGE"
+    },
+    "intelligence": {
+      "cti_intelligence": {
+        "asset_profiles": [],
+        "attack_mappings": [],
+        "attack_paths": [],
+        "cpe_resolution_claims": [],
+        "normalized_objects": [],
+        "provenance_records": [],
+        "risk_priorities": [],
+        "threat_contexts": [],
+        "vulnerability_correlations": []
+      },
+      "validation_objectives": [],
+      "assumptions_and_gaps": [
+        {
+          "description": "Declared Mission context; not an observed technology or vulnerability.",
+          "mission_characteristics": {
+            "budgets": {
+              "max_actions": 100,
+              "max_duration_seconds": 36000
+            },
+            "constraints": {
+              "data_handling_policy": {
+                "execution_authorized": false
+              },
+              "max_actions": 100,
+              "max_duration": 36000,
+              "resource_budget": {
+                "max_network_requests": 6
+              },
+              "risk_threshold": "LOW"
+            },
+            "mission_kind": "AUTHORIZED_PENTEST",
+            "objective": {
+              "goal": "Pentest pada https://kurikulum.del.ac.id:443",
+              "type": "AUTHORIZED_PENTEST"
+            },
+            "required_subsystems": [
+              "CTI",
+              "PENTEST"
+            ],
+            "roe": {
+              "allowed_action_classes": [
+                "TARGET_RECON"
+              ],
+              "allowed_time_window": {
+                "end_at": "2026-11-30T11:46:00Z",
+                "start_at": "2026-11-09T04:46:40Z"
+              },
+              "credential_usage_allowed": false,
+              "destructive_actions_allowed": false,
+              "human_approval_required_for": [],
+              "maximum_concurrency": 1,
+              "persistence_allowed": false,
+              "prohibited_action_classes": []
+            },
+            "scope": {
+              "domains": [],
+              "excluded_targets": [],
+              "network_ranges": [],
+              "services": [],
+              "targets": [
+                {
+                  "environment": "LAB",
+                  "metadata": {},
+                  "target_type": "URL",
+                  "target_value": "https://kurikulum.del.ac.id:443"
+                }
+              ]
+            },
+            "success_criteria": [
+              "https://kurikulum.del.ac.id:443"
+            ]
+          },
+          "mission_characteristics_sha256": "a3bb4fad208e041d0da9cd805647664f01d93abdd71d7005e1918e7ceb819cbd",
+          "source": "MISSION_SCOPE_BOOTSTRAP_V1"
+        },
+        {
+          "description": "Target observations, CPE and vulnerability evidence are not yet available; reconnaissance and CTI enrichment remain required within approved scope."
+        }
+      ],
+      "source_integrity_sha256": "741eedfc9c6f0dcbe5b694c45b0b2e63731f44ac39a83edb7370c9c2d485f66c",
+      "consumer_eligibility": {
+        "mode": "RECON_BOOTSTRAP",
+        "source_readiness": "PARTIAL",
+        "evidence_basis": "MISSION_DECLARATION_ONLY",
+        "quality_gate_ids": [
+          "QG-H1",
+          "QG-H10",
+          "QG-H2",
+          "QG-H3",
+          "QG-H4",
+          "QG-H5",
+          "QG-H6",
+          "QG-H7",
+          "QG-H8",
+          "QG-H9"
+        ],
+        "matched_asset_profile_ids": [],
+        "action_classes": [
+          "TARGET_RECON"
+        ],
+        "execution_authorized": false,
+        "target_actuation": false
+      }
+    },
+    "integrity": {
+      "algorithm": "SHA-256",
+      "canonicalization": "UTF8_SORTED_JSON_V1",
+      "hash_domain": "APTS_PENTEST_INTELLIGENCE_PACKAGE_V1",
+      "canonical_sha256": "894dbc2d206b5f840d697e2e524916f6d104bb288e375f30651297353e18fc00"
+    }
+  },
+  "task": {
+    "schema_version": "apts-pentest-task-contract-v1",
+    "pentest_task_id": "pentest-task-wpt-kurikulum-internal-20261109b",
+    "mission_id": "mission-gmo-887dae4f-1611-4b07-8ee7-7f184b7379be",
+    "pentest_id": "pentest-wpt-kurikulum-internal-20261109b",
+    "upstream_task_id": "ptask-wpt-kurikulum-internal-20261109b",
+    "pip_reference": {
+      "pip_id": "pip-fe71091c-5fc8-442a-a270-42402c401873",
+      "pip_version": "1",
+      "pip_artifact_sha256": "894dbc2d206b5f840d697e2e524916f6d104bb288e375f30651297353e18fc00",
+      "pip_binding_sha256": "29d60824a243ef14140ead5e759ff6240615d58879ab6c9dbc0a8efd9d1e7d06"
+    },
+    "target": {
+      "environment": "LAB",
+      "metadata": {},
+      "target_type": "URL",
+      "target_value": "https://kurikulum.del.ac.id:443"
+    },
+    "scope": {
+      "domains": [],
+      "excluded_targets": [],
+      "network_ranges": [],
+      "services": [],
+      "targets": [
+        {
+          "environment": "LAB",
+          "metadata": {},
+          "target_type": "URL",
+          "target_value": "https://kurikulum.del.ac.id:443"
+        },
+        {
+          "environment": "LAB",
+          "metadata": {},
+          "target_type": "IP",
+          "target_value": "172.21.2.2"
+        }
+      ]
+    },
+    "objective": {
+      "environment": "LAB",
+      "goal": "Recover bounded WPT for the explicitly approved internal DNS destination 172.21.2.2",
+      "scope_snapshot_sha256": "758264f2ce80e4f108a31ea79ad1a14c966e87fe64905ec7085ea96b237e342f",
+      "source_gss_scope_contract_id": "scope-43e8b177-4b23-4149-afef-87adedfc78a1",
+      "source_gss_scope_version": 1,
+      "target_ref": "https://kurikulum.del.ac.id:443",
+      "target_type": "URL"
+    },
+    "constraints": {
+      "data_handling_policy": {
+        "execution_authorized": false
+      },
+      "max_actions": 100,
+      "max_duration": 36000,
+      "resource_budget": {
+        "max_network_requests": 6
+      },
+      "risk_threshold": "LOW"
+    },
+    "evidence_requirement": {
+      "minimum_evidence_items": 1,
+      "required_artifact_types": [
+        "OBSERVATION",
+        "TRACE"
+      ],
+      "integrity_required": true,
+      "provenance_required": true
+    },
+    "authorization_reference": {
+      "policy_decision_id": "gdec-04e0ed3a-e50f-4fad-ac62-530e3df25608",
+      "policy_decision_hash": "9c2b0a98751f99a7cae61eee3c6b0d94e621a5cf927bdb0963759df0af3bc928",
+      "policy_version": 1,
+      "execution_authorized": true
+    },
+    "completion_criteria": {
+      "all_required": true,
+      "criteria": [
+        {
+          "criterion_id": "criterion-handoff-1",
+          "type": "MISSION_SUCCESS_CRITERION",
+          "description": "{\"expected\": true, \"metric\": \"t1-pentest-orchestration_artifact_present\"}",
+          "required": true
+        },
+        {
+          "criterion_id": "criterion-handoff-context",
+          "type": "MISSION_HANDOFF_REQUIREMENTS",
+          "description": "{\"evidence_requirements\": [{\"provenance_required\": true, \"type\": \"PENTEST_TASK_AND_ORCHESTRATION_ACK\"}], \"expected_outputs\": [{\"artifact\": \"pentest_task_orchestration_reference\", \"format\": \"STRUCTURED\"}], \"preconditions\": [{\"kind\": \"ACTIVE_GSS_SCOPE_TARGET\", \"required\": true}]}",
+          "required": true
+        }
+      ]
+    },
+    "created_at": "2026-11-09T04:49:54Z",
+    "integrity": {
+      "algorithm": "SHA-256",
+      "canonicalization": "UTF8_SORTED_JSON_V1",
+      "hash_domain": "APTS_PENTEST_TASK_CONTRACT_V1",
+      "canonical_sha256": "cb8aa958438ae9230b4e8c13da57f7107088a2798d909db09d8e41ba76251210"
+    }
+  }
+}

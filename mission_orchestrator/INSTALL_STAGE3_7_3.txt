@@ -1,0 +1,98 @@
+STAGE 3.7.3 INSTALL / UPGRADE NOTES
+===================================
+Stage: Replan Eligibility & Governance Gate
+Expected repository migration level: 47
+Expected control_version: stage3.7.3-replan-eligibility-governance-gate
+Expected server_version: APTSMissionOrchestrator/3.7.3
+
+BASELINE
+--------
+Install over the accepted Stage-3.7.2 repository/baseline. Stage 3.7.3 preserves Stage-3.7.1 and Stage-3.7.2 persisted contracts and adds migration 047 plus the new eligibility/governance store.
+
+PATCH APPLICATION
+-----------------
+1. Stop Mission Orchestrator if it is running.
+2. Back up D:\mission_orchestrator and its database.
+3. Extract PATCH_STAGE3_7_3.zip over D:\mission_orchestrator, preserving relative paths.
+4. Ensure these new files exist:
+
+   mission_orchestrator\replan_eligibility.py
+   migrations\047_stage3_7_3_replan_eligibility_governance_gate.sql
+   tests\test_stage3_7_3_replan_eligibility_governance_gate.py
+   STAGE3_7_3_ACCEPTANCE.ps1
+
+5. Remove stale Python caches if present:
+
+   Get-ChildItem -Recurse -Directory -Filter __pycache__ | Remove-Item -Recurse -Force
+   if (Test-Path .pytest_cache) { Remove-Item .pytest_cache -Recurse -Force }
+
+6. Compile:
+
+   python -m compileall -q mission_orchestrator tests
+
+7. Start Mission Orchestrator using the same production startup procedure used for Stage 3.7.2.
+
+RUNTIME PREFLIGHT
+-----------------
+Run:
+
+   Invoke-RestMethod http://127.0.0.1:8780/health |
+     Select-Object `
+       status, `
+       control_version, `
+       mission_repository_migration_level, `
+       adaptation_replan_database_migration_level, `
+       adaptation_trigger_classification_database_migration_level, `
+       replan_eligibility_database_migration_level, `
+       replan_eligibility_contract_schema_version, `
+       replan_eligibility_identity_prefix, `
+       replan_eligibility_persistence_store
+
+Expected key values:
+
+   status                                           : ok
+   control_version                                  : stage3.7.3-replan-eligibility-governance-gate
+   mission_repository_migration_level               : 47
+   adaptation_replan_database_migration_level       : 45
+   adaptation_trigger_classification_database_migration_level : 46
+   replan_eligibility_database_migration_level      : 47
+   replan_eligibility_contract_schema_version       : apts-replan-eligibility-governance-contract-v1
+   replan_eligibility_identity_prefix               : rpelig-
+   replan_eligibility_persistence_store             : mission_replan_eligibility_governance_gates
+
+AUTHORITATIVE ACCEPTANCE
+------------------------
+From an elevated PowerShell or a shell allowed to run the project acceptance scripts:
+
+   cd D:\mission_orchestrator
+
+   Set-ExecutionPolicy `
+       -Scope Process `
+       -ExecutionPolicy Bypass `
+       -Force
+
+   .\STAGE3_7_3_ACCEPTANCE.ps1
+
+The acceptance script requires:
+
+- Stage-3.7.3 runtime control active;
+- repository migration=47;
+- predecessor metadata 45/46 preserved;
+- canonical regression inventory=1216 tests;
+- full Stage 3.1-3.7.3 regression PASS;
+- focused Stage-3.7.3 suite=19 passed;
+- historical current-head tail probes PASS;
+- migration 047 and Stage-3.7.3 source/test files present;
+- authority-boundary health fields showing no lifecycle REPLAN, planner invocation, Plan supersession, dispatch, or target actuation.
+
+Do not record Stage 3.7.3 as accepted unless the script ends with:
+
+   STAGE 3.7.3 ACCEPTANCE: PASS
+
+ROLLBACK
+--------
+Code rollback should restore the accepted Stage-3.7.2 tree. Database rollback must be treated separately: migration 047 creates an additive Stage-3.7.3 table. Do not destructively drop the table on a production database unless the rollback procedure explicitly authorizes data loss and the Stage-3.7.3 gate store has been reviewed.
+
+AUTHORITY BOUNDARY
+------------------
+Stage 3.7.3 may query authoritative Governance only for the bounded eligibility decision. It does not issue lifecycle REPLAN, invoke the planner, supersede a Plan, dispatch execution, or actuate a target.

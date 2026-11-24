@@ -1,0 +1,58 @@
+diff --git a/execution_subsystem/runtime_repository.py b/execution_subsystem/runtime_repository.py
+index 6a41c26..71b9d9c 100644
+--- a/execution_subsystem/runtime_repository.py
++++ b/execution_subsystem/runtime_repository.py
+@@ -210,7 +210,20 @@ class ExecutionRuntimeRepository(ExecutionAdapterRepository):
+                 and item["events"][-1]["data"].get("resources_closed") is True)
+ 
+     def _reservation_gateway(self, gate, items, req):
+-        # A predecessor gateway reservation covers only the first attempt.
++        # A Recon Stage 6.3 receipt is bound to the immutable ExecutionRequest,
++        # not to a particular runtime attempt. Reuse that exact admission for
++        # an explicit retry after Stage 6.5 has independently proven that the
++        # preceding attempt failed before target I/O. Stage 6.5 still obtains
++        # fresh GSS authorization for every attempt and the adapter repository
++        # verifies this receipt against the request hash before reserving.
++        if req.get("proposing_agent", {}).get("role") == "RECONNAISSANCE":
++            if gate is None:
++                raise ExecutionSourceRejected("RECON_ACTION_REQUIRES_STAGE6_3_GATEWAY_ADMISSION")
++            if gate.get("request_sha256") != req.get("integrity", {}).get("canonical_sha256"):
++                raise ExecutionSourceRejected("RECON_GATEWAY_ADMISSION_REQUEST_BINDING_MISMATCH")
++            return gate
++        # For non-Recon actions, a predecessor gateway reservation covers
++        # only the first attempt.
+         return None if any(i["record"]["status"] == "RESERVED" and i["record"]["execution_id"] == req["execution_id"] for i in items) else gate
+ 
+     def _check_reservation_identity(self, conn, req, items, runtime_context):
+diff --git a/tests/test_stage6_5_execution_runtime_control.py b/tests/test_stage6_5_execution_runtime_control.py
+index 9a6fb98..3221edc 100644
+--- a/tests/test_stage6_5_execution_runtime_control.py
++++ b/tests/test_stage6_5_execution_runtime_control.py
+@@ -122,6 +122,27 @@ def test_exact_predecessor_contract_and_no_self_certification():
+     assert not verify_runtime_contract(c)
+ 
+ 
++def test_recon_retry_keeps_exact_stage63_admission_bound_to_request():
++    repository = ExecutionRuntimeRepository(":memory:")
++    request_sha = "a" * 64
++    gate = {"gateway_id":"xgate-recon", "status":"ADMITTED", "request_sha256":request_sha}
++    req = {"proposing_agent":{"role":"RECONNAISSANCE"},
++           "integrity":{"canonical_sha256":request_sha}, "execution_id":"exec-recon"}
++    prior_attempt = {"record":{"status":"RESERVED", "execution_id":"exec-recon"}}
++
++    # Even when this is an explicit runtime retry, Recon must carry the same
++    # exact Stage 6.3 admission into the next adapter reservation.
++    assert repository._reservation_gateway(gate, [prior_attempt], req) is gate
++    with pytest.raises(ExecutionSourceRejected, match="RECON_ACTION_REQUIRES_STAGE6_3_GATEWAY_ADMISSION"):
++        repository._reservation_gateway(None, [prior_attempt], req)
++    with pytest.raises(ExecutionSourceRejected, match="RECON_GATEWAY_ADMISSION_REQUEST_BINDING_MISMATCH"):
++        repository._reservation_gateway({**gate, "request_sha256":"b" * 64}, [prior_attempt], req)
++
++    # The existing non-Recon policy remains unchanged.
++    ordinary = {**req, "proposing_agent":{"role":"EXPLOITATION"}}
++    assert repository._reservation_gateway(gate, [prior_attempt], ordinary) is None
++
++
+ def test_native_success_lifecycle_and_atomic_terminal_result(ctx):
+     service, intake, authority, _, target, _ = ctx
+     out = service.start_execution(intake)

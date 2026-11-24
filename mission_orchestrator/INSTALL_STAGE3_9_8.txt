@@ -1,0 +1,28 @@
+Stage 3.9.8 overlay installation and acceptance
+================================================
+
+1. Extract the Stage 3.9.8 overlay into D:\mission_orchestrator, preserving directories.
+2. Repository migration remains at level 53. No migration step is added.
+3. Restart Mission Orchestrator using the established host procedure.
+4. Confirm /health reports:
+     control_version = stage3.9.8-restart-replay-recovery-e2e-verification
+     mission_repository_migration_level = 53
+5. Run from D:\mission_orchestrator:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_9_8_ACCEPTANCE.ps1
+
+Expected canonical Stage 3.9.8 semantics:
+  mission state              = RUNNING(v4)
+  active plan                = Plan v2
+  replan handoff             = HANDOFF_READY
+  recovery checkpoints       = 1
+  recovery consistency       = PASS
+  mission event count        = 50
+  replan replay event count  = 10
+  restart source             = DURABLE_REPOSITORY_ONLY
+  migration                  = 53
+  target actuation           = NONE
+  next stage                 = 3.9.9 Observation / Reconstruction / Forensic Equivalence
+
+Full regression remains a deployment-host acceptance gate.

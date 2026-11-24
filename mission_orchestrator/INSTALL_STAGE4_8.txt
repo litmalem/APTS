@@ -1,0 +1,16 @@
+Stage 4.8 installation / verification
+
+1. Stop the Pentest Subsystem currently listening on 127.0.0.1:8790.
+2. Replace the project tree with this package (preserve your operational DB backup).
+3. From D:\mission_orchestrator run:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   python -m run.pentest_subsystem --host 127.0.0.1 --port 8790
+
+4. In another PowerShell:
+
+   cd D:\mission_orchestrator
+   .\STAGE4_8_ACCEPTANCE.ps1
+
+Startup automatically advances the Pentest local repository from migration 5 to migration 6.
+Execution remains intentionally disabled at Stage 4.8.

@@ -1,0 +1,62 @@
+VulnDesk Stage 2.9.2 — Task Lineage Probe API
+Build validation date: 2026-08-29
+
+Baseline control version:
+  hybrid-event-driven-2.12-canonical-lineage-projection
+
+New control version:
+  hybrid-event-driven-2.13-task-lineage-probe
+
+Database baseline verification:
+  Vulndesk(9).sql
+  cti_task_contracts     OK
+  cti_events             OK
+  cti_decision_traces    OK
+  cti_audit_log          OK
+  BASELINE_SCHEMA_STAGE2_9_2_READY
+
+Compile validation:
+  python -m compileall -q cti_services
+  PASS
+
+Focused Stage 2.9.2 test:
+  python -m pytest -q tests/test_task_lineage_probe_stage2_9_2.py
+  6 passed
+
+Stage 2.9.1 + 2.9.2 projection/probe regression:
+  python -m pytest -q tests/test_canonical_lineage_projection_stage2_9_1.py tests/test_task_lineage_probe_stage2_9_2.py
+  13 passed
+
+Broad regression:
+  python -m pytest -q tests --ignore=tests/test_nvd_bulk_upsert.py
+  100 passed
+
+Full suite:
+  Collection blocked only by missing `pymysql` in this build container while
+  importing tests/test_nvd_bulk_upsert.py. requirements.txt already declares
+  PyMySQL>=1.1. No Stage 2.9.2 failure was observed.
+
+Database migration:
+  NONE REQUIRED
+
+aptsGSS source/schema change:
+  NONE REQUIRED
+
+New HTTP API:
+  GET /api/cti/tasks/{task_id}/lineage
+
+HTTP error semantics:
+  400 INVALID_TASK_ID
+  404 TASK_LINEAGE_NOT_FOUND
+  503 LINEAGE_SCHEMA_UNAVAILABLE
+
+Stage boundaries preserved:
+  - canonical projection is delegated to Stage 2.9.1 projector
+  - no PolicyDecision authority is created or changed
+  - no TaskContract/event mutation
+  - Governance correlation remains NOT_EVALUATED_STAGE_2_9_4
+  - integrity/violation classification remains Stage 2.9.5
+
+Runtime acceptance artifacts:
+  STAGE2_9_2_ACCEPTANCE.ps1
+  STAGE2_9_2_ACCEPTANCE.sql

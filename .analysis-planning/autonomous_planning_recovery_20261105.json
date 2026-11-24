@@ -1,0 +1,18 @@
+{
+  "mission_id": "mission-gmo-9393261b-e2da-44a8-88fe-86b330de37fd",
+  "state": {
+    "schema_version": "apts-global-mission-state-v1",
+    "mission_id": "mission-gmo-9393261b-e2da-44a8-88fe-86b330de37fd",
+    "state": "PLANNING",
+    "state_version": 3,
+    "terminal": false,
+    "last_transition_id": "mtrans-74e492f4-dfa5-43cb-bc3c-f957de651b70",
+    "last_reason_code": "AUTOMATIC_PLANNING_FROM_PIP_BOUND",
+    "updated_by": "mission-auto-planning",
+    "created_at": "2026-11-05T04:00:41.014349Z",
+    "updated_at": "2026-11-05T04:37:31.950879Z"
+  },
+  "validation_status": "VALIDATED_FEASIBLE",
+  "planned_task_count": 16,
+  "effective_ceiling": "PLANNING"
+}

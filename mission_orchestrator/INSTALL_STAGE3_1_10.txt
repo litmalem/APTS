@@ -1,0 +1,125 @@
+Stage 3.1.10 - Acceptance & Regression Gate
+Installation / Regression Steps
+===========================================
+
+Target repository:
+  D:\mission_orchestrator
+
+Stage intent:
+  Final closure gate for Stage 3.1.1 through Stage 3.1.9.
+  No new database migration and no new target-execution authority.
+
+1. Stop the Mission Orchestrator service/process before replacing files.
+
+2. Back up the existing Mission repository and configured database.
+
+3. Extract the Stage-3.1.10 patch over:
+     D:\mission_orchestrator
+   preserving directory paths.
+
+4. Database migration
+
+   NONE for Stage 3.1.10.
+
+   Required existing repository migration level:
+     8
+
+   Latest existing migration remains:
+     migrations\008_stage3_1_9_mission_event_lineage_foundation.sql
+
+   Do NOT invent or apply a migration 009 for Stage 3.1.10.
+
+5. Python compile check
+
+   cd D:\mission_orchestrator
+   python -m compileall -q mission_orchestrator tests
+
+   Expected:
+     no output / exit code 0
+
+6. Full local regression
+
+   python -m pytest -q
+
+   Expected Stage-3.1.10 baseline:
+     111 passed
+
+7. Ensure Governance and CTI are running.
+
+   Governance:
+     http://127.0.0.1:8770
+
+   VulnDesk CTI:
+     http://127.0.0.1:8765
+
+   Useful checks:
+     Invoke-RestMethod http://127.0.0.1:8770/health
+     Invoke-RestMethod http://127.0.0.1:8770/api/governance/emergency-stop
+     Invoke-RestMethod http://127.0.0.1:8765/health
+
+   IMPORTANT:
+     If Governance emergency stop is active, do not disable it merely to pass
+     acceptance. Resolve that safety state administratively.
+
+8. Configure Mission Orchestrator dependency endpoints in the shell that will
+   start the service, if not already configured:
+
+   $env:MISSION_GOVERNANCE_BASE_URL = "http://127.0.0.1:8770"
+   $env:MISSION_GOVERNANCE_TIMEOUT_SECONDS = "3.0"
+   $env:MISSION_CTI_BASE_URL = "http://127.0.0.1:8765"
+   $env:MISSION_CTI_TIMEOUT_SECONDS = "5.0"
+
+9. Start/restart Mission Orchestrator.
+
+   cd D:\mission_orchestrator
+   python .\run\run_mission_orchestrator.py
+
+   Default endpoint:
+     http://127.0.0.1:8780
+
+10. Verify Stage-3.1.10 health contract
+
+    Invoke-RestMethod http://127.0.0.1:8780/health
+
+    Required indicators include:
+      control_version = stage3.1.10-acceptance-regression-gate
+      mission_repository_migration_level = 8
+      stage3_1_acceptance_gate_schema_version = apts-mission-stage3.1-acceptance-gate-v1
+      stage3_1_acceptance_gate_mode = FULL_REGRESSION_PLUS_LIVE_CONTRACT_PROBES
+      stage3_1_acceptance_gate_database_change_mode = NO_NEW_DATABASE_MIGRATION
+      stage3_1_acceptance_gate_runtime_self_certification = False
+      governance_authorization_authority = EXTERNAL_APTS_GSS
+      target_action_dispatch_enabled = False
+      target_actuation = False
+
+11. Run the final Stage-3.1 acceptance gate
+
+    cd D:\mission_orchestrator
+
+    Set-ExecutionPolicy `
+        -Scope Process `
+        -ExecutionPolicy Bypass `
+        -Force
+
+    .\STAGE3_1_10_ACCEPTANCE.ps1
+
+    Optional explicit endpoints:
+
+    .\STAGE3_1_10_ACCEPTANCE.ps1 `
+        -MissionBaseUrl "http://127.0.0.1:8780" `
+        -GovernanceBaseUrl "http://127.0.0.1:8770" `
+        -CtiBaseUrl "http://127.0.0.1:8765"
+
+12. Expected final result
+
+    ==============================================================================
+    STAGE 3.1.10 ACCEPTANCE: PASS
+    ==============================================================================
+
+Notes
+-----
+- Stage 3.1.10 requires no source change in D:\aptsGS or D:\vulndesk.
+- The acceptance run intentionally creates a new canonical Mission, a Governance
+  scope/binding and PolicyDecision, and one non-actuating CTI subsystem mission.
+- The acceptance run does NOT enable or perform target-action dispatch/actuation.
+- Existing Stage-3.1.1 through Stage-3.1.9 APIs and persistent records remain compatible.

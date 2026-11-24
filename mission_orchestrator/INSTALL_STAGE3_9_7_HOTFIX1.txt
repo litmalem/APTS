@@ -1,0 +1,18 @@
+Stage 3.9.7 Hotfix 1 — Regression Compatibility
+
+1. Stop/restart the Mission Orchestrator as required by your normal deployment procedure.
+2. Extract the overlay at the repository root:
+
+   D:\mission_orchestrator
+
+   Preserve relative paths and overwrite the listed files.
+
+3. Run:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_9_7_ACCEPTANCE.ps1
+
+Expected canonical inventory: 1531 tests.
+Expected active control: stage3.9.7-adaptation-replanning-e2e-scenario.
+Expected repository migration: 53.

@@ -1,0 +1,118 @@
+Stage 3.5.3 — Package Construction Regression Evidence
+======================================================
+
+Source root
+-----------
+stage353_impl (derived from Mission(20260913-161413).zip / Stage 3.5.2 baseline)
+
+Compilation
+-----------
+python -m compileall -q mission_orchestrator tests
+PASS
+
+Canonical test inventory
+------------------------
+python -m pytest --collect-only -q
+836 tests collected in 0.19s
+
+Focused Stage 3.5.3 proof
+-------------------------
+python -m pytest -q tests/test_stage3_5_3_authoritative_pre_dispatch_governance_revalidation.py -s
+19 passed in 18.03s
+
+Complete regression — segmented execution
+-----------------------------------------
+The packaging environment has a tool wall-clock limit that can terminate a single long
+pytest process after substantial successful progress. To avoid treating harness timeout as
+a product failure, every canonical test file was executed to completion in stage/file
+partitions. The partition counts sum exactly to the 836-test collect-only inventory.
+
+Stage 3.1
+---------
+111 / 111 passed
+
+Stage 3.2
+---------
+3.2.1   14 passed in 1.65s
+3.2.2   15 passed in 1.45s
+3.2.3   12 passed in 0.90s
+3.2.4   14 passed in 1.90s
+3.2.5   16 passed in 4.44s
+3.2.6   17 passed in 4.50s
+3.2.7   17 passed in 2.84s
+3.2.8   18 passed in 4.79s
+3.2.9   21 passed in 3.61s
+3.2.10  12 passed in 2.81s
+TOTAL   156 / 156 passed
+
+Stage 3.3
+---------
+3.3.1   13 passed in 1.70s
+3.3.2   16 passed in 2.75s
+3.3.3   19 passed in 3.79s
+3.3.4   29 passed in 7.50s
+3.3.5   37 passed in 11.12s
+3.3.6   20 passed in 6.91s
+3.3.7   27 passed in 13.19s
+3.3.8   28 passed in 12.76s
+3.3.9   38 passed in 20.10s
+3.3.10  12 passed in 5.72s
+TOTAL   239 / 239 passed
+
+Stage 3.4
+---------
+3.4.1   19 passed in 0.88s
+3.4.2   26 passed in 10.74s
+3.4.3   35 passed in 17.65s
+3.4.4   50 passed in 27.60s
+3.4.5   30 passed in 19.93s
+3.4.6   32 passed in 22.44s
+3.4.7   19 passed in 13.23s
+3.4.8   28 passed in 21.74s
+3.4.9   22 passed in 16.85s
+3.4.10  12 passed in 5.68s
+TOTAL   273 / 273 passed
+
+Stage 3.5
+---------
+3.5.1   19 passed in 19.06s
+3.5.2   19 passed in 17.18s
+3.5.3   19 passed in 18.03s
+TOTAL    57 / 57 passed
+
+Canonical total
+---------------
+Stage 3.1: 111
+Stage 3.2: 156
+Stage 3.3: 239
+Stage 3.4: 273
+Stage 3.5:  57
+           ---
+TOTAL:    836 / 836 passed
+
+Stage-3.5.3 authority-boundary evidence
+---------------------------------------
+Static/durable Stage-3.5.2 prerequisites: REVALIDATED IMMEDIATELY BEFORE GOVERNANCE
+Authoritative Governance scope:              REVALIDATED AGAINST MISSION BINDING
+Fresh authoritative PolicyDecision:          REQUIRED
+ALLOW -> execution authorization:            YES
+DENY -> execution authorization:             NO / FAIL CLOSED
+REVIEW -> execution authorization:           NO / FAIL CLOSED
+Idempotent replay duplicate Governance call: NO
+Response-loss operation recovery:            SUPPORTED
+Runtime endpoint resolution:                 NOT PERFORMED
+Runtime health probe:                        NOT PERFORMED
+Resource assignment:                         NOT PERFORMED
+Dispatch attempt:                            NOT PERFORMED
+External target network I/O:                 NOT PERFORMED
+Target actuation:                            NOT PERFORMED
+Version-vector extension:                    NOT PERFORMED
+
+Operational note
+----------------
+The package-construction evidence above proves the complete canonical test inventory in
+segmented runs. The target-host STAGE3_5_3_ACCEPTANCE.ps1 remains the authoritative
+deployment acceptance gate because it additionally verifies the running Mission
+Orchestrator on http://127.0.0.1:8780, active runtime control identity, repository
+migration level, predecessor ordering, health declarations, and a normal full pytest run
+on the target host.

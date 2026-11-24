@@ -1,0 +1,118 @@
+Stage 3.1.6 - Mission Versioning & Concurrency Mode
+===================================================
+
+Scope of patch
+--------------
+Apply this patch to D:\mission_orchestrator only.
+No Stage-3.1.6 source-code change is required in VulnDesk or aptsGSS.
+Both remain runtime dependencies for cross-subsystem version observation/acceptance.
+
+1. Stop Mission Orchestrator
+----------------------------
+Stop the running mission_orchestrator service before replacing files.
+
+2. Back up
+----------
+Back up:
+
+   D:\mission_orchestrator
+
+and the Mission Orchestrator database.
+
+Do not overwrite production data with a database bundled from another machine.
+
+3. Copy/extract the Stage-3.1.6 patch
+------------------------------------
+Copy the supplied files over:
+
+   D:\mission_orchestrator
+
+Preserve your existing runtime database and environment configuration.
+
+4. SQLite local mode
+--------------------
+No manual migration is required. Repository startup creates:
+
+   mission_command_journal
+
+when absent.
+
+5. MariaDB/MySQL mode
+---------------------
+Apply migration 006 after migrations 001-005:
+
+   cd D:\mission_orchestrator
+   mysql -u root -p < .\migrations\006_stage3_1_6_mission_versioning_concurrency.sql
+
+6. Keep Governance/CTI runtime configuration
+--------------------------------------------
+
+   $env:MISSION_GOVERNANCE_BASE_URL = "http://127.0.0.1:8770"
+   $env:MISSION_GOVERNANCE_TIMEOUT_SECONDS = "3.0"
+   $env:MISSION_CTI_BASE_URL = "http://127.0.0.1:8765"
+   $env:MISSION_CTI_TIMEOUT_SECONDS = "5.0"
+
+7. Verify dependencies
+----------------------
+
+   Invoke-RestMethod http://127.0.0.1:8770/health
+   Invoke-RestMethod http://127.0.0.1:8770/api/governance/emergency-stop
+   Invoke-RestMethod http://127.0.0.1:8765/health
+
+Do not disable/release an active Governance safety control merely to pass acceptance.
+
+8. Start Mission Orchestrator
+-----------------------------
+
+   cd D:\mission_orchestrator
+   python .\run\run_mission_orchestrator.py --host 127.0.0.1 --port 8780
+
+9. Verify Stage-3.1.6 health
+----------------------------
+
+   Invoke-RestMethod http://127.0.0.1:8780/health
+
+Expected key values:
+
+   control_version                = stage3.1.6-mission-versioning-concurrency
+   mission_command_gate_enabled   = True
+   mission_concurrency_mode       = OPTIMISTIC_VERSION_VECTOR_IDEMPOTENT_COMMAND_GATE
+   dispatch_enabled               = False
+   target_action_dispatch_enabled = False
+   target_actuation               = False
+
+10. Run regression
+------------------
+
+   cd D:\mission_orchestrator
+   python -m pytest -q
+
+Expected current result:
+
+   70 passed
+
+11. Run Stage-3.1.6 acceptance
+------------------------------
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_1_6_ACCEPTANCE.ps1
+
+Optional explicit endpoints:
+
+   .\STAGE3_1_6_ACCEPTANCE.ps1 `
+       -MissionBaseUrl "http://127.0.0.1:8780" `
+       -GovernanceBaseUrl "http://127.0.0.1:8770" `
+       -CtiBaseUrl "http://127.0.0.1:8765"
+
+Expected final line:
+
+   STAGE 3.1.6 ACCEPTANCE: PASS
+
+Safety / authority notes
+------------------------
+- Version-vector hashing does not transfer authority between subsystems.
+- CTI state_version/plan_version are read-only observations in APTS-MO01.
+- Governance policy/scope versions remain authoritative in aptsGSS.
+- The command gate rejects stale cross-resource writes before execution.
+- Per-resource Stage-3.1.2/3.1.3/3.1.4 CAS controls remain active.
+- Target-action dispatch and target actuation remain disabled.

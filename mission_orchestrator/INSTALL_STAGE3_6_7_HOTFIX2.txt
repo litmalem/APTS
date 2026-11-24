@@ -1,0 +1,26 @@
+Stage 3.6.7 Hotfix 2 — Regression Rebase Completion
+
+Prerequisite:
+- Stage 3.6.7 runtime patch is already installed.
+- Stage 3.6.7 Hotfix 1 has already been applied.
+
+Install:
+1. Extract this ZIP directly into D:\mission_orchestrator.
+2. Allow overwrite of matching files under tests\.
+3. Do NOT rollback migration 042.
+4. No additional migration is introduced.
+5. No runtime restart is required by this test-only hotfix.
+
+Run:
+
+cd D:\mission_orchestrator
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+.\STAGE3_6_7_ACCEPTANCE.ps1
+
+Expected preflight:
+- control_version = stage3.6.7-completion-readiness-blockers
+- mission_repository_migration_level = 42
+- canonical pytest inventory = 1102
+
+Acceptance is authoritative only when the complete script reports:
+STAGE 3.6.7 ACCEPTANCE: PASS

@@ -1,0 +1,92 @@
+Stage 3.5.7 — Execution Result / Evidence / Artifact Capture
+Generated: 2026-09-15
+
+CONTROL
+  stage3.5.7-execution-result-evidence-artifact-capture
+
+HTTP SERVER
+  APTSMissionOrchestrator/3.5.7
+
+REPOSITORY MIGRATION
+  33
+
+CANONICAL PYTEST INVENTORY
+  911 tests collected in 0.31s
+
+PYTHON COMPILE
+  python -m compileall -q mission_orchestrator tests
+  PASS
+
+FOCUSED STAGE-3.5.7 PROOF
+  tests/test_stage3_5_7_execution_result_evidence_artifact_capture.py
+  18/18 passed.
+  Container finalization runner was executed as two deterministic batches to avoid
+  per-command transport timeout during focused proof:
+    tests 01-09: 9 passed in 21.49s
+    tests 10-18: 9 passed in 18.04s
+  The complete canonical full-suite run below includes all 18 tests in one regression run.
+
+FULL REGRESSION
+  python -m pytest -q tests
+  911 passed in 727.04s (0:12:07)
+  exit code: 0
+
+STAGE-3.5 COMPATIBILITY RECHECKS DURING FINALIZATION
+  Stage 3.5.2: 19 passed in 27.50s
+  Stage 3.5.3: 19 passed in 30.58s
+  Stage 3.5.4: 20/20 passed across two deterministic 10-test batches
+  Stage 3.5.5: 19/19 passed across 10-test + 9-test batches
+  Stage 3.5.6: 18/18 passed across two deterministic 9-test batches
+  Stage 3.5.7: 18/18 passed across two deterministic 9-test batches
+
+REGRESSION REPAIR DURING FINALIZATION
+  Stage 3.5.7 extends the active supported-control lineage and repository migration
+  inventory. Prior tests containing current-runtime expectations were rebased from
+  Stage 3.5.6 / migration 32 to Stage 3.5.7 / migration 33 where appropriate.
+  Historical per-stage contract assertions remain unchanged unless they explicitly test
+  the current runtime head, current repository migration inventory, or control-tail shape.
+
+RUNTIME DECLARATION SMOKE CHECK
+  control_version=stage3.5.7-execution-result-evidence-artifact-capture
+  HTTP server=APTSMissionOrchestrator/3.5.7
+  mission_repository_migration_level=33
+  execution_result_database_migration_level=33
+  execution_result_schema_version=apts-execution-result-evidence-artifact-capture-v1
+  execution_result_identity_prefix=xresult-
+  execution_result_persistence_store=mission_execution_result_captures
+  execution_result_requires_latest_stage356_running_projection=true
+  execution_result_one_terminal_result_per_execution_attempt=true
+  execution_result_runtime_endpoint_reused_from_stage355=true
+  execution_result_runtime_endpoint_resolution_performed=false
+  execution_result_runtime_health_probe_performed=true
+  execution_result_runtime_terminal_result_query_performed=true
+  execution_result_governance_query_performed=false
+  execution_result_dispatch_redelivery_performed=false
+  execution_result_target_action_dispatch_performed=false
+  execution_result_evidence_required=true
+  execution_result_artifact_optional=true
+  execution_result_inline_artifact_payload_persisted=false
+  execution_result_is_not_task_completion_authority=true
+  execution_result_mission_state_transition_performed=false
+
+BOUNDARY EVIDENCE
+  - Stage 3.5.7 requires the latest durable Stage-3.5.6 xrun projection.
+  - Exact Stage-3.5.5 runtime endpoint is reused; no endpoint re-resolution occurs.
+  - Runtime terminal result must preserve mission/xattempt/xenv/subsystem identity.
+  - SUCCEEDED/FAILED/CANCELLED/TIMED_OUT are accepted terminal execution states.
+  - At least one authoritative evidence reference is required.
+  - Artifact references are optional.
+  - Inline evidence/artifact payload fields are rejected.
+  - Exact idempotent replay performs no new runtime I/O.
+  - Only one terminal-result capture is permitted per execution attempt.
+  - Result capture emits MISSION_EXECUTION_RESULT_EVIDENCE_ARTIFACT_CAPTURED.
+  - Repository reconstruction validates source binding, manifests, event cardinality,
+    restart durability, and tamper detection.
+  - Result capture does not mark the planned task or Mission complete.
+  - Stage 3.5.8 remains the verification/completion-authority boundary.
+
+HOST ACCEPTANCE
+  STAGE3_5_7_ACCEPTANCE.ps1 is the authoritative deployment-host closure gate.
+  It verifies active runtime control on port 8780, canonical inventory, full regression,
+  focused Stage-3.5.7 proof, migration 33, source-control ordering, and non-authority
+  invariants.

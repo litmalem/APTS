@@ -1,0 +1,110 @@
+Stage 3.5.1 — Canonical Execution Dispatch Contract & Identity
+==============================================================
+
+Target project
+--------------
+D:\mission_orchestrator
+
+Runtime identity after installation
+-----------------------------------
+control_version = stage3.5.1-canonical-execution-dispatch-contract-identity
+server_version  = APTSMissionOrchestrator/3.5.1
+repository_migration_level = 27
+new_store = mission_execution_dispatch_contracts
+new_event = MISSION_EXECUTION_DISPATCH_CONTRACT_MATERIALIZED
+
+Installation
+------------
+1. Stop the Mission Orchestrator process currently listening on port 8780.
+
+2. Back up D:\mission_orchestrator and its Mission repository database.
+
+3. Extract the Stage-3.5.1 patch over D:\mission_orchestrator, preserving directory structure.
+
+4. Verify at minimum that these new files exist:
+
+   mission_orchestrator\execution_dispatch.py
+   migrations\027_stage3_5_1_canonical_execution_dispatch_contract_identity.sql
+   tests\test_stage3_5_1_canonical_execution_dispatch_contract_identity.py
+   README_STAGE3_5_1.md
+   PATCH_NOTES_STAGE3_5_1.md
+   PATCH_MANIFEST_STAGE3_5_1.txt
+   REGRESSION_EVIDENCE_STAGE3_5_1.txt
+   STAGE3_5_1_ACCEPTANCE.ps1
+   SHA256_STAGE3_5_1.txt
+
+5. Database migration:
+
+   - SQLite acceptance/development repositories are bootstrapped by
+     MissionRepository.ensure_schema().
+   - MySQL/MariaDB deployments must apply migration 027 using the same controlled
+     migration procedure used by prior Mission Orchestrator stages.
+   - Back up the database before applying the migration.
+
+6. Verify package integrity from PowerShell if desired:
+
+   Get-Content .\SHA256_STAGE3_5_1.txt
+   Get-FileHash .\mission_orchestrator\execution_dispatch.py -Algorithm SHA256
+
+7. Compile and run the focused test before runtime restart:
+
+   cd D:\mission_orchestrator
+   python -m compileall -q mission_orchestrator tests
+   python -m pytest -q tests\test_stage3_5_1_canonical_execution_dispatch_contract_identity.py
+
+   Expected focused result:
+
+   19 passed
+
+8. Start/restart Mission Orchestrator using the project's normal launcher.
+
+9. Verify runtime activation:
+
+   Invoke-RestMethod http://127.0.0.1:8780/health | ConvertTo-Json -Depth 10
+
+   Expected minimum values:
+
+   control_version                                       stage3.5.1-canonical-execution-dispatch-contract-identity
+   mission_repository_migration_level                    27
+   execution_dispatch_database_migration_level           27
+   execution_dispatch_persistence_store                  mission_execution_dispatch_contracts
+   execution_dispatch_contract_identity_prefix           xdispatch-
+   execution_dispatch_contract_status                    MATERIALIZED_PENDING_PRE_DISPATCH_AUTHORIZATION
+   execution_dispatch_authorization_status               NOT_EVALUATED
+   execution_dispatch_pre_dispatch_governance_revalidation_required true
+   execution_dispatch_ownership_is_execution_authority   false
+   execution_dispatch_contract_is_dispatch               false
+   execution_dispatch_identity_is_execution_authorization false
+   execution_dispatch_runtime_endpoint_resolution_performed false
+   execution_dispatch_runtime_health_probe_performed     false
+   execution_dispatch_resource_assignment_performed      false
+   execution_dispatch_governance_query_performed         false
+   execution_dispatch_execution_authorization_performed  false
+   execution_dispatch_dispatch_attempt_started           false
+   execution_dispatch_dispatch_performed                 false
+   execution_dispatch_external_network_io_performed      false
+   execution_dispatch_target_action_dispatch_enabled     false
+   execution_dispatch_target_actuation                   false
+
+10. Run the canonical acceptance harness:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_5_1_ACCEPTANCE.ps1
+
+Expected acceptance gates
+-------------------------
+Runtime activation preflight        PASS
+Python compile                      PASS
+Collected test inventory            798 tests
+Full regression                     PASS (798 tests)
+Focused Stage 3.5.1                 PASS (19 tests)
+Stage-3.4.10 predecessor ordering   PASS
+Migration/store/event boundary      PASS
+No-dispatch/no-execution boundary   PASS
+
+Rollback
+--------
+Application rollback requires restoring the pre-Stage-3.5.1 source tree and repository
+backup as one consistent unit. Migration 027 creates a new durable table and should not
+be casually downgraded by application-code rollback alone. Use the deployment's tested
+schema rollback/recovery procedure.

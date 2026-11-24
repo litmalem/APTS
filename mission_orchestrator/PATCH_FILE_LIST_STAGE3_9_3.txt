@@ -1,0 +1,14 @@
+mission_orchestrator/e2e_planning_task_graph_qualification.py
+mission_orchestrator/service.py
+mission_orchestrator/api_service.py
+run/stage3_9_3_acceptance_client.py
+tests/test_stage3_9_3_planning_task_graph_dependency_verification.py
+historical tests: runtime control/API expectation rebase from Stage 3.9.2 to Stage 3.9.3
+README_STAGE3_9_3.md
+PATCH_NOTES_STAGE3_9_3.md
+INSTALL_STAGE3_9_3.txt
+PATCH_MANIFEST_STAGE3_9_3.txt
+PATCH_FILE_LIST_STAGE3_9_3.txt
+REGRESSION_EVIDENCE_STAGE3_9_3.txt
+SHA256_STAGE3_9_3.txt
+STAGE3_9_3_ACCEPTANCE.ps1

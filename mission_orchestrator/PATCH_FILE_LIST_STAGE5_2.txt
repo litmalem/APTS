@@ -1,0 +1,14 @@
+pentest_migrations/009_stage5_2_reconnaissance_agent.sql
+pentest_subsystem/reconnaissance.py
+pentest_subsystem/api_service.py
+pentest_subsystem/__init__.py
+run/pentest_subsystem.py
+tests/test_stage5_2_reconnaissance_agent.py
+STAGE5_2_ACCEPTANCE.ps1
+README_STAGE5_2.md
+PATCH_NOTES_STAGE5_2.md
+INSTALL_STAGE5_2.txt
+REGRESSION_EVIDENCE_STAGE5_2.txt
+PATCH_FILE_LIST_STAGE5_2.txt
+PATCH_MANIFEST_STAGE5_2.txt
+SHA256_STAGE5_2.txt

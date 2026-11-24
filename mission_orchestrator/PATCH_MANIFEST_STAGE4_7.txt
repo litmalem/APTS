@@ -1,0 +1,68 @@
+Stage 4.7 — Capability Registry & Tool Contract
+Patch Manifest
+==============
+
+Core additions
+--------------
+pentest_subsystem/capability_contract.py
+  Canonical control, capability, logical-tool, mapping, registry, and integrity contracts.
+
+pentest_subsystem/capability_repository.py
+  Migration-5 durable registry persistence, deterministic seeding, query, and integrity checks.
+
+pentest_subsystem/capability_service.py
+  Stage-4.7 health, active projections, registry/capability/tool query API service semantics.
+
+pentest_migrations/005_stage4_7_capability_registry_tool_contract.sql
+  Durable registry/capability/tool/mapping tables and indexes.
+
+tests/test_stage4_7_capability_registry_tool_contract.py
+  27 focused Stage-4.7 tests.
+
+Runtime/API updates
+-------------------
+pentest_subsystem/api_service.py
+  Adds PentestSubsystemStage47Handler and activates Stage 4.7.
+
+pentest_subsystem/__init__.py
+  Exports Stage-4.7 symbols.
+
+run/pentest_subsystem.py
+  Stage-4.7 active runtime description.
+
+Regression stability updates
+----------------------------
+tests/test_stage4_5_pentest_event_runtime_contract.py
+tests/test_stage4_6_pentest_workflow_orchestrator_skeleton.py
+  Replace expired wall-clock PIP fixture usage in runtime-facing tests with fresh UTC-bound PIPs.
+
+Operational files
+-----------------
+START_STAGE4_7_PENTEST.ps1
+STAGE4_7_ACCEPTANCE.ps1
+README_STAGE4_7.md
+PATCH_NOTES_STAGE4_7.md
+INSTALL_STAGE4_7.txt
+REGRESSION_EVIDENCE_STAGE4_7.txt
+PATCH_FILE_LIST_STAGE4_7.txt
+SHA256_STAGE4_7.txt
+
+Repository migration
+--------------------
+Mission Orchestrator: 53 (unchanged)
+Pentest Subsystem:   4 -> 5
+
+Capability registry
+-------------------
+Capabilities: 7
+Logical tools: 8
+Mappings: 8
+
+Execution boundary
+------------------
+Capability selection: disabled
+Tool invocation: disabled
+External network I/O: not performed
+Target actuation: disabled
+Authorization minting: disabled
+Next stage: 4.8

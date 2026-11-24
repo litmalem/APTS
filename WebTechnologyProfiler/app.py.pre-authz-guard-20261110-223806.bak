@@ -1,0 +1,988 @@
+from __future__ import annotations
+
+import json
+import os
+import hashlib
+import re
+import secrets
+import sqlite3
+import threading
+import time
+import ipaddress
+import socket
+import ssl
+import tempfile
+import _ssl
+from contextlib import contextmanager
+import uuid
+from datetime import datetime, timezone
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlparse, urlunparse, parse_qs
+from urllib.request import Request, build_opener, HTTPRedirectHandler, ProxyHandler
+
+ROOT = Path(__file__).resolve().parent
+DB_PATH = Path(os.getenv('WTP_DB_PATH', str(ROOT / 'data' / 'profiler.sqlite3')))
+WEB = ROOT / 'web'
+HOST = os.getenv('WTP_HOST', '127.0.0.1')
+PORT = int(os.getenv('WTP_PORT', '8791'))
+CLIENT_TOKEN = os.getenv('WTP_CLIENT_TOKEN', '')
+DISPATCH_URL = os.getenv('APTS_WTP_DISPATCH_URL', '').rstrip('/')
+DISPATCH_TOKEN = os.getenv('APTS_WTP_DISPATCH_TOKEN', '')
+MAX_BODY = 65536
+
+
+def now():
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _elapsed_ms(started, finished):
+    try:
+        a=datetime.fromisoformat(str(started).replace('Z','+00:00'))
+        b=datetime.fromisoformat(str(finished).replace('Z','+00:00'))
+        return max(0.0, round((b-a).total_seconds()*1000, 3))
+    except (TypeError, ValueError):
+        return None
+
+
+def db():
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(DB_PATH, timeout=10)
+    conn.row_factory = sqlite3.Row
+    conn.execute('PRAGMA journal_mode=WAL')
+    conn.execute('''CREATE TABLE IF NOT EXISTS jobs (
+      job_id TEXT PRIMARY KEY, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+      mission_id TEXT, task_id TEXT, target TEXT NOT NULL, requested_by TEXT NOT NULL,
+      mode TEXT NOT NULL, status TEXT NOT NULL, authorization_id TEXT,
+      execution_id TEXT, result_json TEXT, error TEXT,
+      recon_status TEXT NOT NULL DEFAULT 'NOT_SENT', recon_delivery_id TEXT,
+      recon_delivered_at TEXT, enum_status TEXT NOT NULL DEFAULT 'NOT_SENT',
+      enum_delivery_id TEXT, enum_delivered_at TEXT,
+      execution_mode TEXT NOT NULL DEFAULT 'GOVERNED',
+      scan_started_at TEXT, scan_finished_at TEXT, scan_duration_ms REAL,
+      intake_id TEXT, result_sha256 TEXT, evidence_ref TEXT
+    )''')
+    columns = {row['name'] for row in conn.execute('PRAGMA table_info(jobs)')}
+    if 'execution_mode' not in columns:
+        conn.execute("ALTER TABLE jobs ADD COLUMN execution_mode TEXT NOT NULL DEFAULT 'GOVERNED'")
+    for name, declaration in (('scan_started_at','TEXT'),('scan_finished_at','TEXT'),('scan_duration_ms','REAL'),
+                              ('intake_id','TEXT'),('result_sha256','TEXT'),('evidence_ref','TEXT'),
+                              ('runtime_attempt_number','INTEGER NOT NULL DEFAULT 0'),('runtime_attempt_id','TEXT'),
+                              ('superseded_by_intake_id','TEXT')):
+        if name not in columns: conn.execute(f'ALTER TABLE jobs ADD COLUMN {name} {declaration}')
+    conn.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_jobs_intake_id_unique ON jobs(intake_id) WHERE intake_id IS NOT NULL')
+    conn.execute('''CREATE TABLE IF NOT EXISTS remote_allowlist (
+      entry TEXT PRIMARY KEY, created_at TEXT NOT NULL, created_by TEXT NOT NULL
+    )''')
+    conn.execute('''CREATE TABLE IF NOT EXISTS governed_intakes (
+      intake_id TEXT PRIMARY KEY, idempotency_key TEXT NOT NULL UNIQUE,
+      mission_id TEXT NOT NULL, task_id TEXT NOT NULL, target_type TEXT NOT NULL,
+      target_url TEXT NOT NULL, profile TEXT NOT NULL, received_at TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'AWAITING_STAGE6', recon_target_key TEXT,
+      recon_target_sha256 TEXT, recon_target_status TEXT, target_is_observed INTEGER
+    )''')
+    intake_columns = {row['name'] for row in conn.execute('PRAGMA table_info(governed_intakes)')}
+    for name, declaration in (('recon_target_key','TEXT'), ('recon_target_sha256','TEXT'),
+                              ('recon_target_status','TEXT'), ('target_is_observed','INTEGER'),
+                              ('waiting_reason_code','TEXT'), ('enumeration_context_json','TEXT')):
+        if name not in intake_columns:
+            conn.execute(f'ALTER TABLE governed_intakes ADD COLUMN {name} {declaration}')
+    return conn
+
+
+@contextmanager
+def connection():
+    conn = db()
+    try:
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def safe_target(value: str) -> str:
+    value = (value or '').strip()
+    p = urlparse(value)
+    if p.scheme not in ('http', 'https') or not p.hostname or p.username or p.password:
+        raise ValueError('Target harus berupa URL HTTP/HTTPS lengkap tanpa kredensial.')
+    if len(value) > 2048:
+        raise ValueError('URL target terlalu panjang.')
+    # A fragment (for example, a SPA route such as /#/) is browser-side only.
+    clean = urlunparse(p._replace(fragment=''))
+    return clean.rstrip('/') or p.scheme + '://' + p.netloc
+
+
+def is_loopback_target(target: str) -> bool:
+    """Return true only when a target resolves exclusively to loopback."""
+    p = urlparse(target)
+    host = (p.hostname or '').rstrip('.').lower()
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        if host != 'localhost':
+            return False
+    try:
+        addresses = {ipaddress.ip_address(item[4][0].split('%', 1)[0])
+                     for item in socket.getaddrinfo(host, p.port, type=socket.SOCK_STREAM)}
+        return bool(addresses) and all(address.is_loopback for address in addresses)
+    except (OSError, ValueError):
+        return False
+
+
+def _remote_allowlist_entries():
+    """Exact host or host:port entries; an empty setting disables remote scans."""
+    entries = set()
+    raw_entries = os.getenv('WTP_REMOTE_ALLOWLIST', '').split(',')
+    try:
+        with connection() as c:
+            raw_entries.extend(row['entry'] for row in c.execute('SELECT entry FROM remote_allowlist'))
+    except sqlite3.Error:
+        pass
+    for raw in raw_entries:
+        if not raw.strip(): continue
+        try: entries.update(_parse_allowlist_entry(normalize_allowlist_entry(raw)))
+        except ValueError: continue
+    return entries
+
+
+def _parse_allowlist_entry(entry: str):
+    """Convert a validated allowlist entry into exact host/port tuples."""
+    if '://' in entry:
+        parsed = urlparse(entry)
+        host = (parsed.hostname or '').lower().rstrip('.')
+        try: host = ipaddress.ip_address(host).compressed
+        except ValueError: pass
+        return {(host, parsed.port, parsed.scheme, parsed.path.rstrip('/'))}
+    if entry.startswith('['):
+        host, _, suffix = entry[1:].partition(']')
+        port = int(suffix[1:]) if suffix.startswith(':') else None
+    elif entry.count(':') == 1 and entry.rsplit(':', 1)[1].isdigit():
+        host, raw_port = entry.rsplit(':', 1)
+        port = int(raw_port)
+    else:
+        host, port = entry, None
+    try: host = ipaddress.ip_address(host).compressed
+    except ValueError: host = host.lower().rstrip('.')
+    return {(host, port, None, None)}
+
+
+def normalize_allowlist_entry(raw: str) -> str:
+    """Validate and canonicalize a host, host:port, or HTTP(S) URL."""
+    value = (raw or '').strip()
+    if not value or '*' in value or len(value) > 2048 or any(ch.isspace() or ord(ch) < 32 for ch in value):
+        raise ValueError('Masukkan hostname/IP exact, host:port, atau URL HTTP/HTTPS tanpa wildcard.')
+    if '://' in value:
+        parsed = urlparse(value)
+        if parsed.scheme not in ('http', 'https') or not parsed.hostname or parsed.username or parsed.password:
+            raise ValueError('URL harus HTTP/HTTPS dan tidak boleh memuat kredensial.')
+        host = parsed.hostname.lower().rstrip('.')
+        try: port = parsed.port if parsed.port is not None else (443 if parsed.scheme == 'https' else 80)
+        except ValueError: raise ValueError('Port URL tidak valid.')
+        if parsed.query or parsed.fragment or parsed.params:
+            raise ValueError('URL allowlist tidak boleh memuat query, fragment, atau parameter path.')
+        _allowlist_scope_path(parsed.path)
+    else:
+        value = value.lower().rstrip('.')
+        if any(ch in value for ch in '/?#@'):
+            raise ValueError('Masukkan hostname/IP exact, host:port, atau URL HTTP/HTTPS tanpa path.')
+        if value.startswith('['):
+            host, sep, suffix = value[1:].partition(']')
+            if not sep or (suffix and not suffix.startswith(':')):
+                raise ValueError('Format IPv6 harus [alamat] atau [alamat]:port.')
+            raw_port = suffix[1:] if suffix else ''
+        elif value.count(':') == 1 and value.rsplit(':', 1)[1].isdigit():
+            host, raw_port = value.rsplit(':', 1)
+        else:
+            host, raw_port = value, ''
+        port = int(raw_port) if raw_port else None
+    try:
+        address = ipaddress.ip_address(host)
+        host = address.compressed
+        is_ipv6 = address.version == 6
+    except ValueError:
+        is_ipv6 = False
+        if len(host) > 253 or not re.fullmatch(r'(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:\.(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?))*', host):
+            raise ValueError('Hostname tidak valid. Gunakan nama host exact tanpa wildcard.')
+    if port is not None and not 1 <= port <= 65535:
+        raise ValueError('Port harus berada pada rentang 1–65535.')
+    canonical_host = f'[{host}]' if is_ipv6 else host
+    if '://' in value:
+        return f"{parsed.scheme}://{canonical_host}:{port}{parsed.path if parsed.path != '/' else ''}"
+    return f'{canonical_host}:{port}' if port is not None else canonical_host
+
+
+def remote_allowlist_items():
+    managed = {}
+    with connection() as c:
+        for row in c.execute('SELECT entry, created_at, created_by FROM remote_allowlist ORDER BY entry'):
+            managed[row['entry']] = {'entry':row['entry'],'source':'ui','created_at':row['created_at'],'created_by':row['created_by'],'removable':True}
+    environment = {}
+    for raw in os.getenv('WTP_REMOTE_ALLOWLIST', '').split(','):
+        if not raw.strip(): continue
+        try: entry = normalize_allowlist_entry(raw)
+        except ValueError: continue
+        environment[entry] = {'entry':entry,'source':'environment','created_at':None,'created_by':None,'removable':False}
+    for entry in environment: managed.pop(entry, None)
+    return sorted([*environment.values(), *managed.values()], key=lambda item:item['entry'])
+
+
+def _allowlist_scope_path(path):
+    from urllib.parse import unquote
+    decoded = path
+    for _ in range(len(path) + 1):
+        updated = unquote(decoded)
+        if updated == decoded: break
+        decoded = updated
+    if ('\\' in decoded or any(ord(ch) < 32 for ch in decoded)
+            or any(part in ('.', '..') for part in decoded.split('/'))):
+        raise ValueError('Path URL tidak boleh memuat traversal atau backslash.')
+    return decoded.rstrip('/')
+
+
+def is_remote_allowlisted(target: str) -> bool:
+    p = urlparse(target)
+    if p.scheme not in ('http', 'https') or not p.hostname or p.username or p.password:
+        return False
+    host = p.hostname.lower().rstrip('.')
+    try: host = ipaddress.ip_address(host).compressed
+    except ValueError: pass
+    try:
+        port = p.port if p.port is not None else (443 if p.scheme == 'https' else 80)
+        path = _allowlist_scope_path(p.path)
+    except ValueError: return False
+    for entry_host, entry_port, scheme, prefix in _remote_allowlist_entries():
+        if host != entry_host or (entry_port is not None and port != entry_port): continue
+        if scheme is None: return True
+        prefix = _allowlist_scope_path(prefix)
+        if p.scheme == scheme and (not prefix or path == prefix or path.startswith(prefix + '/')):
+            return True
+    return False
+
+
+def standalone_scan(target: str, mode: str, remote_authorized: bool = False) -> dict:
+    """Run bounded passive probes on loopback or an explicitly allowlisted target."""
+    remote = not is_loopback_target(target)
+    if remote and not is_remote_allowlisted(target):
+        raise ValueError('Target remote tidak terdaftar. Admin harus menambahkannya ke allowlist WTP.')
+    if remote and not remote_authorized:
+        raise ValueError('Konfirmasi kewenangan untuk target remote wajib dicentang.')
+    from adapters.profile_engine import plan_requests, normalize_responses
+    responses = []
+    scan_started_at = now()
+    scan_started_clock = time.perf_counter()
+    for planned in plan_requests(target, mode):
+        redirect_handler = ScopedRedirect(target)
+        opener = build_opener(ProxyHandler({}), redirect_handler, HTTPSHandler(context=ssl._create_unverified_context()))
+        request_started_at = now()
+        request_started_clock = time.perf_counter()
+        req = Request(planned['url'], method=planned['method'], headers={
+            'User-Agent': 'WebTechnologyProfiler/1.0 (loopback standalone)',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.1',
+        })
+        try:
+            with opener.open(req, timeout=3) as response:
+                headers = dict(response.headers.items())
+                tls = _capture_tls(response) if urlparse(target).scheme == 'https' else None
+                limit = int(planned.get('max_response_bytes') or 0)
+                body = response.read(limit + 1) if planned['method'] == 'GET' and limit else b''
+                response_received_at = now()
+                item = {'status_code': response.status, 'headers': headers,
+                        'request_started_at': request_started_at, 'response_received_at': response_received_at,
+                        'observed_at': response_received_at,
+                        'duration_ms': round((time.perf_counter() - request_started_clock) * 1000, 3),
+                        'http_version': {10:'HTTP/1.0', 11:'HTTP/1.1', 20:'HTTP/2'}.get(getattr(response, 'version', None), 'unknown'),
+                        'cookie_names': _set_cookie_names(response.headers.get_all('Set-Cookie') or [])}
+                final_url = response.geturl()
+                if redirect_handler.redirect_count:
+                    item['redirect_count'] = redirect_handler.redirect_count
+                if final_url != planned['url']:
+                    item['final_url'] = _safe_observed_url(final_url)
+                if tls: item['tls'] = tls
+                if planned['url'].endswith('/'):
+                    item['html_excerpt'] = body[:limit].decode('utf-8', errors='replace')
+                elif planned['purpose'] == 'favicon_fingerprint':
+                    favicon = body[:limit]
+                    media_type = headers.get('Content-Type', '').split(';', 1)[0].strip().lower()
+                    if _is_image_favicon(favicon, media_type):
+                        item['body_sha256'] = hashlib.sha256(favicon).hexdigest()
+                        item['body_bytes_observed'] = len(favicon)
+                        item['body_truncated'] = len(body) > limit
+                responses.append(item)
+        except HTTPError as response:
+            received = now()
+            item = {'status_code': response.code, 'headers': dict(response.headers.items()), 'html_excerpt': '',
+                              'request_started_at': request_started_at, 'response_received_at': received,
+                              'observed_at': received, 'duration_ms': round((time.perf_counter() - request_started_clock) * 1000, 3),
+                              'cookie_names': _set_cookie_names(response.headers.get_all('Set-Cookie') or [])}
+            if redirect_handler.redirect_count:
+                item['redirect_count'] = redirect_handler.redirect_count
+            if urlparse(target).scheme == 'https':
+                tls = _capture_tls(response)
+                if tls: item['tls'] = tls
+            responses.append(item)
+        except ScopeRedirectBlocked as exc:
+            failed_at = now()
+            responses.append({'status_code': exc.status, 'headers': dict(exc.headers.items()),
+                              'error': str(exc), 'error_code': 'REDIRECT_BLOCKED',
+                              'final_url': _safe_observed_url(exc.location), 'redirect_blocked': True,
+                              'request_started_at': request_started_at, 'response_received_at': failed_at,
+                              'observed_at': failed_at, 'duration_ms': round((time.perf_counter() - request_started_clock) * 1000, 3)})
+        except (URLError, TimeoutError, OSError, RuntimeError) as exc:
+            failed_at = now()
+            msg = str(exc)[:200]
+            code = 'REDIRECT_BLOCKED' if 'redirect rejected' in msg else 'CONNECTION_FAILED'
+            responses.append({'status_code': None, 'headers': {}, 'error': msg, 'error_code': code,
+                              'request_started_at': request_started_at, 'response_received_at': failed_at,
+                              'observed_at': failed_at, 'duration_ms': round((time.perf_counter() - request_started_clock) * 1000, 3)})
+    result = normalize_responses(target, mode, responses)
+    result['scan_timing'] = {'scan_started_at': scan_started_at, 'scan_finished_at': now(),
+                             'duration_ms': round((time.perf_counter() - scan_started_clock) * 1000, 3),
+                             'timezone': 'UTC'}
+    result['execution_context'] = 'LOCAL_STANDALONE_REMOTE_ALLOWLIST' if remote else 'LOCAL_STANDALONE_LOOPBACK'
+    result['limitations'].append('Standalone probes are bounded and do not create an APTS mission or Stage 6 evidence.')
+    return result
+
+
+def _set_cookie_names(values):
+    names = set()
+    for value in values:
+        first = str(value).split(';', 1)[0]
+        name, separator, _ = first.partition('=')
+        name = name.strip()
+        if separator and re.fullmatch(r'[!#$%&\'*+.^_`|~0-9A-Za-z-]+', name): names.add(name)
+    return sorted(names)[:30]
+
+
+def canonical_sha256(value):
+    raw=json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode('utf-8')
+    return hashlib.sha256(raw).hexdigest()
+
+
+def stage6_job_id(intake_id):
+    return 'wpt-' + hashlib.sha256(intake_id.encode('utf-8')).hexdigest()[:32]
+
+
+def contains_forbidden_result_fields(value):
+    if isinstance(value,dict) and value.get('schema_version')=='web-technology-observation-v4':
+        from adapters.profile_contract import validate_profile
+        envelope={'mission_id','task_id','profile','status','evidence'}
+        try:
+            validate_profile({k:v for k,v in value.items() if k not in envelope})
+            return contains_forbidden_result_fields({k:v for k,v in value.items() if k in envelope})
+        except (ValueError,TypeError,KeyError,AttributeError):return True
+    forbidden={'body','body_html','raw','raw_body','raw_content','html','html_content','response_body','response_headers','response_b64','headers','cookie','cookies','set_cookie','cookie_value','authorization','authorization_header','access_token','refresh_token','token','password','secret','credential'}
+    if isinstance(value,dict):
+        return any((str(key).lower().replace('-','_') in forbidden
+                    or any(marker in str(key).lower().replace('-','_') for marker in ('raw','body','cookie','authorization','token','credential','secret'))
+                    or contains_forbidden_result_fields(item)) for key,item in value.items())
+    if isinstance(value,list):
+        return any(contains_forbidden_result_fields(item) for item in value)
+    return False
+
+
+def serialize(row):
+    obj = dict(row)
+    if obj.get('result_json'):
+        try: obj['result'] = json.loads(obj.pop('result_json'))
+        except json.JSONDecodeError: obj['result'] = None
+    else:
+        obj.pop('result_json', None)
+        obj['result'] = None
+    return obj
+
+
+class NoRedirect(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise RuntimeError('redirect rejected by profiler policy')
+
+
+from urllib.request import HTTPSHandler
+from urllib.parse import urljoin
+
+def _origin(url):
+    p = urlparse(url)
+    return (p.scheme.lower(), (p.hostname or '').lower(), p.port or (443 if p.scheme == 'https' else 80))
+
+def _safe_observed_url(url):
+    p = urlparse(url)
+    return urlunparse(p._replace(query='', fragment=''))
+
+class ScopedRedirect(HTTPRedirectHandler):
+    """Follow at most two redirects, only on the original origin and URL path scope."""
+    max_redirections = 2
+    max_repeats = 2
+    def __init__(self, target):
+        self.target = target
+        self.redirect_count = 0
+        p = urlparse(target)
+        self.base_path = p.path.rstrip('/')
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        dest = urljoin(req.full_url, newurl)
+        p = urlparse(dest)
+        path_ok = (not self.base_path or p.path == self.base_path or p.path.startswith(self.base_path + '/'))
+        if _origin(dest) != _origin(self.target) or not path_ok:
+            raise ScopeRedirectBlocked(code, headers, dest)
+        if self.redirect_count >= self.max_redirections:
+            return None
+        self.redirect_count += 1
+        return super().redirect_request(req, fp, code, msg, headers, dest)
+
+def _is_image_favicon(body: bytes, media_type: str) -> bool:
+    """Reject HTML fallback pages mislabeled as favicon responses."""
+    if not body: return False
+    signatures = (b'\x00\x00\x01\x00', b'\x89PNG\r\n\x1a\n', b'GIF87a', b'GIF89a', b'\xff\xd8\xff')
+    if body.startswith(signatures): return True
+    if media_type in ('image/x-icon', 'image/vnd.microsoft.icon', 'image/png', 'image/gif', 'image/jpeg'):
+        return True
+    return media_type == 'image/svg+xml' and b'<svg' in body[:512].lower()
+
+class ScopeRedirectBlocked(RuntimeError):
+    def __init__(self, status, headers, location):
+        super().__init__('redirect rejected: outside same-origin target path scope')
+        self.status = status
+        self.headers = headers
+        self.location = location
+
+def _capture_tls(response):
+    """Observe TLS on the existing HTTPS request; certificate trust is not validated."""
+    try:
+        sock = response.fp.raw._sock
+        der = sock.getpeercert(binary_form=True)
+        if not der: return None
+        pem = ssl.DER_cert_to_PEM_cert(der)
+        with tempfile.NamedTemporaryFile('w', encoding='ascii', suffix='.pem') as f:
+            f.write(pem); f.flush()
+            decoded = _ssl._test_decode_cert(f.name)
+        cert = {
+            'subject': decoded.get('subject', []), 'issuer': decoded.get('issuer', []),
+            'san': [{'type': kind, 'value': value} for kind, value in decoded.get('subjectAltName', [])],
+            'not_before': decoded.get('notBefore'), 'not_after': decoded.get('notAfter'),
+            'sha256': hashlib.sha256(der).hexdigest(),
+        }
+        cipher = sock.cipher()
+        return {'protocol': sock.version(), 'cipher': cipher[0] if cipher else None,
+                'certificate': cert, 'validation_status': 'NOT_VALIDATED'}
+    except (AttributeError, OSError, ValueError, ssl.SSLError):
+        return None
+
+
+def dispatch_job(job: dict) -> dict:
+    """Send a job to the separately registered APTS Stage 6 WTP adapter."""
+    if not DISPATCH_URL:
+        raise RuntimeError('APTS web-profiler capability belum terdaftar. Tidak ada koneksi ke target yang dilakukan.')
+    parsed = urlparse(DISPATCH_URL)
+    if parsed.scheme != 'https' and parsed.hostname not in ('127.0.0.1', 'localhost', '::1'):
+        raise RuntimeError('Dispatch URL harus HTTPS atau loopback HTTP.')
+    payload = {
+        'schema_version': 'apts-web-technology-profile-request-v1',
+        'job_id': job['job_id'], 'mission_id': job.get('mission_id'), 'task_id': job.get('task_id'),
+        'target': job['target'], 'mode': job['mode'], 'requested_by': job['requested_by'],
+        'authorization_id': job.get('authorization_id'),
+        'required_action': {
+            'fingerprinting': {'action_class':'TARGET_RECON','capability_id':'web_technology_fingerprinting','technique':'WEB_TECHNOLOGY_FINGERPRINT'},
+            'enumeration': {'action_class':'TARGET_RECON','capability_id':'web_surface_enumeration','technique':'BOUNDED_WEB_SURFACE_ENUMERATION'},
+        }[job['mode']],
+        'policy': {'redirects':'DENY','max_requests': 6 if job['mode']=='fingerprinting' else 12,
+                   'max_concurrency':1,'max_response_bytes':327680 if job['mode']=='fingerprinting' else 262144,
+                   'active_checks':'SAFE_SIGNATURES_ONLY',
+                   'tls_metadata':'OBSERVE_ON_EXISTING_HTTPS_CONNECTION'}
+    }
+    data = json.dumps(payload, separators=(',', ':')).encode()
+    headers = {'Content-Type':'application/json','Accept':'application/json','User-Agent':'APTS-WebTechnologyProfiler/1.0'}
+    if DISPATCH_TOKEN: headers['Authorization'] = 'Bearer ' + DISPATCH_TOKEN
+    req = Request(DISPATCH_URL + '/api/execution/web-technology-profile/requests', data=data, headers=headers, method='POST')
+    opener = build_opener(ProxyHandler({}), NoRedirect())
+    try:
+        with opener.open(req, timeout=10) as response:
+            if response.status not in (200, 201, 202): raise RuntimeError(f'APTS dispatch returned HTTP {response.status}')
+            result = json.loads(response.read(65537).decode())
+            if len(json.dumps(result)) > MAX_BODY: raise RuntimeError('APTS response exceeded limit')
+            return result
+    except (HTTPError, URLError, TimeoutError, OSError, ValueError) as exc:
+        raise RuntimeError(f'APTS dispatch failed: {exc}') from exc
+
+
+class Handler(BaseHTTPRequestHandler):
+    server_version = 'WebTechnologyProfiler/1.0'
+
+    def log_message(self, fmt, *args):
+        # Keep access logs local; never log headers, tokens, or response bodies.
+        print('%s - %s' % (self.address_string(), fmt % args))
+
+    def _send(self, status, payload, content_type='application/json; charset=utf-8'):
+        raw = payload if isinstance(payload, bytes) else json.dumps(payload, ensure_ascii=False).encode()
+        self.send_response(status); self.send_header('Content-Type', content_type)
+        self.send_header('Content-Length', str(len(raw))); self.send_header('X-Content-Type-Options','nosniff'); self.send_header('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'")
+        self.send_header('Cache-Control','no-store'); self.end_headers(); self.wfile.write(raw)
+
+    def _body(self):
+        n = int(self.headers.get('Content-Length','0'))
+        if n <= 0 or n > MAX_BODY: raise ValueError('Invalid request body size.')
+        data = json.loads(self.rfile.read(n))
+        if not isinstance(data, dict): raise ValueError('JSON body must be an object.')
+        return data
+
+    def _auth(self):
+        if not CLIENT_TOKEN: return False
+        supplied = self.headers.get('X-APTS-Client-Token','')
+        return secrets.compare_digest(supplied, CLIENT_TOKEN)
+
+    def _operator_auth(self):
+        # Local-only operator UI; remote access requires the shared secret.
+        if CLIENT_TOKEN and self.client_address[0] not in ('127.0.0.1','::1'):
+            return self._auth()
+        return True
+
+    def _service_auth(self):
+        # Inter-service delivery always requires an explicitly configured secret,
+        # even when the WPT UI itself is being used locally.
+        if len(CLIENT_TOKEN) < 32:
+            return False
+        supplied = self.headers.get('X-APTS-Client-Token', '')
+        return secrets.compare_digest(supplied, CLIENT_TOKEN)
+
+    def _admin_auth(self):
+        # Allowlist administration is local-only unless a shared secret is configured.
+        if self.client_address[0] in ('127.0.0.1','::1'):
+            return True
+        return bool(CLIENT_TOKEN) and self._auth()
+
+    def do_GET(self):
+        path = urlparse(self.path).path
+        if path in ('/', '/app.js', '/style.css'):
+            asset = WEB / ('index.html' if path == '/' else path[1:])
+            content_type = {'/':'text/html', '/app.js':'text/javascript', '/style.css':'text/css'}[path]
+            try:
+                raw = asset.read_bytes()
+            except OSError:
+                return self._send(503, {'error':'Antarmuka WPT tidak tersedia. Pulihkan web/index.html, web/app.js, dan web/style.css.'})
+            return self._send(200, raw, content_type + '; charset=utf-8')
+        if path == '/api/health':
+            return self._send(200, {'status':'ok','service':'Web Technology Profiler','apts_dispatch_configured':bool(DISPATCH_URL),'mission_inbox_configured':len(CLIENT_TOKEN)>=32,'scan_execution':'APTS_STAGE6_OR_ALLOWLISTED_STANDALONE','standalone_scope':'LOOPBACK_AND_REMOTE_ALLOWLIST','remote_allowlist_configured':bool(_remote_allowlist_entries())})
+        if path == '/api/governed-intakes':
+            if not self._operator_auth(): return self._send(401, {'error':'Unauthorized client'})
+            include_history = parse_qs(urlparse(self.path).query).get('include_history', ['0'])[0] == '1'
+            with connection() as c:
+                # A revised immutable Recon declaration gets a new intake ID.
+                # Hide its obsolete prequeue, while preserving it in history.
+                filters = '' if include_history else """WHERE NOT EXISTS (
+                    SELECT 1 FROM jobs j WHERE j.intake_id=g.intake_id
+                    AND j.superseded_by_intake_id IS NOT NULL)
+                    AND NOT (g.status='AWAITING_PENTEST_TASK' AND EXISTS (
+                        SELECT 1 FROM governed_intakes n WHERE n.mission_id=g.mission_id
+                        AND n.task_id=g.task_id AND n.target_url=g.target_url AND n.profile=g.profile
+                        AND n.recon_target_sha256<>g.recon_target_sha256
+                        AND (n.received_at>g.received_at OR n.status<>'AWAITING_PENTEST_TASK')))"""
+                rows = c.execute('SELECT g.* FROM governed_intakes g '+filters+' ORDER BY received_at DESC LIMIT 200').fetchall()
+            return self._send(200, {'intakes':[dict(row) for row in rows]})
+        if path == '/api/remote-allowlist':
+            if not self._admin_auth(): return self._send(401, {'error':'Akses admin allowlist ditolak. Gunakan UI lokal atau token operator.'})
+            return self._send(200, {'entries':remote_allowlist_items()})
+        if path == '/api/jobs':
+            with connection() as c:
+                include_history = 'include_history=1' in urlparse(self.path).query.split('&')
+                rows=c.execute('SELECT * FROM jobs ' + ('' if include_history else 'WHERE superseded_by_intake_id IS NULL ') + 'ORDER BY created_at DESC LIMIT 200').fetchall()
+            return self._send(200, {'jobs':[serialize(x) for x in rows]})
+        if path.startswith('/api/jobs/'):
+            ident=path.split('/')[-1]
+            with connection() as c: row=c.execute('SELECT * FROM jobs WHERE job_id=?',(ident,)).fetchone()
+            return self._send(200, {'job':serialize(row)}) if row else self._send(404, {'error':'Job tidak ditemukan.'})
+        return self._send(404, {'error':'Not found'})
+
+    def do_POST(self):
+        path=urlparse(self.path).path
+        if path == '/api/governed-intakes':
+            if not self._service_auth(): return self._send(401, {'error':'Authenticated Mission delivery required.'})
+            try:
+                data = self._body()
+                base_fields = {'schema_version','intake_id','idempotency_key','mission_id','task_id','target','profile'}
+                provenance_fields = {'recon_target_key','recon_target_sha256','recon_target_status','target_is_observed'}
+                version = data.get('schema_version')
+                if version == 'apts-wpt-governed-intake-v2':
+                    fields = base_fields | provenance_fields
+                elif version in ('apts-wpt-governed-intake-v3','apts-wpt-governed-intake-v4'):
+                    fields = base_fields | {'enumeration_context'}
+                elif version == 'apts-wpt-recon-prequeue-v1':
+                    fields = base_fields | provenance_fields | {'task_materialized'}
+                    if 'waiting_reason_code' in data:
+                        fields.add('waiting_reason_code')
+                else:
+                    fields = base_fields
+                if set(data) != fields or version not in (
+                        'apts-wpt-governed-intake-v1', 'apts-wpt-governed-intake-v2',
+                        'apts-wpt-recon-prequeue-v1', 'apts-wpt-governed-intake-v3', 'apts-wpt-governed-intake-v4'):
+                    raise ValueError('Payload intake governed tidak sesuai kontrak.')
+                if (not str(data['intake_id']).startswith('wptreq-')
+                        or not str(data['idempotency_key']).startswith('idem-')
+                        or not str(data['mission_id']).startswith('mission-gmo-')
+                        or not str(data['task_id']).startswith('ptask-')):
+                    raise ValueError('Identitas Mission/task/intake tidak valid.')
+                if data['profile'] not in ('fingerprinting','enumeration'):
+                    raise ValueError('Profil WPT tidak didukung.')
+                enumeration_context_json = None
+                if version in ('apts-wpt-governed-intake-v3','apts-wpt-governed-intake-v4'):
+                    from enumeration_context import normalize_context
+                    if data['profile'] != 'enumeration':
+                        raise ValueError('CTI follow-up profile must be enumeration')
+                    context = normalize_context(data['enumeration_context'])
+                    if version.endswith('-v4') != ('cpe_candidates' in context):
+                        raise ValueError('CTI context fields differ from schema version')
+                    enumeration_context_json = json.dumps(context,sort_keys=True,separators=(',',':'))
+                target = data['target']
+                if not isinstance(target,dict) or set(target) != {'target_type','target_value'} or target.get('target_type') != 'URL':
+                    raise ValueError('Inbox WPT hanya menerima URL target terikat scope.')
+                target_url = str(target['target_value']).strip()
+                safe_target(target_url)  # validate HTTP(S), host and credential-free URL
+                if len(target_url) > 2048: raise ValueError('URL target terlalu panjang.')
+                provenance = (None, None, None, None)
+                is_recon_prequeue = version == 'apts-wpt-recon-prequeue-v1'
+                if version in ('apts-wpt-governed-intake-v2', 'apts-wpt-recon-prequeue-v1'):
+                    source_key = str(data['recon_target_key'])
+                    source_sha = str(data['recon_target_sha256'])
+                    if (not re.fullmatch(r'reconscope-[A-Za-z0-9._:@-]{1,180}', source_key)
+                            or len(source_sha) != 64 or any(ch not in '0123456789abcdef' for ch in source_sha)
+                            or data['recon_target_status'] != 'READY_FOR_COLLECTION'
+                            or data['target_is_observed'] is not False):
+                        raise ValueError('Provenance target Recon tidak valid atau bukan target belum diobservasi.')
+                    provenance = (source_key, source_sha, 'READY_FOR_COLLECTION', 0)
+                if is_recon_prequeue and data.get('task_materialized') is not False:
+                    raise ValueError('Prequeue Recon hanya dapat diterima sebelum task Pentest terbentuk.')
+                waiting_reason = data.get('waiting_reason_code')
+                if waiting_reason not in (None, 'GSS_TARGET_RECON_ALLOW_REQUIRED',
+                        'GSS_TARGET_RECON_DENIED', 'GSS_TARGET_RECON_REQUIRES_APPROVAL',
+                        'GSS_TARGET_RECON_RULE_INVALID', 'MISSION_ROE_BLOCKS_AUTOMATIC_RECON_BINDING',
+                        'MISSION_SCOPE_HAS_NO_ALLOWED_TARGETS'):
+                    raise ValueError('Alasan tunggu prequeue tidak valid.')
+                intake_status = 'AWAITING_PENTEST_TASK' if is_recon_prequeue else 'AWAITING_STAGE6'
+                received = now()
+                duplicate_response = None
+                with connection() as c:
+                    prior = c.execute('SELECT * FROM governed_intakes WHERE intake_id=? OR idempotency_key=?',
+                                      (data['intake_id'],data['idempotency_key'])).fetchone()
+                    if prior:
+                        if prior['enumeration_context_json'] != enumeration_context_json:
+                            return self._send(409, {'error':'Intake ID sudah terikat ke context CTI berbeda.'})
+                        same = (prior['intake_id']==data['intake_id'] and prior['idempotency_key']==data['idempotency_key']
+                                and prior['mission_id']==data['mission_id'] and prior['task_id']==data['task_id']
+                                and prior['target_type']==target['target_type'] and prior['target_url']==target_url
+                                and prior['profile']==data['profile']
+                                and prior['recon_target_key']==provenance[0]
+                                and prior['recon_target_sha256']==provenance[1])
+                        if not same: return self._send(409, {'error':'Idempotency identity reused with different intake content.'})
+                        # The normal v2 delivery is emitted only after Mission's
+                        # local authority source confirms a RUNNING Pentest task
+                        # and one active orchestration. It promotes the same
+                        # idempotent Recon prequeue; it never triggers target I/O.
+                        if (version == 'apts-wpt-governed-intake-v2'
+                                and prior['status'] == 'AWAITING_PENTEST_TASK'):
+                            c.execute('UPDATE governed_intakes SET status=?,waiting_reason_code=NULL WHERE intake_id=?',
+                                      ('AWAITING_STAGE6', prior['intake_id']))
+                            duplicate_response = {'created':False,'promoted':True,
+                                'intake_id':prior['intake_id'],'status':'AWAITING_STAGE6',
+                                'target_io_performed':False}
+                        else:
+                            if is_recon_prequeue and prior['status'] == 'AWAITING_PENTEST_TASK':
+                                c.execute('UPDATE governed_intakes SET waiting_reason_code=? WHERE intake_id=?',
+                                          (waiting_reason, prior['intake_id']))
+                            duplicate_response = {'created':False,'intake_id':prior['intake_id'],
+                                'status':prior['status'],'target_io_performed':False}
+                    else:
+                        c.execute('INSERT INTO governed_intakes(intake_id,idempotency_key,mission_id,task_id,target_type,target_url,profile,received_at,status,recon_target_key,recon_target_sha256,recon_target_status,target_is_observed) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                                  (data['intake_id'],data['idempotency_key'],data['mission_id'],data['task_id'],
+                                   target['target_type'],target_url,data['profile'],received,intake_status,*provenance))
+                        if enumeration_context_json is not None:
+                            c.execute('UPDATE governed_intakes SET enumeration_context_json=? WHERE intake_id=?',
+                                      (enumeration_context_json,data['intake_id']))
+                        if waiting_reason:
+                            c.execute('UPDATE governed_intakes SET waiting_reason_code=? WHERE intake_id=?',
+                                      (waiting_reason, data['intake_id']))
+                if duplicate_response is not None:
+                    return self._send(200, duplicate_response)
+                return self._send(201, {'created':True,'intake_id':data['intake_id'],'status':intake_status,
+                                        'target_io_performed':False})
+            except (ValueError, json.JSONDecodeError, KeyError) as exc:
+                return self._send(400, {'error':str(exc)})
+            except sqlite3.IntegrityError:
+                return self._send(409, {'error':'Intake identity already exists.'})
+        if path.startswith('/api/stage6/intakes/') and path.endswith('/job'):
+            if not self._service_auth(): return self._send(401, {'error':'Authenticated Stage 6 callback required.'})
+            intake_id=path[len('/api/stage6/intakes/'):-len('/job')].strip('/')
+            try:
+                data=self._body()
+                expected={'schema_version','mission_id','task_id','target','profile','execution_id','status','authorization_id'}
+                if set(data) - {'reason_code','runtime_attempt_number','runtime_attempt_id'} != expected or data.get('schema_version') != 'apts-wpt-stage6-job-v1':
+                    raise ValueError('Payload Stage 6 job tidak sesuai kontrak.')
+                if not re.fullmatch(r'wptreq-[A-Za-z0-9-]{8,180}', intake_id):
+                    raise ValueError('intake_id tidak valid.')
+                status=str(data.get('status') or '').upper()
+                allowed={'AWAITING_APPROVAL','AUTHORIZED','AWAITING_STAGE6','DISPATCHED','RUNNING','BLOCKED','BLOCKED_CONFIGURATION','FAILED','CANCELLED'}
+                if status not in allowed:
+                    raise ValueError('Status Stage 6 tidak didukung untuk callback job.')
+                execution_id=str(data.get('execution_id') or '').strip()
+                if not execution_id or len(execution_id)>200:
+                    raise ValueError('execution_id wajib diisi dan maksimal 200 karakter.')
+                attempt_number = data.get('runtime_attempt_number', 0)
+                attempt_identity = data.get('runtime_attempt_id')
+                if (type(attempt_number) is not int or not 0 <= attempt_number <= 3
+                        or bool(attempt_number) != bool(attempt_identity)
+                        or (attempt_identity and not re.fullmatch(r'xattempt-[A-Za-z0-9-]{8,180}', attempt_identity))):
+                    raise ValueError('Identitas runtime attempt tidak valid.')
+                authorization_id=str(data.get('authorization_id') or '').strip()[:200] or None
+                target=data.get('target')
+                if not isinstance(target,str): raise ValueError('target harus URL string canonical.')
+                target=safe_target(target)
+                profile=data.get('profile')
+                if profile not in ('fingerprinting','enumeration'): raise ValueError('profile WPT tidak didukung.')
+                with connection() as c:
+                    intake=c.execute('SELECT * FROM governed_intakes WHERE intake_id=?',(intake_id,)).fetchone()
+                    if not intake: return self._send(404, {'error':'Intake WPT tidak ditemukan.'})
+                    if (data['mission_id'] != intake['mission_id'] or data['task_id'] != intake['task_id']
+                            or target != safe_target(intake['target_url']) or profile != intake['profile']):
+                        raise ValueError('Binding Mission/task/target/profile tidak cocok dengan intake.')
+                    job=c.execute('SELECT * FROM jobs WHERE intake_id=?',(intake_id,)).fetchone()
+                    if not job:
+                        other=c.execute('SELECT job_id FROM jobs WHERE execution_id=? AND intake_id<>?',(execution_id,intake_id)).fetchone()
+                        if other: return self._send(409, {'error':'execution_id sudah terikat ke intake lain.'})
+                    if job:
+                        if (job['execution_id'] != execution_id or job['mission_id'] != intake['mission_id']
+                                or job['task_id'] != intake['task_id'] or job['target'] != target
+                                or job['mode'] != intake['profile']):
+                            return self._send(409, {'error':'Intake sudah terikat ke job atau execution berbeda.'})
+                        previous_attempt = job['runtime_attempt_number']
+                        if attempt_number and attempt_number < previous_attempt:
+                            return self._send(200, {'created':False,'job':serialize(job),'historical_status_ignored':True})
+                        if (attempt_number and attempt_number == previous_attempt
+                                and job['runtime_attempt_id'] != attempt_identity):
+                            return self._send(409, {'error':'Identitas runtime attempt berbeda.'})
+                        retry_progress = (attempt_number > max(previous_attempt, 1)
+                                          and job['status'] == 'FAILED' and authorization_id)
+                        terminal={'COMPLETED','FAILED','CANCELLED','BLOCKED','BLOCKED_CONFIGURATION'}
+                        progress={'AWAITING_APPROVAL':0,'AWAITING_STAGE6':0,'AUTHORIZED':1,'DISPATCHED':2,'RUNNING':3}
+                        if job['status'] in terminal and status in progress and not retry_progress:
+                            # A periodic Mission sweep can replay an earlier progress message.
+                            # Acknowledge the exact binding without regressing the sealed result.
+                            return self._send(200,{'created':False,'job':serialize(job),'historical_status_ignored':True})
+                        recovered_failure = job['status']=='BLOCKED' and status in {'FAILED','CANCELLED'} and authorization_id
+                        if job['status'] in terminal and status != job['status'] and not recovered_failure and not retry_progress:
+                            return self._send(409, {'error':'Status terminal job tidak dapat diubah.'})
+                        progress={'AWAITING_APPROVAL':0,'AWAITING_STAGE6':0,'AUTHORIZED':1,'DISPATCHED':2,'RUNNING':3}
+                        if status in progress and job['status'] in progress and progress[status] < progress[job['status']]:
+                            status=job['status']
+                        c.execute("UPDATE jobs SET status=?,authorization_id=COALESCE(?,authorization_id),updated_at=?,error=CASE WHEN ? IN ('FAILED','BLOCKED','BLOCKED_CONFIGURATION') THEN COALESCE(error,'Stage 6 melaporkan status terminal/blokir.') ELSE error END WHERE job_id=?",
+                                  (status,authorization_id,now(),status,job['job_id']))
+                        job_id=job['job_id']; created=False
+                    else:
+                        job_id=stage6_job_id(intake_id)
+                        created_at=now()
+                        c.execute('INSERT INTO jobs(job_id,created_at,updated_at,mission_id,task_id,target,requested_by,mode,status,authorization_id,execution_id,execution_mode,intake_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                                  (job_id,created_at,created_at,intake['mission_id'],intake['task_id'],target,
+                                   'mission-stage6',intake['profile'],status,authorization_id,execution_id,'GOVERNED',intake_id))
+                        created=True
+                    if attempt_number:
+                        c.execute('UPDATE jobs SET runtime_attempt_number=?,runtime_attempt_id=?,error=CASE WHEN ? THEN NULL ELSE error END WHERE job_id=?',
+                                  (attempt_number,attempt_identity,bool(retry_progress) if job else False,job_id))
+                    c.execute('UPDATE governed_intakes SET status=? WHERE intake_id=?',(status,intake_id))
+                    if data.get('reason_code') and status in {'BLOCKED','FAILED','BLOCKED_CONFIGURATION'}:
+                        c.execute('UPDATE jobs SET error=? WHERE job_id=?',
+                                  (str(data['reason_code'])[:180],job_id))
+                    row=c.execute('SELECT * FROM jobs WHERE job_id=?',(job_id,)).fetchone()
+                return self._send(201 if created else 200, {'created':created,'job':serialize(row),'target_io_performed':False})
+            except (ValueError, json.JSONDecodeError, KeyError) as exc:
+                return self._send(400, {'error':str(exc)})
+            except sqlite3.IntegrityError:
+                return self._send(409, {'error':'Intake atau execution ID sudah terikat ke job lain.'})
+        if path == '/api/remote-allowlist':
+            if not self._admin_auth(): return self._send(401, {'error':'Akses admin allowlist ditolak. Gunakan UI lokal atau token operator.'})
+            try:
+                data=self._body()
+                entry=normalize_allowlist_entry(data.get('entry',''))
+                with connection() as c:
+                    c.execute('INSERT INTO remote_allowlist(entry,created_at,created_by) VALUES(?,?,?)',
+                              (entry,now(),str(data.get('created_by') or 'operator-ui').strip()[:150] or 'operator-ui'))
+                return self._send(201, {'entry':entry,'message':'Target remote ditambahkan ke allowlist WTP.'})
+            except sqlite3.IntegrityError:
+                return self._send(409, {'error':'Target tersebut sudah ada pada allowlist WTP.'})
+            except (ValueError, json.JSONDecodeError) as exc:
+                return self._send(400, {'error':str(exc)})
+        if path == '/api/jobs':
+            if not self._operator_auth(): return self._send(401, {'error':'Unauthorized client'})
+            try:
+                data=self._body(); target=safe_target(data.get('target',''))
+                mode=data.get('mode','fingerprinting')
+                if mode not in ('fingerprinting','enumeration'): raise ValueError('mode harus fingerprinting atau enumeration.')
+                execution_mode=str(data.get('execution_mode') or 'GOVERNED').upper()
+                if execution_mode not in ('GOVERNED','STANDALONE'): raise ValueError('execution_mode harus GOVERNED atau STANDALONE.')
+                mission_id=str(data.get('mission_id') or '').strip()
+                task_id=str(data.get('task_id') or '').strip()[:200] or None
+                requested_by=str(data.get('requested_by') or 'operator').strip()[:150]
+                if not requested_by: raise ValueError('requested_by wajib diisi.')
+                if execution_mode == 'GOVERNED' and not mission_id.startswith('mission-gmo-'):
+                    raise ValueError('Mode APTS memerlukan Mission ID aktif. Pilih mode mandiri untuk target localhost.')
+                remote_standalone = execution_mode == 'STANDALONE' and not is_loopback_target(target)
+                if remote_standalone and not is_remote_allowlisted(target):
+                    raise ValueError('Target remote tidak terdaftar. Admin harus menambahkannya ke allowlist WTP.')
+                if execution_mode == 'STANDALONE' and data.get('local_authorized') is not True:
+                    raise ValueError('Konfirmasi bahwa Anda berwenang memindai target wajib dicentang.')
+                if remote_standalone and data.get('remote_authorized') is not True:
+                    raise ValueError('Konfirmasi kewenangan untuk target remote wajib dicentang.')
+                job_id='wtp-'+uuid.uuid4().hex
+                item={'job_id':job_id,'created_at':now(),'updated_at':now(),'mission_id':mission_id[:200] or None,
+                      'task_id':task_id,'target':target,'requested_by':requested_by,
+                      'mode':mode,'status':'PROPOSED' if execution_mode == 'GOVERNED' else 'RUNNING',
+                      'execution_mode':execution_mode,
+                      'authorization_id':str(data.get('authorization_id') or '')[:200] or None}
+                scan_started_at = now() if execution_mode == 'STANDALONE' else None
+                item['scan_started_at'] = scan_started_at
+                with connection() as c:
+                    c.execute('INSERT INTO jobs(job_id,created_at,updated_at,mission_id,task_id,target,requested_by,mode,status,authorization_id,execution_mode,scan_started_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
+                              (item['job_id'],item['created_at'],item['updated_at'],item['mission_id'],item['task_id'],item['target'],item['requested_by'],item['mode'],item['status'],item['authorization_id'],execution_mode,scan_started_at))
+                if execution_mode == 'STANDALONE':
+                    try:
+                        result = standalone_scan(target, mode, remote_authorized=data.get('remote_authorized') is True)
+                        final_status = 'FAILED' if result.get('scan_metrics', {}).get('scan_status') == 'NO_RESPONSE' else 'COMPLETED'
+                        timing = result.get('scan_timing') or {}
+                        with connection() as c:
+                            c.execute('UPDATE jobs SET status=?,result_json=?,scan_started_at=?,scan_finished_at=?,scan_duration_ms=?,updated_at=? WHERE job_id=?',
+                                      (final_status,json.dumps(result,ensure_ascii=False),timing.get('scan_started_at') or scan_started_at,
+                                       timing.get('scan_finished_at') or now(),timing.get('duration_ms'),now(),job_id))
+                        with connection() as c: row=c.execute('SELECT * FROM jobs WHERE job_id=?',(job_id,)).fetchone()
+                        return self._send(201, {'job':serialize(row),'note':'Pemindaian mandiri terbatas selesai. Job tidak memiliki Mission/Task APTS dan tidak setara dengan bukti Stage 6.'})
+                    except Exception as exc:
+                        with connection() as c: c.execute('UPDATE jobs SET status=?,error=?,scan_finished_at=?,updated_at=? WHERE job_id=?',('FAILED',str(exc)[:500],now(),now(),job_id))
+                        return self._send(502, {'job_id':job_id,'status':'FAILED','error':str(exc)[:500]})
+                return self._send(201, {'job':item,'note':'Proposal tersimpan. Belum ada target I/O; pengiriman memerlukan capability Stage 6 dan otorisasi Governance.'})
+            except (ValueError, json.JSONDecodeError) as exc: return self._send(400, {'error':str(exc)})
+        if path.endswith('/dispatch') and path.startswith('/api/jobs/'):
+            if not self._operator_auth(): return self._send(401, {'error':'Unauthorized client'})
+            ident=path.split('/')[-2]
+            with connection() as c: row=c.execute('SELECT * FROM jobs WHERE job_id=?',(ident,)).fetchone()
+            if not row: return self._send(404, {'error':'Job tidak ditemukan.'})
+            job=serialize(row)
+            if job.get('execution_mode') == 'STANDALONE':
+                return self._send(409, {'error':'Job mandiri sudah dieksekusi lokal dan tidak dapat dikirim sebagai job APTS.'})
+            if job['status'] in ('DISPATCHED','RUNNING','COMPLETED'):
+                return self._send(409, {'error':'Job sudah dikirim atau sudah memiliki hasil; tidak akan dikirim ulang otomatis.'})
+            try:
+                response=dispatch_job(job)
+                status=response.get('status','DISPATCHED').upper()
+                if status not in ('DISPATCHED','AUTHORIZED','RUNNING','AWAITING_APPROVAL'):
+                    status='DISPATCHED'
+                with connection() as c: c.execute("UPDATE jobs SET status=?,execution_id=?,scan_started_at=CASE WHEN ?='RUNNING' THEN COALESCE(scan_started_at,?) ELSE scan_started_at END,updated_at=? WHERE job_id=?",
+                    (status,response.get('execution_id'),status,now(),now(),ident))
+                return self._send(202, {'job_id':ident,'status':status,'execution':response})
+            except RuntimeError as exc:
+                with connection() as c: c.execute("UPDATE jobs SET status='BLOCKED_CONFIGURATION',error=?,updated_at=? WHERE job_id=?",(str(exc),now(),ident))
+                return self._send(503, {'job_id':ident,'status':'BLOCKED_CONFIGURATION','error':str(exc),'target_io_performed':False})
+        if path.startswith('/api/jobs/') and '/deliveries/' in path:
+            if not CLIENT_TOKEN or not self._auth(): return self._send(401, {'error':'Authenticated APTS client required'})
+            bits=path.split('/'); ident=bits[3]; agent=bits[5]
+            if agent not in ('reconnaissance','enumeration'): return self._send(404, {'error':'Unknown agent'})
+            try:
+                data=self._body(); delivery=str(data.get('delivery_id') or '').strip()
+                if not delivery: raise ValueError('delivery_id wajib diisi.')
+                field='recon' if agent=='reconnaissance' else 'enum'
+                with connection() as c:
+                    row=c.execute('SELECT * FROM jobs WHERE job_id=?',(ident,)).fetchone()
+                    if not row: return self._send(404, {'error':'Job tidak ditemukan.'})
+                    if row['intake_id']:
+                        evidence = json.loads(row['result_json'] or '{}').get('evidence', {})
+                        bindings = {k: row[k] for k in ('intake_id','mission_id','task_id','execution_id')}
+                        bindings['evidence_manifest_sha256'] = evidence.get('manifest_sha256')
+                        if row['status'] != 'COMPLETED' or not bindings['evidence_manifest_sha256'] or any(data.get(k) != v for k,v in bindings.items()):
+                            raise ValueError('Receipt tidak cocok dengan binding evidence job governed.')
+                    if row[field+'_status'] == 'DELIVERED':
+                        if row[field+'_delivery_id'] != delivery:
+                            raise ValueError('Receipt sudah terikat ke delivery berbeda.')
+                        return self._send(200, {'job_id':ident,'agent':agent,'status':'DELIVERED','delivery_id':delivery})
+                    c.execute(f'UPDATE jobs SET {field}_status=?,{field}_delivery_id=?,{field}_delivered_at=?,updated_at=? WHERE job_id=?',
+                              ('DELIVERED',delivery,now(),now(),ident))
+                return self._send(200, {'job_id':ident,'agent':agent,'status':'DELIVERED','delivery_id':delivery})
+            except ValueError as exc: return self._send(400, {'error':str(exc)})
+        if path.startswith('/api/jobs/') and path.endswith('/result'):
+            if not self._service_auth(): return self._send(401, {'error':'Authenticated APTS client required'})
+            ident=path.split('/')[-2]
+            try:
+                data=self._body(); status=str(data.get('status','COMPLETED')).upper()
+                if status not in ('COMPLETED','FAILED','CANCELLED'): raise ValueError('Unsupported terminal status.')
+                if set(data) != {'status','execution_id','result','result_sha256'}:
+                    raise ValueError('Callback hasil harus memuat status, execution_id, result, dan result_sha256 saja.')
+                result=data.get('result')
+                if not isinstance(result,dict): raise ValueError('result harus object.')
+                with connection() as c: row=c.execute('SELECT * FROM jobs WHERE job_id=?',(ident,)).fetchone()
+                if not row: return self._send(404, {'error':'Job tidak ditemukan.'})
+                execution_id=str(data.get('execution_id') or '').strip()
+                if contains_forbidden_result_fields(result):
+                    raise ValueError('Result mengandung body mentah, cookie, token, atau kredensial yang dilarang.')
+                evidence=result.get('evidence')
+                digest=str(evidence.get('manifest_sha256') or '') if isinstance(evidence,dict) else ''
+                evidence_ref=str(evidence.get('evidence_ref') or evidence.get('sealed_evidence_ref') or '').strip() if isinstance(evidence,dict) else ''
+                result_digest=str(data.get('result_sha256') or '').lower()
+                computed_digest=canonical_sha256(result)
+                if (not execution_id or not isinstance(evidence,dict) or evidence.get('capture_status')!='SEALED'
+                        or len(digest)!=64 or any(c not in '0123456789abcdef' for c in digest.lower())
+                        or not re.fullmatch(r'stage6-evidence://[A-Za-z0-9._:-]{1,240}',evidence_ref)
+                        or not re.fullmatch(r'[0-9a-f]{64}',result_digest) or result_digest != computed_digest):
+                    raise ValueError('Stage 6 result harus memiliki hash cocok, execution_id, dan referensi evidence manifest SEALED yang valid.')
+                if execution_id != row['execution_id']:
+                    raise ValueError('execution_id tidak cocok dengan execution yang terikat pada job.')
+                if (result.get('mission_id') != row['mission_id'] or result.get('task_id') != row['task_id']
+                        or result.get('target') != row['target']):
+                    raise ValueError('Binding mission/task/target pada result wajib ada dan harus cocok dengan job.')
+                if result.get('mode', row['mode']) != row['mode'] or result.get('profile', row['mode']) != row['mode']:
+                    raise ValueError('Profil hasil tidak cocok dengan job.')
+                if row['result_sha256']:
+                    if row['result_sha256'] != computed_digest or row['status'] != status:
+                        return self._send(409, {'error':'Hasil terminal sudah tersimpan dengan content berbeda.'})
+                    # A receipt retry must never change timing or stored evidence.
+                    return self._send(200, {'job_id':ident,'status':row['status'],
+                        'result_sha256':row['result_sha256'],'evidence_ref':row['evidence_ref']})
+                timing=result.get('scan_timing') if isinstance(result.get('scan_timing'),dict) else {}
+                observations=result.get('observations') if isinstance(result.get('observations'),list) else []
+                request_starts=[o.get('request_started_at') for o in observations if isinstance(o,dict) and o.get('request_started_at')]
+                response_ends=[o.get('response_received_at') for o in observations if isinstance(o,dict) and o.get('response_received_at')]
+                started=timing.get('scan_started_at') or (min(request_starts) if request_starts else row['scan_started_at'] or now())
+                finished=timing.get('scan_finished_at') or (max(response_ends) if response_ends else now())
+                duration=timing.get('duration_ms')
+                if duration is None: duration=_elapsed_ms(started,finished)
+                with connection() as c:
+                    # The recursive validator above rejects raw bodies and secrets before persistence.
+                    safe=result
+                    c.execute('UPDATE jobs SET status=?,result_json=?,result_sha256=?,evidence_ref=?,scan_started_at=?,scan_finished_at=?,scan_duration_ms=?,updated_at=?,error=NULL WHERE job_id=?',
+                              (status,json.dumps(safe,ensure_ascii=False),computed_digest,evidence_ref,started,finished,duration,now(),ident))
+                    if row['intake_id']:
+                        c.execute('UPDATE governed_intakes SET status=? WHERE intake_id=?',(status,row['intake_id']))
+                return self._send(200, {'job_id':ident,'status':status,'result_sha256':computed_digest,'evidence_ref':evidence_ref})
+            except (ValueError, json.JSONDecodeError) as exc: return self._send(400, {'error':str(exc)})
+        return self._send(404, {'error':'Not found'})
+
+    def do_DELETE(self):
+        path=urlparse(self.path).path
+        if path != '/api/remote-allowlist': return self._send(404, {'error':'Not found'})
+        if not self._admin_auth(): return self._send(401, {'error':'Akses admin allowlist ditolak. Gunakan UI lokal atau token operator.'})
+        try:
+            data=self._body()
+            entry=normalize_allowlist_entry(data.get('entry',''))
+            with connection() as c:
+                cursor=c.execute('DELETE FROM remote_allowlist WHERE entry=?',(entry,))
+            if not cursor.rowcount: return self._send(404, {'error':'Target tidak ditemukan atau berasal dari konfigurasi environment.'})
+            return self._send(200, {'entry':entry,'message':'Target remote dihapus dari allowlist WTP.'})
+        except (ValueError, json.JSONDecodeError) as exc:
+            return self._send(400, {'error':str(exc)})
+
+
+def serve():
+    if HOST not in ('127.0.0.1','localhost','::1') and os.getenv('WTP_ALLOW_REMOTE','').lower() != 'true':
+        raise SystemExit('Refusing non-loopback bind. Set WTP_ALLOW_REMOTE=true only behind authenticated TLS/reverse proxy.')
+    db().close()
+    server=ThreadingHTTPServer((HOST,PORT),Handler)
+    print(f'Web Technology Profiler listening at http://{HOST}:{PORT}')
+    print('APTS Stage 6 dispatch configured:', bool(DISPATCH_URL))
+    try: server.serve_forever()
+    except KeyboardInterrupt: pass
+    finally: server.server_close()
+
+if __name__=='__main__': serve()

@@ -1,0 +1,30 @@
+STAGE 3.8.7 — WINDOWS DEPLOYMENT
+
+Baseline: D:\mission_orchestrator running Stage 3.8.6.
+Patch: Stage3_8_7_Integrity_Gap_Consistency_Diagnostics_Patch.zip.
+
+1. Keep a copy of the current mission_orchestrator/ and tests/ directories
+   and the existing runtime/service configuration. The patch does not include
+   data/ and does not replace the deployment database.
+
+2. Replace the path below with the downloaded patch location:
+
+   Expand-Archive `
+       -Path 'C:\path\to\Stage3_8_7_Integrity_Gap_Consistency_Diagnostics_Patch.zip' `
+       -DestinationPath 'D:\mission_orchestrator' `
+       -Force
+
+3. Restart Mission Orchestrator through the same procedure as before.
+   Verify GET http://127.0.0.1:8780/health reports
+   stage3.8.7-integrity-gap-consistency-diagnostics.
+
+4. Run acceptance in PowerShell:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_8_7_ACCEPTANCE.ps1
+
+   Optional read check for an existing Mission:
+   .\STAGE3_8_7_ACCEPTANCE.ps1 -MissionId '<existing-mission-id>'
+
+Stage 3.8.7 keeps repository migration_level=53. Do not run a new migration.

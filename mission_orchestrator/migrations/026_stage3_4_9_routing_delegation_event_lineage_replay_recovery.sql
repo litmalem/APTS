@@ -1,0 +1,42 @@
+-- Stage 3.4.9 — Routing/Delegation Event Lineage, Replay & Recovery
+-- MySQL/MariaDB deployment migration. SQLite acceptance schema is bootstrapped
+-- by MissionRepository.ensure_schema().
+
+CREATE TABLE IF NOT EXISTS mission_routing_delegation_recovery_checkpoints (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    checkpoint_id VARCHAR(100) NOT NULL,
+    mission_id VARCHAR(80) NOT NULL,
+    checkpoint_version INT UNSIGNED NOT NULL,
+    delivery_receipt_id VARCHAR(100) NOT NULL,
+    delegation_id VARCHAR(100) NOT NULL,
+    route_decision_id VARCHAR(100) NOT NULL,
+    plan_version_record_id VARCHAR(100) NOT NULL,
+    plan_version INT UNSIGNED NOT NULL,
+    planned_task_id VARCHAR(100) NOT NULL,
+    schema_version VARCHAR(160) NOT NULL,
+    request_sha256 CHAR(64) NOT NULL,
+    idempotency_key VARCHAR(128) NOT NULL,
+    recovery_control_count INT UNSIGNED NOT NULL,
+    source_event_count INT UNSIGNED NOT NULL,
+    source_event_tip_sha256 CHAR(64) NOT NULL,
+    canonical_sha256 CHAR(64) NOT NULL,
+    canonical_json LONGTEXT NOT NULL,
+    source_state_version BIGINT UNSIGNED NOT NULL,
+    source_version_sha256 CHAR(64) NOT NULL,
+    created_by VARCHAR(128) NOT NULL,
+    reason TEXT NULL,
+    created_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_routing_delegation_recovery_checkpoint_id (checkpoint_id),
+    UNIQUE KEY uq_routing_delegation_recovery_idempotency (mission_id, idempotency_key),
+    UNIQUE KEY uq_routing_delegation_recovery_snapshot (mission_id, delivery_receipt_id, recovery_control_count),
+    UNIQUE KEY uq_routing_delegation_recovery_version (mission_id, checkpoint_version),
+    KEY idx_routing_delegation_recovery_mission (mission_id, checkpoint_version),
+    CONSTRAINT fk_routing_delegation_recovery_mission FOREIGN KEY (mission_id) REFERENCES global_missions(mission_id),
+    CONSTRAINT fk_routing_delegation_recovery_delivery FOREIGN KEY (delivery_receipt_id) REFERENCES mission_delegation_deliveries(delivery_receipt_id),
+    CONSTRAINT fk_routing_delegation_recovery_delegation FOREIGN KEY (delegation_id) REFERENCES mission_task_delegations(delegation_id),
+    CONSTRAINT fk_routing_delegation_recovery_route FOREIGN KEY (route_decision_id) REFERENCES mission_task_route_decisions(route_decision_id),
+    CONSTRAINT fk_routing_delegation_recovery_plan FOREIGN KEY (plan_version_record_id) REFERENCES mission_plan_versions(plan_version_record_id),
+    CONSTRAINT fk_routing_delegation_recovery_planned_task FOREIGN KEY (planned_task_id) REFERENCES mission_planned_tasks(planned_task_id),
+    CONSTRAINT chk_routing_delegation_recovery_json CHECK (json_valid(canonical_json))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

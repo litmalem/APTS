@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <title>APTS Mission Operations Console</title>
+  <link rel="stylesheet" href="/ui/app.css" />
+</head>
+<body>
+  <!-- Backward-compatibility invariant: PHASE 2 · GUARDED HUMAN INTERACTION remains preserved beneath Phase 3. -->
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">A</div>
+        <div><strong>APTS</strong><span>Mission Console</span></div>
+      </div>
+      <div class="mode-badge phase3-mode"><span class="dot dot-cyan"></span> PHASE 3 · ADVANCED OPERATIONS</div>
+      <nav id="nav">
+        <a href="#dashboard" data-route="dashboard"><span>◫</span> Dashboard</a>
+        <a href="#missions" data-route="missions"><span>◎</span> Missions</a>
+        <a href="#subsystems" data-route="subsystems"><span>◇</span> Subsystems</a>
+        <a href="#compare" data-route="compare"><span>⇄</span> Compare</a>
+        <a href="#diagnostics" data-route="diagnostics"><span>△</span> Attention</a>
+        <a href="#health" data-route="health"><span>◉</span> System Health</a>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="tiny-label">MISSION ORCHESTRATOR</div>
+        <div id="controlVersion" class="mono tiny">loading...</div>
+        <div class="endpoint">127.0.0.1:8780</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">GLOBAL MISSION ORCHESTRATOR</div>
+          <h1 id="pageTitle">Mission Operations Console</h1>
+        </div>
+        <div class="top-actions">
+          <button id="refreshButton" class="ghost-button" title="Refresh current view">↻ Refresh</button>
+          <div id="globalHealth" class="health-pill neutral"><span class="dot"></span><span>Checking...</span></div>
+        </div>
+      </header>
+      <section id="app" class="content"><div class="loading-card">Loading Mission Console…</div></section>
+    </main>
+  </div>
+
+  <template id="emptyTemplate">
+    <div class="empty-state"><div class="empty-icon">◇</div><h3>No data available</h3><p>The requested Mission projection has not been materialized for this mission.</p></div>
+  </template>
+
+  <script src="/ui/app.js" defer></script>
+</body>
+</html>

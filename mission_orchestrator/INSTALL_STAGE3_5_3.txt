@@ -1,0 +1,26 @@
+STAGE 3.5.3 INSTALL / VERIFY
+============================
+
+1. Replace the Mission Orchestrator source tree with this full package.
+2. Apply MySQL/MariaDB migration:
+   migrations/029_stage3_5_3_authoritative_pre_dispatch_governance_revalidation.sql
+3. Ensure the external APTS Governance service used by Mission Orchestrator is available.
+4. Restart Mission Orchestrator on port 8780.
+5. Verify /health:
+   control_version = stage3.5.3-authoritative-pre-dispatch-governance-revalidation
+   mission_repository_migration_level = 29
+   pre_dispatch_governance_database_migration_level = 29
+6. Run:
+   python -m compileall -q mission_orchestrator tests
+   python -m pytest -q tests/test_stage3_5_3_authoritative_pre_dispatch_governance_revalidation.py
+   python -m pytest -q
+7. On Windows PowerShell, use:
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_5_3_ACCEPTANCE.ps1
+
+IMPORTANT AUTHORITY BOUNDARY
+----------------------------
+Stage 3.5.3 performs the authoritative pre-dispatch Governance authorization decision.
+ALLOW may set execution_authorized=true, but authorization is NOT dispatch. This stage
+still performs no runtime endpoint resolution, runtime health probe, resource assignment,
+dispatch attempt, external target network I/O, or target actuation.

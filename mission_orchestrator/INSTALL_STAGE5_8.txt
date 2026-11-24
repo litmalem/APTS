@@ -1,0 +1,19 @@
+STAGE 5.8 INSTALL / ACTIVATE
+============================
+
+1. Replace the repository tree with this patch/package.
+2. From D:\mission_orchestrator, activate the same Python environment used by APTS.
+3. Restart the Pentest subsystem. Startup automatically migrates the Pentest repository to migration 15.
+4. Verify:
+     GET http://127.0.0.1:8790/health
+   Expected:
+     control_version = stage5.8-cross-agent-feedback-shared-state-replanning
+     pentest_repository_migration_level = 15
+     stage5_8_shared_state_enabled = true
+     stage5_8_local_replanning_enabled = true
+5. Keep the Global Mission Orchestrator running on port 8780 with Stage 3.9.10 control active.
+6. Run:
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE5_8_ACCEPTANCE.ps1
+
+Stage 5.8 does not enable controlled execution. POST /api/execution/dispatches must remain rejected (HTTP 409). Controlled execution remains Stage 6 authority.

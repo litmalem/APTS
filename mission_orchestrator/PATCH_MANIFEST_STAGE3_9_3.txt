@@ -1,0 +1,13 @@
+Stage: 3.9.3 — Planning -> Task Graph -> Dependency Verification
+Control: stage3.9.3-planning-task-graph-dependency-verification
+API server: APTSMissionOrchestrator/3.9.3
+Predecessor: stage3.9.2-intake-lifecycle-e2e-segment-qualification
+Repository migration: 53 (unchanged)
+New durable store: NO
+New operational authority: NO
+Canonical task count: 3
+Canonical dependency edge count: 2
+Dependency graph status: PASS
+Mission state at qualified head: PLANNING(v3)
+Canonical test inventory: 1473
+Next stage: 3.9.4 — Routing -> Delegation -> Governance

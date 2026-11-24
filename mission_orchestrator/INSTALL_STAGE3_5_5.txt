@@ -1,0 +1,38 @@
+STAGE 3.5.5 INSTALL / ACTIVATION
+================================
+
+1. Replace the Mission Orchestrator source tree with this package.
+2. Preserve your deployment-specific environment variables and database credentials.
+3. Apply database migration 031 when using MySQL/MariaDB.
+   SQLite development instances create the schema automatically through repository.ensure_schema().
+4. Configure runtime delivery endpoints as required:
+
+   CTI:
+     MISSION_CTI_EXECUTION_BASE_URL=http://<cti-runtime>:<port>
+   or fallback:
+     MISSION_CTI_BASE_URL=http://<cti-runtime>:<port>
+
+   PENTEST:
+     MISSION_PENTEST_EXECUTION_BASE_URL=http://<pentest-runtime>:<port>
+   or fallback:
+     MISSION_PENTEST_BASE_URL=http://<pentest-runtime>:<port>
+
+   Optional:
+     MISSION_EXECUTION_DISPATCH_PATH=/api/execution/dispatches
+     MISSION_EXECUTION_DELIVERY_TIMEOUT_SECONDS=5.0
+
+5. Restart Mission Orchestrator.
+6. Confirm /health reports:
+     control_version = stage3.5.5-dispatch-delivery-execution-acknowledgement
+     mission_repository_migration_level = 31
+     execution_delivery_schema_version = apts-dispatch-delivery-execution-acknowledgement-v1
+     execution_delivery_persistence_store = mission_execution_deliveries
+7. Run:
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE3_5_5_ACCEPTANCE.ps1
+
+IMPORTANT
+---------
+Stage 3.5.5 introduces real runtime endpoint resolution, health probing, and dispatch-envelope delivery.
+The target runtime must implement the configured health and execution-intake protocol before a live Stage-3.5.5 API call can succeed.
+A successful Stage-3.5.5 acknowledgement does NOT mean execution is RUNNING. Stage 3.5.6 owns RUNNING/heartbeat state.

@@ -1,0 +1,57 @@
+Stage 3.2.2 - Lifecycle Transition Guard Matrix Patch Manifest
+==============================================================
+
+New files
+---------
+tests/test_stage3_2_2_lifecycle_transition_guard_matrix.py
+README_STAGE3_2_2.md
+PATCH_NOTES_STAGE3_2_2.md
+INSTALL_STAGE3_2_2.txt
+PATCH_MANIFEST_STAGE3_2_2.txt
+STAGE3_2_2_ACCEPTANCE.ps1
+SHA256_STAGE3_2_2.txt
+
+Modified files
+--------------
+mission_orchestrator/__init__.py
+mission_orchestrator/api_service.py
+mission_orchestrator/errors.py
+mission_orchestrator/mission_lifecycle.py
+mission_orchestrator/service.py
+tests/test_stage3_1_6_mission_versioning_concurrency.py
+tests/test_stage3_1_7_mission_persistence_repository_model.py
+tests/test_stage3_1_8_canonical_mission_api_validation_layer.py
+tests/test_stage3_1_9_mission_event_lineage_foundation.py
+tests/test_stage3_1_10_acceptance_regression_gate.py
+tests/test_stage3_2_1_mission_lifecycle_command_contract.py
+
+Database
+--------
+No new Stage-3.2.2 migration.
+Repository migration level remains 8.
+Latest existing migration remains:
+  migrations/008_stage3_1_9_mission_event_lineage_foundation.sql
+
+Runtime scope
+-------------
+Adds deterministic local lifecycle source-state and PIP prerequisite guards to
+LIFECYCLE_COMMAND before canonical transition commit. Reuses the existing command
+journal, state ledger, and event lineage. No planner, external authorization decision,
+target-action execution capability, or new event bus.
+
+Unchanged subsystem source
+--------------------------
+aptsGSS: no Stage-3.2.2 source change required
+VulnDesk: no Stage-3.2.2 source change required
+
+Validation
+----------
+python -m compileall -q mission_orchestrator tests : PASS
+python -m pytest -q                              : 140 passed
+Local HTTP smoke                                 : PASS
+Live Stage-3.2.2 acceptance                      : operator-run against active Mission service
+
+Data safety
+-----------
+Distributable ZIP excludes data/mission_orchestrator.db, .pytest_cache,
+__pycache__, local smoke databases, and external aptsGSS/VulnDesk repositories.

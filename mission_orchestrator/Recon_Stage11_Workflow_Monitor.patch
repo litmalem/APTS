@@ -1,0 +1,240 @@
+diff --git a/pentest_subsystem/api_service.py b/pentest_subsystem/api_service.py
+index a12fe25..f812c53 100644
+--- a/pentest_subsystem/api_service.py
++++ b/pentest_subsystem/api_service.py
+@@ -1474,9 +1474,33 @@ class PentestSubsystemStage52Handler(PentestSubsystemStage51Handler):
+             return recon_run_id
+         return None
+ 
++    @staticmethod
++    def _recon_action_results_route(path: str) -> str | None:
++        prefix = "/api/pentest/ui/recon-action-requests/"
++        suffix = "/results"
++        if path.startswith(prefix) and path.endswith(suffix):
++            action_id = unquote(path[len(prefix):-len(suffix)])
++            if action_id and "/" not in action_id:
++                return action_id
++        return None
++
+     def do_GET(self) -> None:  # noqa: N802
+         parsed = urlparse(self.path)
+         path = parsed.path
++        action_id = self._recon_action_results_route(path)
++        if action_id is not None:
++            try:
++                result = self.service.get_stage6_execution_results(action_id)
++                self._send_json(200, result)
++            except ReconnaissanceAgentNotFound as exc:
++                self._send_json(404, {"status": "not_found", "error": str(exc), "read_only": True})
++            except ReconnaissanceAgentIntegrityError as exc:
++                self._send_json(409, {"status": "invalid", "error": str(exc), "read_only": True})
++            except (ReconnaissanceAgentConflict, ReconnaissanceAgentValidationError) as exc:
++                self._send_json(503, {"status": "unavailable", "error": str(exc), "read_only": True})
++            except ReconnaissanceAgentRepositoryError as exc:
++                self._send_json(500, {"status": "error", "error": str(exc), "read_only": True})
++            return
+         if path in {
+             "/api/pentest/reconnaissance-agent-contract",
+             "/api/contracts/reconnaissance-agent",
+diff --git a/pentest_subsystem/reconnaissance.py b/pentest_subsystem/reconnaissance.py
+index 0aaa25f..563fbde 100644
+--- a/pentest_subsystem/reconnaissance.py
++++ b/pentest_subsystem/reconnaissance.py
+@@ -2047,6 +2047,28 @@ class ReconnaissanceAgentService(AgenticPentestOrchestratorService):
+         }
+ 
+     def _get_stage6_execution_result(self, action_id: str) -> dict[str, Any]:
++        response = self._fetch_stage6_execution_results(action_id)
++        if not isinstance(response, dict) or response.get("action_id") != action_id:
++            raise ReconnaissanceAgentIntegrityError("Stage 6 result response is not bound to the requested Action Request")
++        results = response.get("results")
++        if not isinstance(results, list) or not results:
++            raise ReconnaissanceAgentConflict("Stage 6 has no durable result for this Action Request")
++        from execution_subsystem.execution_result_contract import verify_recon_execution_result
++        for item in results:
++            if not verify_recon_execution_result(item) or item.get("action_id") != action_id:
++                raise ReconnaissanceAgentIntegrityError("Stage 6 returned an invalid or mismatched Recon ExecutionResult")
++        latest = response.get("latest_result")
++        if latest != results[-1] or not latest.get("terminal"):
++            raise ReconnaissanceAgentConflict("Recon iteration requires the latest Stage 6 attempt to be terminal")
++        if latest.get("runtime_state") != "SUCCEEDED" or latest.get("execution_result", {}).get("status") != "SUCCEEDED":
++            raise ReconnaissanceAgentConflict("Recon iteration requires a successful terminal Stage 6 result")
++        if not latest.get("evidence") or latest["evidence"].get("capture_status") != "SEALED":
++            raise ReconnaissanceAgentConflict("Recon iteration requires sealed Stage 6.6 evidence")
++        return latest
++
++    def _fetch_stage6_execution_results(self, action_id: str) -> dict[str, Any]:
++        """Fetch and verify the Stage 6 read model through the configured loopback API."""
++        action_id = _canonical_id(action_id, "action_id", prefix="rareq-")
+         if self.execution_result_provider is not None:
+             response = self.execution_result_provider(action_id)
+         else:
+@@ -2070,20 +2092,39 @@ class ReconnaissanceAgentService(AgenticPentestOrchestratorService):
+         if not isinstance(response, dict) or response.get("action_id") != action_id:
+             raise ReconnaissanceAgentIntegrityError("Stage 6 result response is not bound to the requested Action Request")
+         results = response.get("results")
+-        if not isinstance(results, list) or not results:
+-            raise ReconnaissanceAgentConflict("Stage 6 has no durable result for this Action Request")
++        if not isinstance(results, list):
++            raise ReconnaissanceAgentIntegrityError("Stage 6 results must be an array")
+         from execution_subsystem.execution_result_contract import verify_recon_execution_result
+         for item in results:
+             if not verify_recon_execution_result(item) or item.get("action_id") != action_id:
+                 raise ReconnaissanceAgentIntegrityError("Stage 6 returned an invalid or mismatched Recon ExecutionResult")
+         latest = response.get("latest_result")
+-        if latest != results[-1] or not latest.get("terminal"):
+-            raise ReconnaissanceAgentConflict("Recon iteration requires the latest Stage 6 attempt to be terminal")
+-        if latest.get("runtime_state") != "SUCCEEDED" or latest.get("execution_result", {}).get("status") != "SUCCEEDED":
+-            raise ReconnaissanceAgentConflict("Recon iteration requires a successful terminal Stage 6 result")
+-        if not latest.get("evidence") or latest["evidence"].get("capture_status") != "SEALED":
+-            raise ReconnaissanceAgentConflict("Recon iteration requires sealed Stage 6.6 evidence")
+-        return latest
++        if results and latest != results[-1]:
++            raise ReconnaissanceAgentIntegrityError("Stage 6 latest result does not match the final attempt")
++        if not results and latest is not None:
++            raise ReconnaissanceAgentIntegrityError("Stage 6 returned a latest result without attempt history")
++        return response
++
++    def get_stage6_execution_results(self, action_id: str) -> dict[str, Any]:
++        """Read results only for an Action Request already persisted in a Recon run."""
++        action_id = _canonical_id(action_id, "action_id", prefix="rareq-")
++        matches = [
++            request
++            for run in self.list_recon_runs(limit=500)
++            for request in run.get("output", {}).get("action_requests", [])
++            if request.get("action_id") == action_id
++        ]
++        if len(matches) != 1:
++            raise ReconnaissanceAgentNotFound("Action Request is missing or is not uniquely bound to a Recon run")
++        response = self._fetch_stage6_execution_results(action_id)
++        return {
++            "status": "ok",
++            "action_id": action_id,
++            "attempt_count": len(response["results"]),
++            "results": response["results"],
++            "latest_result": response.get("latest_result"),
++            "read_only": True,
++        }
+ 
+     def run_reconnaissance_iteration(self, orchestration_id: str, payload: Any) -> dict[str, Any]:
+         if not isinstance(payload, dict) or set(payload) != {"schema_version", "parent_recon_run_id", "action_id"}:
+diff --git a/pentest_web/app.css b/pentest_web/app.css
+index f91dc7f..36f9386 100644
+--- a/pentest_web/app.css
++++ b/pentest_web/app.css
+@@ -1 +1,2 @@
+ :root{color-scheme:light;--ink:#182c43;--muted:#75859a;--line:#e3eaf0;--blue:#2467ed;--nav:#11243a;--bg:#f4f7fb}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 'Segoe UI',Arial,sans-serif}button,input,select,textarea{font:inherit}button,a,input,select,summary{outline-offset:4px}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.48}a{color:var(--blue);text-decoration:none}.sidebar{position:fixed;inset:0 auto 0 0;width:260px;background:var(--nav);color:#d0dbe7;padding:32px 18px;display:flex;flex-direction:column}.brand{color:white;display:flex;align-items:center;gap:12px;font-size:24px;font-weight:700;margin:0 12px 46px;letter-spacing:2px}.brand small{display:block;font-size:9px;font-weight:500;color:#8fa6bd;letter-spacing:1.6px}.brand-mark{display:grid;place-items:center;background:#3378f3;width:42px;height:44px;border-radius:12px;font-size:28px}.workspace-label{display:flex;justify-content:space-between;color:#8ba0b8;font-size:10px;font-weight:700;letter-spacing:1.2px;margin:0 12px 16px}.workspace-label span{color:#66819a}.stage{display:flex;text-align:left;align-items:center;gap:12px;background:none;border:1px solid transparent;color:#c0cede;padding:16px 12px;border-radius:9px;width:100%;margin-bottom:8px;font-size:12px}.stage b{border:1px solid #3b4e64;border-radius:7px;width:29px;height:29px;display:grid;place-items:center;font-size:11px;font-weight:500;flex-shrink:0}.stage small{display:block;color:#7e95ae;font-size:10px;margin-top:3px}.stage.active{background:#1b385b;border-color:#2b507d;color:white}.stage.active b{background:#3378f3;border-color:#3378f3}.stage.active small{color:#9fc1f0}.stage i{font-size:9px;color:#75a7ff;margin-left:auto}.stage:disabled{opacity:.66}.sidebar-bottom{margin-top:auto;padding:24px 12px 0;font-size:10px;color:#a1b6ca;border-top:1px solid #263a51}.sidebar-bottom p{color:#8197ad;font-size:11px}.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#59d6b4;margin-right:5px}.version{font-size:9px;letter-spacing:1px;display:block;margin-top:28px;color:#69829b}.shell{margin-left:260px}header{height:70px;background:white;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 38px;color:#758398;font-size:12px}header span{margin:0 12px;color:#b3bdc9}header strong{font-weight:500;color:#263d58}.connection{border:1px solid var(--line);padding:5px 11px;border-radius:30px;font-size:11px}.connection.online{color:#128365;background:#f1fcf8;border-color:#cceee2}.connection.offline{color:#ad422e}main{max-width:1560px;margin:auto;padding:34px 38px 18px}.heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px}.eyebrow{font-size:10px;font-weight:700;letter-spacing:1.8px;color:#69829b}h1{font-size:29px;letter-spacing:-.9px;margin:6px 0;font-weight:650;display:flex;align-items:center;gap:14px}.heading p{color:#76869a;margin:5px 0;font-size:13px}.tag{font-size:10px;color:#4e78b5;border:1px solid #d4e2f6;background:#edf4ff;border-radius:5px;padding:3px 8px;letter-spacing:0;font-weight:500}.card{border:1px solid var(--line);background:white;border-radius:12px;box-shadow:0 3px 8px #1c385505}.target-card{padding:22px 24px 0}h2{font-size:15px;margin:0;font-weight:650}.section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}.icon{color:var(--blue);font-size:23px;margin-right:7px;vertical-align:middle}.pill{padding:4px 10px;border-radius:20px;background:#eff6ff;color:#4c7abc;font-size:10px;white-space:nowrap}.pill.neutral{background:#f2f5f8;color:#7c8ca0}label{display:block;font-size:12px;font-weight:600;margin-bottom:8px}.target-row{display:flex;position:relative;gap:10px}.target-row input{padding-left:38px;flex:1;min-width:0}.url-icon{position:absolute;top:10px;left:14px;color:#8398ac;font-size:19px}input,select,textarea{background:#fff;border:1px solid #dbe4ed;border-radius:7px;padding:11px 12px;color:#233c56;width:100%}input::placeholder,textarea::placeholder{color:#99a8b8}input:focus,select:focus,textarea:focus{border-color:#5992f8;outline:2px solid #dce9ff}input[readonly]{background:#f8fafc;color:#6d8094}.primary,.secondary,.file-button{border:1px solid #dce4ed;border-radius:7px;padding:10px 17px;background:white;color:#466078;font-weight:600;font-size:12px;display:inline-block}.primary{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 3px 5px #2467ed18}.primary:hover:not(:disabled){background:#1658d9}.primary span{margin-left:20px}.secondary:hover{background:#f4f7fc}.hint{font-size:11px;color:#8694a5;margin:7px 0 0}.setup-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:25px;margin:20px 0}.setup-grid select,.setup-grid input{padding:9px 11px;font-size:12px}details{border:1px solid var(--line);border-radius:7px;margin:19px 0}summary{cursor:pointer;padding:11px 14px;font-size:12px;color:#58718c}summary span{float:right;font-size:10px;color:#8496ab}.import-body{border-top:1px solid var(--line);padding:16px}.import-body p{margin-top:0;color:#76869a;font-size:12px}.import-toolbar{display:flex;align-items:center;gap:10px;margin:15px 0}.import-toolbar a{font-size:11px;margin-left:auto}.file-button{margin:0;cursor:pointer}#import-file{width:210px;font-size:10px}textarea{height:180px;font-family:Consolas,monospace;font-size:11px;resize:vertical}.target-footer{margin:0 -24px;border-top:1px solid var(--line);padding:15px 24px;background:#fbfcfe;border-radius:0 0 12px 12px;display:flex;align-items:center;justify-content:space-between;gap:20px}.target-footer p{font-size:11px;color:#7c8ea3;margin:0;max-width:560px}.info-icon{display:inline-grid;place-items:center;border:1px solid #9aaec1;width:14px;height:14px;border-radius:50%;font-size:9px;margin-right:6px}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:22px 0}.metrics article{background:white;border:1px solid var(--line);border-radius:9px;padding:17px 20px;position:relative}.metrics article:after{content:'';position:absolute;right:20px;top:20px;width:8px;height:8px;border:3px solid #dce9ff;border-radius:50%}.metrics span{display:block;font-size:10px;font-weight:600;color:#7d8fa3;letter-spacing:.8px}.metrics strong{font-size:29px;font-weight:600;display:block;margin:3px 0;color:#25405f}.metrics small{font-size:10px;color:#98a5b4}.results{overflow:hidden}.results-header{padding:20px 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.results-header>div{display:flex;align-items:center;gap:15px}.compact{padding:6px 10px;font-size:11px}.results-layout{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:330px}.assets{background:#fbfcfe;border-right:1px solid var(--line);padding:20px 18px;overflow-wrap:anywhere}.asset-title,.context-label{font-size:9px;color:#899baf;letter-spacing:1px;font-weight:650;margin-bottom:17px}.context-label{margin-top:28px}dl{margin:0}dt{font-size:10px;color:#94a1b2;margin:9px 0 3px}dd{margin:0;font:10px/1.7 Consolas,monospace;color:#6f85a0}.tree-root{font-size:12px;color:#2d68bd;margin-bottom:12px}.tree-item{font-size:11px;border-left:1px solid #dbe5f0;margin-left:6px;padding:6px 0 6px 14px;color:#71869e}.tabs{display:flex;border-bottom:1px solid var(--line);padding:0 15px;gap:9px;overflow:auto}.tabs button{padding:15px 11px 13px;border:0;border-bottom:2px solid transparent;background:white;color:#8a97a7;font-size:11px;white-space:nowrap}.tabs button[aria-selected=true]{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}.result-tools{display:flex;align-items:center;justify-content:space-between;padding:15px 20px;gap:10px}.result-tools span{font-size:10px;color:#8696a9}.result-tools input{width:180px;padding:6px 10px;font-size:11px}#result-panel{overflow:auto;max-height:410px;min-height:225px}.empty{text-align:center;padding:34px 24px 44px;color:#8c9cae}.empty-symbol{display:grid;place-items:center;border:1px solid #e4edf9;background:#f7faff;color:#83a9db;width:48px;height:48px;border-radius:14px;margin:0 auto 14px;font-size:25px}.empty strong{display:block;color:#5c7290;font-size:13px;font-weight:500}.empty p{font-size:11px;margin:7px 0}table{border-collapse:collapse;width:100%;font-size:11px;text-align:left}th{font-size:9px;color:#8a9caf;background:#f9fbfd;font-weight:600;text-transform:uppercase;letter-spacing:.7px}th,td{padding:11px 17px;border-bottom:1px solid #eef2f7;vertical-align:top;overflow-wrap:anywhere}td{max-width:310px}.badge{font-size:9px;color:#416eab;background:#eef4fc;border-radius:4px;padding:3px 6px}.mono{font:10px/1.6 Consolas,monospace}.row-button{padding:0;border:0;background:none;color:var(--blue);font-size:11px;text-align:left}.notice{border:1px solid #cbdcf7;background:#edf5ff;color:#315888;border-radius:7px;padding:12px 16px;margin-bottom:18px;font-size:12px}.notice.error{background:#fff3f1;border-color:#f4cfc8;color:#a74331}.detail{padding:16px;white-space:pre-wrap;font:11px/1.7 Consolas,monospace;overflow-wrap:anywhere;background:#f8fafc;margin:0}footer{display:flex;justify-content:space-between;font-size:9px;color:#9ba8b9;padding:23px 0 0}body.busy #run{opacity:.6}@media(min-width:1600px){main{padding-top:42px}}@media(max-width:1150px){.sidebar{width:225px;padding-inline:12px}.shell{margin-left:225px}main{padding:25px 24px}.target-footer{align-items:flex-start}.results-layout{grid-template-columns:180px 1fr}.tabs{gap:0;padding:0 8px}.tabs button{padding-inline:9px}h1{font-size:25px}.target-footer p{max-width:340px}}@media(max-width:850px){.sidebar{position:relative;width:auto;padding:16px}.brand{margin:0 0 16px;font-size:21px}.brand-mark{height:35px;width:35px}.workspace-label,.sidebar-bottom{display:none}.sidebar nav{display:flex;overflow:auto;gap:8px}.stage{min-width:160px;width:auto;margin:0;padding:8px}.stage small{display:none}.stage b{width:23px;height:23px}.shell{margin:0}header{padding:0 20px;height:55px}main{padding:22px 18px}.heading{gap:10px}.heading p{max-width:360px}h1{font-size:23px;flex-wrap:wrap}.metrics{gap:10px}.metrics article{padding:13px}.metrics article:after{display:none}.results-layout{grid-template-columns:160px minmax(0,1fr)}.result-tools{padding:13px}.result-tools input{width:130px}}@media(max-width:560px){header>div:first-child{font-size:10px}header span{margin:0 4px}.heading{align-items:flex-start}.heading .secondary{font-size:10px;padding:7px}.target-card{padding:17px 15px 0}.target-row{flex-wrap:wrap}.target-row input{flex-basis:100%}.target-row button{width:100%}.setup-grid{grid-template-columns:1fr;gap:15px}.target-footer{margin:0 -15px;padding:15px;flex-direction:column;gap:12px}.target-footer button{width:100%}.metrics{grid-template-columns:1fr 1fr}.results-layout{display:block}.assets{border-right:0;border-bottom:1px solid var(--line);padding:14px}.context-label,#run-context{display:none}.asset-title{margin-bottom:8px}.results-header{padding:15px;gap:10px}.results-header>div{gap:8px}.results-header h2{font-size:13px}.tabs{padding:0 6px}.tabs button{font-size:10px;padding-inline:8px}.result-tools span{max-width:160px}.import-toolbar{flex-wrap:wrap}.import-toolbar a{margin:0}footer{gap:15px}.tag{font-size:9px}.section-title{gap:10px}.section-title h2{font-size:14px}}
++.workflow-note{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:14px 18px;padding:12px 14px;border:1px solid #d9e7f7;background:#f5f9ff;border-radius:8px;color:#59718d;font-size:11px}.workflow-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:4px 18px 18px}.workflow-step{display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid var(--line);border-radius:8px;background:#fff}.workflow-number{display:grid;place-items:center;flex:0 0 25px;height:25px;border-radius:50%;background:#edf4ff;color:#356fc1;font-size:11px;font-weight:700}.workflow-step strong,.workflow-step small{display:block}.workflow-step strong{font-size:11px}.workflow-step small{font-size:10px;color:#7b8da2;margin-top:4px}.workflow-heading{padding:12px 18px 8px;border-top:1px solid var(--line);color:#526a84;font-size:12px}.workflow-note .secondary{flex:0 0 auto}@media(max-width:850px){.workflow-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.workflow-note{align-items:flex-start;flex-direction:column}.workflow-steps{grid-template-columns:1fr;padding-inline:12px}.workflow-heading{padding-inline:12px}}
+diff --git a/pentest_web/app.js b/pentest_web/app.js
+index 812ff46..b03a5fa 100644
+--- a/pentest_web/app.js
++++ b/pentest_web/app.js
+@@ -1,6 +1,6 @@
+ 'use strict';
+ const $ = id => document.getElementById(id);
+-const state = {run:null, history:[], orchestrations:[], pendingTasks:[], orchestrationOptions:[], tab:'observations', activities:[], busy:false, online:false, target:'', selectedObservation:null};
++const state = {run:null, history:[], orchestrations:[], pendingTasks:[], orchestrationOptions:[], tab:'observations', activities:[], workflowResults:{}, workflowLoading:false, busy:false, online:false, target:'', selectedObservation:null};
+ const esc = s => String(s ?? '—').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const fmt = value => value ? new Date(value).toLocaleString('id-ID') : '—';
+ function notify(message, error=false) { $('notice').hidden=false; $('notice').className='notice'+(error?' error':''); $('notice').textContent=message; }
+@@ -47,14 +47,15 @@ function renderResults(){
+ }
+ function renderPanel(){
+  const panel=$('result-panel'),run=state.run;
+- const captions={observations:'Observasi yang telah diproses agent',evidence:'Evidence tersimpan & status scope',proposals:'Proposal tindakan · belum dieksekusi',activity:'Aktivitas UI pada sesi browser ini',history:'100 run terbaru dari Pentest API'};
++ const captions={observations:'Observasi yang telah diproses agent',evidence:'Evidence tersimpan & status scope',proposals:'Proposal tindakan · belum dieksekusi',workflow:'Pemantauan baca-saja: Action Request → Stage 6 → evidence → iterasi Recon',activity:'Aktivitas UI pada sesi browser ini',history:'100 run terbaru dari Pentest API'};
+  $('result-caption').textContent=captions[state.tab];
+  if(state.tab==='activity') {
+   const rows=filterRows(state.activities);panel.innerHTML=rows.length?table(['Waktu','Aktivitas'],rows.map(x=>`<tr><td>${esc(fmt(x.time))}</td><td>${esc(x.message)}</td></tr>`)):empty('Belum ada aktivitas','Aktivitas sesi ini akan tampil di sini.');return;
+  }
++ if(state.tab==='workflow') { renderWorkflow(panel); return; }
+  if(state.tab==='history') {
+   const rows=filterRows(state.history);panel.innerHTML=rows.length?table(['Run / Mission','Status','Waktu'],rows.map(x=>`<tr><td><button class="row-button" data-run="${esc(x.recon_run_id)}">${esc(x.recon_run_id)}</button><div class="mono">${esc(x.mission_id)}</div></td><td>${esc(x.run_status)}</td><td>${esc(fmt(x.completed_at))}</td></tr>`)):empty(state.online?'Belum ada run tersimpan':'Riwayat belum tersedia',state.online?'Jalankan analisis pada orchestration yang tersedia.':'Hubungkan kembali ke Pentest API.');
+-  panel.querySelectorAll('[data-run]').forEach(b=>b.onclick=()=>{state.run=state.history.find(r=>r.recon_run_id===b.dataset.run);selectTab('observations');renderResults();notify('Menampilkan hasil tersimpan: '+state.run.recon_run_id);});return;
++  panel.querySelectorAll('[data-run]').forEach(b=>b.onclick=()=>{state.run=state.history.find(r=>r.recon_run_id===b.dataset.run);state.workflowResults={};selectTab('observations');renderResults();loadWorkflowResults();notify('Menampilkan hasil tersimpan: '+state.run.recon_run_id);});return;
+  }
+  if(!run){panel.innerHTML=empty('Siap memetakan target Anda','Pilih orchestration, impor observasi, lalu jalankan analisis.');return;}
+  if(state.tab==='observations'){
+@@ -66,6 +67,17 @@ function renderPanel(){
+   const rows=filterRows(run.output?.action_proposals||[]);panel.innerHTML=rows.length?rows.map(x=>`<pre class="detail">${esc(JSON.stringify(x,null,2))}</pre>`).join(''):empty('Tidak ada proposal tindakan','Run ini tidak menghasilkan proposal. Hasil observasi tetap tersedia.');
+  }
+ }
++function renderWorkflow(panel=$('result-panel')){
++ const run=state.run; if(!run){panel.innerHTML=empty('Pilih run Recon','Pilih run dari tab Riwayat untuk memantau alur Stage 6 dan iterasinya.');return;}
++ const actions=run.output?.action_requests||[], children=state.history.filter(x=>x.parent_recon_run_id===run.recon_run_id).sort((a,b)=>(a.iteration_index||0)-(b.iteration_index||0));
++ const steps=[['Stage 5.2 · Recon proposal',actions.length?`${actions.length} Action Request tersimpan`:'Tidak ada Action Request'],['Stage 6.1 · Intake',actions.length?'Request ditautkan ke run Recon':'Menunggu Action Request'],['Stage 6.2 · Otorisasi GSS',actions.some(a=>state.workflowResults[a.action_id]?.latest_result?.lineage?.authorization_id)?'Otorisasi tercatat pada attempt':'Menunggu attempt Stage 6'],['Stage 6.3–6.5 · Gateway & runtime',actions.some(a=>state.workflowResults[a.action_id]?.latest_result)?'Runtime attempt tersedia':'Menunggu hasil Stage 6'],['Stage 6.6 · Evidence',actions.some(a=>state.workflowResults[a.action_id]?.latest_result?.evidence?.capture_status==='SEALED')?'Evidence tersegel':'Menunggu evidence tersegel'],['Stage 5.2 · Iterasi Recon',children.length?`${children.length} run turunan tersimpan`:'Belum ada iterasi']];
++ const stepRows=steps.map(([name,status],i)=>`<div class="workflow-step"><span class="workflow-number">${i+1}</span><div><strong>${esc(name)}</strong><small>${esc(status)}</small></div></div>`).join('');
++ const actionRows=actions.map(a=>{const data=state.workflowResults[a.action_id], latest=data?.latest_result, status=data?.unavailable?'Belum tersedia / API Stage 6 tidak terjangkau':latest?`${latest.runtime_state}${latest.execution_result?.status?` · ${latest.execution_result.status}`:''}`:'Belum ada hasil Stage 6';const evidence=latest?.evidence?.capture_status||'—';return `<tr><td><span class="mono">${esc(a.action_id)}</span><div class="hint">${esc(a.proposal_ref)}</div></td><td>${esc(a.current_status||'AWAITING_STAGE6_INTAKE')}</td><td>${esc(status)}${latest?.lineage?.authorization_id?`<div class="hint">Authorization ID: ${esc(latest.lineage.authorization_id)} · ID ini tidak menyatakan keputusan ALLOW.</div>`:''}</td><td>${esc(evidence)}</td><td>${data?.attempt_count??'—'}</td></tr>`;}).join('');
++ const childRows=children.map(x=>`<tr><td>${esc(x.iteration_index||'—')}</td><td><button class="row-button" data-workflow-run="${esc(x.recon_run_id)}">${esc(x.recon_run_id)}</button></td><td>${esc(x.parent_recon_run_id)}</td><td>${esc(x.source_action_id||'—')}</td><td>${esc(x.source_result_sha256||'—')}</td></tr>`).join('');
++ panel.innerHTML=`<div class="workflow-note">Pemantau baca-saja. Refresh hanya membaca run Recon dan projection hasil Stage 6; tidak meminta otorisasi, tidak memulai adapter, dan tidak menghubungi target. ${state.workflowLoading?'Memperbarui status…':''}<button class="secondary compact" id="workflow-refresh">↻ Perbarui status</button></div><div class="workflow-steps">${stepRows}</div><h3 class="workflow-heading">Action Request dan attempt Stage 6</h3>${actions.length?table(['Action Request','Lifecycle Recon','Runtime Stage 6','Evidence','Attempt'],actionRows):empty('Belum ada Action Request','Periksa proposal pada tab Proposal.') }<h3 class="workflow-heading">Run iterasi yang ditautkan</h3>${childRows?table(['Iterasi','Run baru','Parent run','Action Request sumber','Hash hasil Stage 6'],childRows):empty('Belum ada run turunan','Run iterasi akan muncul setelah hasil Stage 6 yang memenuhi kontrak diproses oleh Recon.')}`;
++ panel.querySelector('#workflow-refresh')?.addEventListener('click',loadWorkflowResults);panel.querySelectorAll('[data-workflow-run]').forEach(b=>b.onclick=()=>{state.run=state.history.find(x=>x.recon_run_id===b.dataset.workflowRun);state.workflowResults={};renderResults();loadWorkflowResults();});
++}
++async function loadWorkflowResults(){const run=state.run;if(!run)return;const actions=run.output?.action_requests||[];state.workflowLoading=true;if(state.tab==='workflow')renderPanel();const pairs=await Promise.all(actions.map(async action=>{try{const data=await api('/api/pentest/ui/recon-action-requests/'+encodeURIComponent(action.action_id)+'/results');return [action.action_id,data];}catch(error){return [action.action_id,{unavailable:true,error:error.message}];}}));if(state.run?.recon_run_id===run.recon_run_id)state.workflowResults=Object.fromEntries(pairs);state.workflowLoading=false;if(state.tab==='workflow')renderPanel();}
+ function selectTab(tab){state.tab=tab;$('search').value='';document.querySelectorAll('[data-tab]').forEach(b=>{b.setAttribute('aria-selected',String(b.dataset.tab===tab));b.tabIndex=b.dataset.tab===tab?0:-1;});renderPanel();}
+ async function refresh(){
+  const selected=$('orchestration').value;
+@@ -85,7 +97,7 @@ async function refresh(){
+  if(responses[2].status==='fulfilled')state.history=responses[2].value.reconnaissance_runs||[];
+  else{state.history=[];notify('Riwayat gagal dimuat: '+responses[2].reason.message,true);}
+  log(state.online?'Koneksi Pentest API diperiksa.':'Pentest API tidak dapat dihubungi.');
+- $('refresh').disabled=false;availability();renderPanel();
++ $('refresh').disabled=false;availability();renderPanel();if(state.run)loadWorkflowResults();
+ }
+ $('target-form').onsubmit=e=>{e.preventDefault();try{state.target=targetUrl($('target').value);$('target').value=state.target;try{localStorage.setItem('apts.recon.target.v1',state.target);}catch{notify('Target valid, tetapi penyimpanan browser tidak tersedia.',true);renderTree();return;}log('Draft target disimpan: '+state.target);notify('Target disimpan. Pilih orchestration dan impor observasi untuk analisis.');renderTree();}catch(error){notify(error.message,true);}};
+ $('validate').onclick=()=>{try{const request=validatePayload();notify(`${request.observations.length} observasi terdeteksi. Validasi kontrak dan scope lengkap dilakukan server saat analisis.`);availability();}catch(error){notify(error.message,true);}};
+@@ -98,10 +110,10 @@ $('run').onclick=async()=>{if(state.busy)return;try{
+  setBusy(true);log('Analisis diminta untuk '+oid);notify('Reconnaissance Agent sedang mengolah observasi…');
+  const result=await api('/api/pentest/ui/reconnaissance/run',{method:'POST',body});state.run=result.run;state.target=url;
+  state.history=[result.run,...state.history.filter(r=>r.recon_run_id!==result.run.recon_run_id)];
+- selectTab('observations');renderResults();log(result.replayed?'Hasil immutable sebelumnya dimuat ulang.':'Analisis selesai; hasil dan evidence tersimpan.');notify('Analisis selesai. Hasil berasal dari observasi terimpor; tidak ada scan langsung ke target.');
++ selectTab('observations');renderResults();loadWorkflowResults();log(result.replayed?'Hasil immutable sebelumnya dimuat ulang.':'Analisis selesai; hasil dan evidence tersimpan.');notify('Analisis selesai. Hasil berasal dari observasi terimpor; tidak ada scan langsung ke target.');
+  }catch(error){log('Analisis tidak selesai: '+error.message);notify(error.message,true);}finally{setBusy(false);}};
+ $('refresh').onclick=refresh;$('search').oninput=renderPanel;
+ const tabs=[...document.querySelectorAll('[data-tab]')];tabs.forEach((b,index)=>{b.onclick=()=>selectTab(b.dataset.tab);b.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?tabs.length-1:(index+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;selectTab(tabs[next].dataset.tab);tabs[next].focus();};});
+ $('export').onclick=()=>{if(!state.run)return;const blob=new Blob([JSON.stringify(state.run,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='reconnaissance-result.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);log('Hasil run diekspor sebagai JSON.');};
+ try{state.target=localStorage.getItem('apts.recon.target.v1')||'';$('target').value=state.target;}catch{}
+-selectTab('observations');renderResults();refresh();
++selectTab('observations');renderResults();refresh();setInterval(()=>{if(state.run&&state.tab==='workflow'&&!state.busy)loadWorkflowResults();},20000);
+diff --git a/pentest_web/index.html b/pentest_web/index.html
+index 1c3af29..9e0eff4 100644
+--- a/pentest_web/index.html
++++ b/pentest_web/index.html
+@@ -17,5 +17,5 @@
+ <details id="import-panel"><summary>Input observasi & kontrak misi <span id="import-count">Belum diimpor</span></summary><div class="import-body"><p>Impor request JSON Reconnaissance dari pipeline APTS. Request harus memuat boundary misi dan observasi dengan sumber serta waktu pengamatan.</p><div class="import-toolbar"><label class="file-button" for="import-file">↑ Impor JSON</label><input id="import-file" type="file" accept=".json,application/json"><button id="validate" class="secondary" type="button">Periksa input</button><a href="/api/pentest/reconnaissance-agent-contract" target="_blank" rel="noopener">Lihat kontrak API ↗</a></div><label for="payload">Request Reconnaissance JSON</label><textarea id="payload" spellcheck="false" placeholder='{"schema_version":"…","request_id":"reconreq-…","boundary":{…},"observations":[…]}'></textarea><p class="hint">Boundary dan authorization_reference harus berasal dari misi yang sudah ada.</p></div></details>
+ <div class="target-footer"><p><span class="info-icon">i</span> Agent mengolah observasi dan evidence. Scan langsung menggunakan Controlled Execution.</p><button id="run" class="primary" disabled>▷ Jalankan analisis</button></div></section>
+ <div class="metrics"><article><span>HOST TERAMATI</span><strong id="host-count">—</strong><small>Dari hasil analisis</small></article><article><span>DOMAIN TERAMATI</span><strong id="domain-count">—</strong><small>Identitas domain</small></article><article><span>LAYANAN</span><strong id="service-count">—</strong><small>Service & port</small></article><article><span>EVIDENCE</span><strong id="evidence-count">—</strong><small>Referensi yang tersimpan</small></article></div>
+-<section class="results card"><div class="results-header"><h2>Hasil reconnaissance</h2><div><span id="run-status" class="pill neutral">Belum ada hasil</span><button class="secondary compact" id="export" disabled>↓ Ekspor JSON</button></div></div><div class="results-layout"><aside class="assets"><div class="asset-title">TARGET & ASET</div><div id="target-tree"><p class="hint">Simpan URL untuk menyiapkan target.</p></div><div class="context-label">KONTEKS RUN</div><dl id="run-context"><dt>Mission</dt><dd>—</dd><dt>Run ID</dt><dd>—</dd></dl></aside><div class="results-main"><div class="tabs" role="tablist" aria-label="Hasil reconnaissance"><button role="tab" aria-selected="true" data-tab="observations">Observasi</button><button role="tab" aria-selected="false" data-tab="evidence">Evidence</button><button role="tab" aria-selected="false" data-tab="proposals">Proposal</button><button role="tab" aria-selected="false" data-tab="activity">Aktivitas</button><button role="tab" aria-selected="false" data-tab="history">Riwayat</button></div><div class="result-tools"><span id="result-caption">Observasi yang telah diproses agent</span><input id="search" type="search" placeholder="Cari hasil…" aria-label="Cari hasil"></div><div id="result-panel" role="tabpanel" tabindex="0"></div></div></div></section>
++<section class="results card"><div class="results-header"><h2>Hasil reconnaissance</h2><div><span id="run-status" class="pill neutral">Belum ada hasil</span><button class="secondary compact" id="export" disabled>↓ Ekspor JSON</button></div></div><div class="results-layout"><aside class="assets"><div class="asset-title">TARGET & ASET</div><div id="target-tree"><p class="hint">Simpan URL untuk menyiapkan target.</p></div><div class="context-label">KONTEKS RUN</div><dl id="run-context"><dt>Mission</dt><dd>—</dd><dt>Run ID</dt><dd>—</dd></dl></aside><div class="results-main"><div class="tabs" role="tablist" aria-label="Hasil reconnaissance"><button role="tab" aria-selected="true" data-tab="observations">Observasi</button><button role="tab" aria-selected="false" data-tab="evidence">Evidence</button><button role="tab" aria-selected="false" data-tab="proposals">Proposal</button><button role="tab" aria-selected="false" data-tab="workflow">Workflow</button><button role="tab" aria-selected="false" data-tab="activity">Aktivitas</button><button role="tab" aria-selected="false" data-tab="history">Riwayat</button></div><div class="result-tools"><span id="result-caption">Observasi yang telah diproses agent</span><input id="search" type="search" placeholder="Cari hasil…" aria-label="Cari hasil"></div><div id="result-panel" role="tabpanel" tabindex="0"></div></div></div></section>
+ <footer><span>APTS / Autonomous Penetration Testing System</span><span>Evidence-led · Scope-aware · Human-governed</span></footer></main></div></body></html>
+diff --git a/tests/test_stage5_2_recon_iteration.py b/tests/test_stage5_2_recon_iteration.py
+index bd0e0e9..e2773b1 100644
+--- a/tests/test_stage5_2_recon_iteration.py
++++ b/tests/test_stage5_2_recon_iteration.py
+@@ -97,3 +97,27 @@ def test_iteration_rejects_unsealed_or_nonterminal_result(tmp_path):
+             "schema_version": "apts-stage5.2-recon-iteration-request-v1",
+             "parent_recon_run_id": parent["recon_run_id"], "action_id": action["action_id"],
+         })
++
++
++def test_workflow_monitor_reads_only_bound_action_results(tmp_path):
++    repo, boundary, task, orchestration, *_ = _start_repo(tmp_path, "stage11-monitor")
++    parent, _ = repo.run_reconnaissance(orchestration["orchestration_id"],
++        recon_request(boundary, task, "stage11-monitor"))
++    action = parent["output"]["action_requests"][0]
++    result = _stage6_result(action, task, orchestration)
++    response = {"action_id": action["action_id"], "results": [result], "latest_result": result}
++    service = ReconnaissanceAgentService(repo, execution_result_provider=lambda action_id: response)
++
++    observed = service.get_stage6_execution_results(action["action_id"])
++    assert observed["read_only"] is True
++    assert observed["latest_result"] == result
++    assert observed["attempt_count"] == 1
++    assert repo.get_recon_run(parent["recon_run_id"]) == parent
++
++
++def test_workflow_monitor_rejects_unbound_action_id(tmp_path):
++    from pentest_subsystem.reconnaissance import ReconnaissanceAgentNotFound
++    repo, *_ = _start_repo(tmp_path, "stage11-monitor-unbound")
++    service = ReconnaissanceAgentService(repo, execution_result_provider=lambda _: {})
++    with pytest.raises(ReconnaissanceAgentNotFound, match="Action Request"):
++        service.get_stage6_execution_results("rareq-not-in-recon")

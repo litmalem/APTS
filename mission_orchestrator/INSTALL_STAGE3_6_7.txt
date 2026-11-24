@@ -1,0 +1,17 @@
+STAGE 3.6.7 INSTALLATION — COMPLETION READINESS & BLOCKERS
+
+1. Stop the Mission Orchestrator runtime.
+2. Back up D:\mission_orchestrator\data\mission_orchestrator.db and operator configuration.
+3. Extract PATCH_STAGE3_6_7.zip over D:\mission_orchestrator, preserving the live data directory.
+4. Apply migrations\042_stage3_6_7_completion_readiness_blockers.sql using the normal production migration procedure. Fresh/test SQLite repositories receive the schema from repository.py; existing SQLite production databases must be migrated before restart.
+5. Restart the runtime.
+6. Verify GET http://127.0.0.1:8780/health reports:
+   control_version = stage3.6.7-completion-readiness-blockers
+   mission_repository_migration_level = 42
+7. Run from PowerShell:
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_6_7_ACCEPTANCE.ps1
+8. Acceptance is complete only when the script prints STAGE 3.6.7 ACCEPTANCE: PASS.
+
+Do not replace or delete the live data directory from the patch archive.

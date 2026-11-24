@@ -1,0 +1,48 @@
+Stage 2.8.8 — Build Validation
+================================
+
+VulnDesk
+--------
+Control version:
+  hybrid-event-driven-2.11-cross-subsystem-lineage
+
+Focused cross-subsystem + governance-client + Stage 2.8.7:
+  16 passed
+
+Stage 2.x combined including 2.8.8 tests:
+  54 passed
+
+Combined including governance-client tests:
+  61 passed
+
+Broad regression excluding test_nvd_bulk_upsert.py:
+  87 passed
+
+Expected local full suite:
+  about 91 passed / 0 failed
+  (local baseline was 87; Stage 2.8.8 adds four tests).
+
+aptsGSS
+-------
+Focused/related:
+  9 passed
+
+Full suite in isolated build environment:
+  21 passed
+
+The build container lacks the real PyMySQL package. A private import-only stub
+was used only to collect/run aptsGSS unit tests; it is not shipped.
+
+Database
+--------
+VulnDesk migration 08 required.
+aptsGSS migration not required.
+
+Coverage
+--------
+- issuance gevent across TaskContract/Event/DecisionTrace/Audit
+- revalidation gevent across the same layers
+- durable Governance ingress without live MissionRuntime
+- non-Governance external ingress still requires live runtime
+- synchronous Governance responses share exact outbox event identity
+- PolicyDecision hash remains independent of transport provenance

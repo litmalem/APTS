@@ -1,0 +1,70 @@
+Stage 3.3.3 - Canonical Task Decomposition Contract
+Installation / Regression Steps
+====================================================
+
+Target repository:
+  D:\mission_orchestrator
+
+1. Stop the Mission Orchestrator process before replacing files.
+2. Back up the existing repository and database.
+3. Extract the Stage-3.3.3 patch over D:\mission_orchestrator preserving paths.
+4. Database migration:
+     NEW: migrations\011_stage3_3_3_canonical_task_decomposition_contract.sql
+   Repository migration level advances:
+     10 -> 11
+   New durable stores:
+     mission_task_decompositions
+     mission_planned_tasks
+   The runtime ensure_schema path creates/validates these stores for SQLite/local
+   startup. For managed MySQL/MariaDB deployment, apply migration 011 using the
+   existing deployment procedure before accepting traffic.
+5. Compile:
+     cd D:\mission_orchestrator
+     python -m compileall -q mission_orchestrator tests
+6. Full regression:
+     python -m pytest -q
+   Expected:
+     315 passed
+7. Optional focused regression:
+     python -m pytest -q tests\test_stage3_3_3_canonical_task_decomposition_contract.py
+   Expected:
+     19 passed
+8. Start/restart Mission Orchestrator using the normal service procedure.
+9. Confirm health:
+     Invoke-RestMethod http://127.0.0.1:8780/health
+   Required highlights:
+     control_version = stage3.3.3-canonical-task-decomposition-contract
+     mission_repository_migration_level = 11
+     task_decomposition_schema_version = apts-canonical-task-decomposition-v1
+     planned_task_schema_version = apts-canonical-planned-task-v1
+     task_decomposition_planner_invocation_performed = false
+     task_decomposition_dependency_graph_materialized = false
+     task_decomposition_governance_query_performed = false
+     governance_authorization_authority = EXTERNAL_APTS_GSS
+     target_action_dispatch_enabled = false
+     target_actuation = false
+10. Run live acceptance:
+      Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+      .\STAGE3_3_3_ACCEPTANCE.ps1
+    Expected final result:
+      STAGE 3.3.3 ACCEPTANCE: PASS
+
+Operational sequence:
+  A. Mission reaches guarded PLANNING.
+  B. Stage-3.3.1 canonical Plan exists.
+  C. Stage-3.3.2 planner-input snapshot exists and is current.
+  D. POST /api/missions/{mission_id}/task-decomposition with exact Mission/Plan/
+     snapshot tokens and structured task contracts.
+  E. Read mdecomp/ptask artifacts from the canonical repository.
+
+Do NOT add dependency edges in Stage 3.3.3. Dependency graph materialization and DAG
+validation belong to Stage 3.3.4. Do NOT interpret planned tasks as authorization or
+dispatch. Stage 3.3.3 performs no planner invocation, Governance authorization query,
+target dispatch, or target actuation.
+
+Canonical invariants:
+  PLAN != AUTHORIZATION
+  DECOMPOSITION != AUTHORIZATION
+  TASK != DISPATCH
+  READINESS != PERMISSION
+  PLANNER != GOVERNANCE

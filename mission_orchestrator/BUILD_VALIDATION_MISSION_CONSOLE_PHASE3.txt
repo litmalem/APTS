@@ -1,0 +1,48 @@
+PHASE 3 - ADVANCED OPERATIONS MISSION CONSOLE
+BUILD / VALIDATION RECORD
+
+Baseline archive:
+Mission(20261007-023620).zip
+
+Static validation:
+- python compile: mission_orchestrator/api_service.py PASS
+- python compile: mission_orchestrator/service.py PASS
+- python compile: mission_orchestrator/governance_binding.py PASS
+- node --check mission_web/app.js PASS
+
+Focused console test group:
+- tests/test_mission_console_phase1_readonly.py
+- tests/test_mission_console_phase2_human_interaction.py
+- tests/test_mission_console_phase3_advanced_operations.py
+Result: 10 passed in 5.59s
+
+Lifecycle + console regression group:
+- tests/test_stage3_2_1_mission_lifecycle_command_contract.py
+- tests/test_stage3_2_2_lifecycle_transition_guard_matrix.py
+- tests/test_mission_console_phase1_readonly.py
+- tests/test_mission_console_phase2_human_interaction.py
+- tests/test_mission_console_phase3_advanced_operations.py
+Result: 39 passed in 15.93s
+
+Stage-3.8 observability + forensic regression:
+- Stage 3.8.1 through Stage 3.8.9 focused test files
+Result: 71 passed in 15.96s
+
+HTTP smoke:
+- GET /ui/ -> HTTP 200
+- GET /api/operator/attention/advanced?limit=2 -> HTTP 200
+- GET /api/missions/{id}/evidence-browser?limit=5 -> HTTP 200
+- GET /api/missions/{id}/events/stream?after={latest}&once=1 -> HTTP 200 text/event-stream
+- SSE emitted stream_ready and stream_end
+
+Validated Phase-3 invariants:
+- live stream is a read-only projection of canonical persisted Mission events
+- Last-Event-ID/after cursor is supported
+- plan diff compares immutable plan-version candidate-plan material
+- causal graph reuses Stage-3.8 deterministic graph authority
+- evidence browser reuses deterministic forensic bundle records
+- forensic reconstruction is read-only
+- mission comparison performs no mutation/authorization/dispatch
+- operator attention enrichment does not grant authority
+- Phase-2 guarded mutation surface remains unchanged
+- aptsGSS remains external authorization/human-approval authority

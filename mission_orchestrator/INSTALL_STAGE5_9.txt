@@ -1,0 +1,24 @@
+APTS Stage 5.9 — Governance-Bound Multi-Agent Pentest E2E
+
+1. Stop the current Pentest Subsystem process.
+2. Extract this package over the existing D:\mission_orchestrator tree.
+3. Preserve the existing data directory / SQLite databases.
+4. Start the Pentest Subsystem:
+
+   python run\pentest_subsystem.py --host 127.0.0.1 --port 8790
+
+5. Confirm:
+
+   GET http://127.0.0.1:8790/health
+
+   Expected:
+   control_version = stage5.9-governance-bound-multi-agent-pentest-e2e
+   pentest_repository_migration_level = 16
+   stage5_9_next_stage = 5.10
+
+6. Run acceptance:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE5_9_ACCEPTANCE.ps1
+
+Stage 5.9 is assurance/evidence only. Controlled penetration-test execution remains disabled until Stage 6.

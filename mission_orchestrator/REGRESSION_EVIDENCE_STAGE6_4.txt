@@ -1,0 +1,33 @@
+STAGE 6.4 — REGRESSION EVIDENCE
+
+FINAL MISSION SOURCE: PASS
+2469 canonical tests = 2340 baseline + 129 Stage 6.4 tests.
+Run mode: 64 isolated pytest process groups. Combined evidence covers each test once.
+Group 47 was repeated to recapture console output; its original JUnit was also PASS.
+Failures: 0. Errors: 0. Skipped: 0. Duplicate/missing canonical testcase: 0.
+Source hashes captured before the final run match the packaged Python/SQL/schema source.
+Evidence: full_regression.log/.xml, full_batch_001..064.log/.xml,
+regression_groups.json, source_snapshot.json, build_verification.json.
+
+Focused Stage 6.4: 129 passed. Native Linux sandbox: SECCOMP_RLIMIT PASS.
+Earlier combined Stage 5.9 -> 6.4 continuity run: 460 passed.
+The final complete regression above re-exercises all of those tests on final source.
+
+GSS final source: 58 passed = 26 baseline + 32 execution-attestation tests.
+Cross-plane proof: real updated GovernanceService over HTTP, real Execution
+Governance HTTP client, real Mission/Pentest schemas/stores, native worker,
+and isolated loopback target. ALLOW: 2 fresh GSS queries / 1 target request.
+Revocation at the second check: 2 GSS queries / 0 target requests / BLOCKED.
+Emergency stop at the second check: 2 GSS queries / 0 target requests / BLOCKED.
+The GSS repository used in this proof is an isolated test double.
+
+NOT EXERCISED BY THIS BUILD:
+PowerShell, Windows Job Object, production MySQL, and live user-mission execution.
+STAGE6_4_ACCEPTANCE.ps1 runs the native sandbox proof and the full uninterrupted
+pytest regression on the Windows deployment host. That host gate remains required.
+STAGE6_4_GSS_ACCEPTANCE.ps1 checks GSS tests and live attestation-protocol health.
+No build/test process authorized a live user mission or contacted its target.
+
+COLD OVERLAY: PASS. Original Mission ZIP + Mission source patch ZIP.
+Compilation, inventory 2469, native sandbox, and 129 focused tests pass.
+Every patched source hash matches the final tested source.

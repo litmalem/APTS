@@ -1,0 +1,41 @@
+STAGE 3.7.2 PATCH MANIFEST
+==========================
+Stage: Adaptation Trigger Detection & Classification
+Build input: user-supplied Misssion.zip (accepted Stage-3.7.1 baseline)
+
+NEW DOMAIN / PERSISTENCE
+------------------------
+mission_orchestrator/adaptation_trigger.py
+migrations/046_stage3_7_2_adaptation_trigger_detection_classification.sql
+tests/test_stage3_7_2_adaptation_trigger_detection_classification.py
+
+CORE FILES MODIFIED
+-------------------
+mission_orchestrator/__init__.py
+mission_orchestrator/api_service.py
+mission_orchestrator/errors.py
+mission_orchestrator/mission_events.py
+mission_orchestrator/repository.py
+mission_orchestrator/repository_model.py
+mission_orchestrator/service.py
+
+PACKAGE / ACCEPTANCE ARTIFACTS ADDED
+------------------------------------
+README_STAGE3_7_2.md
+PATCH_NOTES_STAGE3_7_2.md
+INSTALL_STAGE3_7_2.txt
+PATCH_MANIFEST_STAGE3_7_2.txt
+REGRESSION_EVIDENCE_STAGE3_7_2.txt
+STAGE3_7_2_ACCEPTANCE.ps1
+PATCH_FILE_LIST_STAGE3_7_2.txt
+SHA256_STAGE3_7_2.txt
+
+HISTORICAL REGRESSION FILES REBASED
+-----------------------------------
+Historical tests whose assertions intentionally follow the current repository head were
+rebased from Stage 3.7.1 / migration 45 / server 3.7.1 to Stage 3.7.2 / migration 46 /
+server 3.7.2. Stage-local historical constants remain unchanged where they describe the
+stage under test rather than the current repository head.
+
+See PATCH_FILE_LIST_STAGE3_7_2.txt for the exact changed/new payload file list.
+See SHA256_STAGE3_7_2.txt for SHA-256 hashes of release ZIPs and patch payload files.

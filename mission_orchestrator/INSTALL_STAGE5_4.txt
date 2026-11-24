@@ -1,0 +1,33 @@
+Stage 5.4 installation / validation
+===================================
+
+1. Replace the working tree with this package or apply the listed Stage-5.4 files.
+2. The Pentest repository upgrades automatically from migration 10 to migration 11 on first Stage-5.4 startup.
+3. Start the Global Mission Orchestrator as usual on http://127.0.0.1:8780.
+4. Start the Pentest Subsystem:
+
+   cd D:\mission_orchestrator
+   python run\pentest_subsystem.py --host 127.0.0.1 --port 8790
+
+5. In another PowerShell:
+
+   cd D:\mission_orchestrator
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE5_4_ACCEPTANCE.ps1
+
+Expected active Pentest control:
+  stage5.4-vulnerability-hypothesis-agent
+
+Expected Pentest migration:
+  11
+
+Expected canonical inventory:
+  1901 tests
+
+Important authority boundary:
+  Stage 5.4 binds exact Stage-5.3 Enumeration output/evidence and correlates those
+  authoritative observations with provenance-bound Knowledge/CTI. It produces
+  deterministic OPEN/UNVALIDATED vulnerability hypotheses, confidence, and required
+  validation contracts. It does NOT execute validation, create a confirmed finding,
+  invoke scanners/tools, open target network connections, actuate targets, or mint
+  PolicyDecision authorization. Controlled execution remains Stage 6 authority.

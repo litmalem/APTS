@@ -1,0 +1,11 @@
+{
+  "vulndesk_root": "D:\\APTS\\Vulndesk",
+  "vulndesk_python": "",
+  "web_port": 8801,
+  "service_ports": {
+    "cti": 8765,
+    "gss": 8770,
+    "mission": 8780,
+    "pentest": 8790
+  }
+}

@@ -1,0 +1,119 @@
+STAGE 3.5.10 INSTALL / ACTIVATION
+Execution Dispatch Acceptance / Regression Gate
+======================================================================
+
+EXPECTED RUNTIME
+----------------
+control_version              = stage3.5.10-execution-dispatch-acceptance-regression-gate
+server_version               = APTSMissionOrchestrator/3.5.10
+repository_migration_level   = 35
+new database migration       = NONE
+new durable store            = NONE
+canonical pytest inventory   = 963 tests
+focused Stage-3.5.10 tests   = 12 tests
+
+IMPORTANT
+---------
+Stage 3.5.10 is a closure/acceptance gate. It adds no execution authority,
+no Governance query, no runtime I/O, no target-action dispatch, no target
+actuation, no lifecycle transition, and no new persistence capability.
+
+The runtime does NOT self-certify acceptance. Official closure is the result
+of the external acceptance harness on the target host.
+
+INSTALL / UPDATE
+----------------
+1. Stop the currently running Mission Orchestrator process on port 8780.
+
+2. Back up the current D:\mission_orchestrator tree. Preserve local runtime
+   data, local secrets/configuration, and any operator-managed database copy
+   before replacing source files.
+
+3. Apply/extract this Stage-3.5.10 package over D:\mission_orchestrator.
+
+4. Verify that no migration 036 was introduced:
+
+   Get-ChildItem D:\mission_orchestrator\migrations\*.sql |
+       Sort-Object Name |
+       Select-Object -Last 3 Name
+
+   The latest Stage-3.5 migration must remain:
+
+   035_stage3_5_9_execution_event_lineage_replay_recovery.sql
+
+5. Start/restart Mission Orchestrator using the same launcher used by the
+   existing installation.
+
+6. Verify activation:
+
+   Invoke-RestMethod http://127.0.0.1:8780/health |
+       Select-Object status,control_version,mission_repository_migration_level,
+           stage3_5_execution_acceptance_gate_schema_version,
+           stage3_5_execution_acceptance_gate_baseline,
+           stage3_5_execution_acceptance_gate_declared_only,
+           stage3_5_execution_acceptance_gate_runtime_self_certification,
+           stage3_5_execution_acceptance_gate_external_execution_required
+
+   Expected:
+
+   status                                           ok
+   control_version                                  stage3.5.10-execution-dispatch-acceptance-regression-gate
+   mission_repository_migration_level               35
+   stage3_5_execution_acceptance_gate_schema_version apts-mission-stage3.5-execution-dispatch-acceptance-gate-v1
+   stage3_5_execution_acceptance_gate_baseline      STAGE_3_5_1_THROUGH_3_5_9
+   ...declared_only                                 True
+   ...runtime_self_certification                    False
+   ...external_execution_required                   True
+
+ACCEPTANCE
+----------
+Run from an elevated/normal PowerShell suitable for the existing project:
+
+   cd D:\mission_orchestrator
+
+   Set-ExecutionPolicy `
+       -Scope Process `
+       -ExecutionPolicy Bypass `
+       -Force
+
+   .\STAGE3_5_10_ACCEPTANCE.ps1
+
+The acceptance harness performs:
+
+- runtime Stage-3.5.10 activation preflight;
+- Python compilation;
+- exact 963-test collection check;
+- complete Stage 3.1-3.5.10 pytest regression;
+- exact 12-test Stage-3.5.10 focused proof;
+- closure metadata and required-gate verification;
+- ordered Stage-3.5.1 through Stage-3.5.10 control verification;
+- exact Stage-3.5 execution-authorization/dispatch/runtime-I/O boundaries;
+- Stage-3.5.9 replay/recovery non-actuation checks;
+- Stage-3.5.10 no-new-authority/no-new-persistence checks.
+
+Do not declare Stage 3.5 closed unless the script ends with:
+
+   STAGE 3.5.10 ACCEPTANCE: PASS
+
+ROLLBACK
+--------
+If activation or acceptance fails:
+
+1. Stop Mission Orchestrator.
+2. Restore the backed-up Stage-3.5.9 source tree.
+3. Do NOT perform a database downgrade; Stage 3.5.10 introduced no migration,
+   so the expected repository migration level remains 35.
+4. Restart the Stage-3.5.9 runtime and verify its health/control version.
+
+FILES OF INTEREST
+-----------------
+README_STAGE3_5_10.md
+PATCH_NOTES_STAGE3_5_10.md
+PATCH_MANIFEST_STAGE3_5_10.txt
+REGRESSION_EVIDENCE_STAGE3_5_10.txt
+SHA256_STAGE3_5_10.txt
+STAGE3_5_10_ACCEPTANCE.ps1
+mission_orchestrator\execution_acceptance_gate.py
+mission_orchestrator\service.py
+mission_orchestrator\api_service.py
+tests\test_stage3_5_10_execution_dispatch_acceptance_regression_gate.py

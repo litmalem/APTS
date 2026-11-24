@@ -1,0 +1,60 @@
+﻿{
+    "status":  "completed",
+    "scope_contract":  {
+                           "id":  32,
+                           "scope_contract_id":  "scope-faea0abb-8259-4e2c-b304-5d90efa8ef57",
+                           "mission_id":  "mission-stage298-e2e-20260902-022733",
+                           "name":  "Stage 2.9.8 End-to-End Acceptance",
+                           "status":  "ACTIVE",
+                           "policy_set_id":  "default-policy",
+                           "version":  1,
+                           "valid_from":  "2026-09-01T19:27:43",
+                           "valid_until":  null,
+                           "created_by":  "operator-stage298",
+                           "approved_by":  "operator-stage298",
+                           "approved_at":  "2026-09-01T19:27:43",
+                           "contract_hash":  "3d5cb8fb82ba7330b5888f6da53244e283f8a6f6e7ca5a6fc5fcc4e6291a64ae",
+                           "created_at":  "2026-09-02T02:27:43",
+                           "updated_at":  "2026-09-02T02:27:43",
+                           "metadata":  {
+                                            "stage":  "2.9.8",
+                                            "purpose":  "end-to-end-acceptance",
+                                            "acceptance_profile":  "governed-read-only-cti"
+                                        },
+                           "targets":  [
+
+                                       ],
+                           "sources":  [
+                                           {
+                                               "id":  60,
+                                               "scope_source_id":  "ssrc-9f98a8f9-e3d4-4462-a837-a9959d63edc8",
+                                               "scope_contract_id":  "scope-faea0abb-8259-4e2c-b304-5d90efa8ef57",
+                                               "source_id":  "mitre-attack",
+                                               "source_type":  "CTI",
+                                               "allowed":  1,
+                                               "created_at":  "2026-09-02T02:27:43",
+                                               "constraints":  {
+                                                                   "read_only":  true
+                                                               }
+                                           }
+                                       ],
+                           "action_constraints":  [
+                                                      {
+                                                          "id":  39,
+                                                          "constraint_id":  "sact-e0588889-b338-4033-a4d5-b4e057eb73fe",
+                                                          "scope_contract_id":  "scope-faea0abb-8259-4e2c-b304-5d90efa8ef57",
+                                                          "action_class":  "CTI_SOURCE_READ",
+                                                          "action_name":  "*",
+                                                          "effect":  "ALLOW",
+                                                          "max_risk_level":  "LOW",
+                                                          "requires_approval":  0,
+                                                          "created_at":  "2026-09-02T02:27:43",
+                                                          "constraints":  {
+                                                                              "read_only":  true,
+                                                                              "target_actuation":  false,
+                                                                              "max_pages":  1
+                                                                          }
+                                                      }
+                                                  ]
+                       }
+}

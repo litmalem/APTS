@@ -1,0 +1,16 @@
+Stage 3.7.7 Hotfix 1 — Regression Evidence
+==========================================
+
+Host trigger evidence:
+- 1304 canonical tests collected
+- 1300 passed
+- 4 failed
+- all failures were stale regression baselines
+
+Hotfix workspace evidence:
+- python -m compileall -q mission_orchestrator tests: PASS
+- python -m pytest --collect-only -q: 1304 tests collected
+- exact four rebased logical checks: 4 passed in 3.29s
+- focused Stage 3.7.7 suite: 22 passed in 26.46s
+
+Full 1304-test authoritative acceptance remains to be rerun on D:\mission_orchestrator.

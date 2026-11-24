@@ -1,0 +1,62 @@
+STAGE 6.10 — INSTALLATION (WINDOWS)
+
+Baseline: Mission(20261004-041322).zip, Stage 6.9 plus the Stage 6.8 completion fence.
+The patch changes Mission source only. The supplied GSS and VulnDesk sources
+are required for their full regression. Their production sources and SQL dumps
+do not need to be overwritten or imported by this patch.
+
+1. Stop the previous Mission, Pentest and Execution processes. Preserve your
+   existing data and configuration. Extract the patch into D:\mission_orchestrator
+   (or your actual Mission project folder), allowing source-file replacements.
+   The patch contains no data/ database, credentials, or .env replacement.
+
+2. Use the same Python environment as the existing projects. From Mission:
+      python -m pip install -r requirements-stage6_10.txt
+   No GUI dependency is required by the regression gate. No new SQL migration:
+   Mission 53 / Pentest 16 / Execution 9 / CTI feedback 1.
+
+3. Keep the GSS and VulnDesk API processes running at the configured URLs.
+   If the VulnDesk API has not been started, in its source folder run:
+      python run\run_vulndesk_api.py --host 127.0.0.1 --port 8765
+
+4. In three separate PowerShell terminals, from D:\mission_orchestrator:
+      Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+      .\START_STAGE6_10_MISSION.ps1
+      .\START_STAGE6_10_PENTEST.ps1
+      .\START_STAGE6_10_EXECUTION.ps1
+   Stop any older process occupying 8780/8790/8791 first. Use the original
+   database arguments/environment values if your deployment uses custom paths.
+   Mission and Execution must resolve the same CTI feedback database file.
+
+5. In a fourth terminal:
+      cd D:\mission_orchestrator
+      Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+      .\STAGE6_10_ACCEPTANCE.ps1 -GssRoot D:\aptsGSS -VulndeskRoot D:\Vulndesk
+   Replace those two source paths if your folders are located elsewhere.
+   Optional URL parameters: -MissionUrl, -PentestUrl, -ExecutionUrl,
+   -GovernanceUrl, -CtiUrl. Default ports: 8780/8790/8791/8770/8765.
+   Optional worker count: -RegressionWorkers 1 (valid range 1-8).
+
+   Expected final line:
+      STAGE 6.10 DEPLOYMENT ACCEPTANCE: PASS
+   This covers live read-only readiness and the isolated full regression;
+   it does not claim that a live user target or mission has been executed.
+
+BUILD-ONLY MODE (SERVICES NOT REQUIRED)
+      .\STAGE6_10_ACCEPTANCE.ps1 -GssRoot D:\aptsGSS -VulndeskRoot D:\Vulndesk -BuildOnly
+Expected final line: STAGE 6.10 BUILD ACCEPTANCE: PASS.
+Build-only evidence does not satisfy deployment readiness. Neither mode sends
+target requests through deployed services. Native test actions use isolated
+loopback servers, dedicated temporary databases, and authority fixtures.
+
+OFFLINE RECHECK
+      python run\stage6_10_regression.py --gss-root D:\aptsGSS --vulndesk-root D:\Vulndesk --verify-only --output <printed-evidence-directory>\regression
+Source changes after the test invalidate that run; perform a new acceptance.
+Every run requires a fresh evidence directory. Old PASS files are never reused.
+
+CONNECTED EXPORT AUDIT
+      python run\stage6_10_audit.py --knowledge-export <evidence-directory>\regression\trajectory\knowledge_export.json --mission-bundle <evidence-directory>\regression\trajectory\mission_forensic_bundle.json --cti-pip <evidence-directory>\regression\trajectory\cti_pip.json --pentest-pip <evidence-directory>\regression\trajectory\pentest_pip.json
+Success: VERIFIED_CONNECTED_INTERNAL_LINEAGE, execution_authorized=false.
+This checks internal evidence, exact root lineage, CTI snapshot/candidate,
+governed replan commit and forensic reconstruction. It is not a new permit,
+independent signature, vulnerability verdict, or mission completion proof.

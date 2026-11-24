@@ -1,0 +1,44 @@
+{
+  "mission_id": "mission-pentest-lab-001",
+  "name": "Authorized Pentest Laboratory Scope",
+  "policy_set_id": "default-policy",
+  "created_by": "operator-01",
+  "approved_by": "operator-01",
+  "targets": [
+    {
+      "target_type": "CIDR",
+      "target_value": "127.0.0.0/8",
+      "environment": "LAB",
+      "allowed": true,
+      "notes": "Local laboratory only"
+    }
+  ],
+  "sources": [],
+  "action_constraints": [
+    {
+      "action_class": "TARGET_RECON",
+      "action_name": "*",
+      "effect": "ALLOW",
+      "max_risk_level": "MODERATE",
+      "requires_approval": false,
+      "constraints": {"rate_limit_per_minute": 30}
+    },
+    {
+      "action_class": "VULNERABILITY_VALIDATION",
+      "action_name": "*",
+      "effect": "REVIEW",
+      "max_risk_level": "HIGH",
+      "requires_approval": true,
+      "constraints": {"required_approver_role": "SECURITY_APPROVER"}
+    },
+    {
+      "action_class": "DESTRUCTIVE_ACTION",
+      "action_name": "*",
+      "effect": "DENY",
+      "max_risk_level": "LOW",
+      "requires_approval": true,
+      "constraints": {}
+    }
+  ],
+  "metadata": {"purpose": "research laboratory"}
+}

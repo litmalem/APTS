@@ -1,0 +1,45 @@
+Stage 3.3.8 - Task Readiness & Scheduling Projection
+Installation / Regression Steps
+===================================================
+
+Target repository:
+  D:\mission_orchestrator
+
+1. Stop the Mission Orchestrator before replacing files.
+2. Back up the repository and production database.
+3. Extract the Stage-3.3.8 patch over D:\mission_orchestrator preserving paths.
+4. Database migration:
+   - Existing required level: 15.
+   - Apply migrations\016_stage3_3_8_task_readiness_scheduling_projection.sql
+     to the production MySQL database.
+   - Expected repository migration level after migration: 16.
+   - SQLite test/dev repositories create the equivalent table automatically.
+5. Compile:
+     cd D:\mission_orchestrator
+     python -m compileall -q mission_orchestrator tests
+6. Full regression:
+     python -m pytest -q
+   Expected collected/pass baseline: 456 tests.
+7. Start/restart Mission Orchestrator:
+     python .\run\run_mission_orchestrator.py
+8. Verify health in another PowerShell:
+     Invoke-RestMethod http://127.0.0.1:8780/health
+   Expected:
+     control_version = stage3.3.8-task-readiness-scheduling-projection
+     mission_repository_migration_level = 16
+9. Run live acceptance:
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE3_3_8_ACCEPTANCE.ps1
+10. Expected final result:
+     STAGE 3.3.8 ACCEPTANCE: PASS
+
+Authority boundary after Stage 3.3.8:
+  PLAN      != AUTHORIZATION
+  TASK      != DISPATCH
+  READINESS != PERMISSION
+  PLANNER   != GOVERNANCE
+  Governance authority = EXTERNAL_APTS_GSS
+  wall-clock scheduling = false
+  resource assignment = false
+  target-action dispatch = false
+  target actuation = false

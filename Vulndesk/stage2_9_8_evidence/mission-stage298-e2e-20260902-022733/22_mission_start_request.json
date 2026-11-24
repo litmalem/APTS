@@ -1,0 +1,33 @@
+﻿{
+    "target_url":  "http://127.0.0.1:3000",
+    "scope_contract_id":  "scope-faea0abb-8259-4e2c-b304-5d90efa8ef57",
+    "policy_context":  {
+                           "policy_version":  "1",
+                           "environment":  "LAB",
+                           "scope_allowed":  true,
+                           "allowed_cti_sources":  [
+                                                       "mitre-attack"
+                                                   ],
+                           "scope_contract_id":  "scope-faea0abb-8259-4e2c-b304-5d90efa8ef57",
+                           "governance_authority":  "aptsGSS"
+                       },
+    "auto_acquire_cti":  true,
+    "cti_acquisition_max_actions":  1,
+    "asset_scope":  [
+                        "http://127.0.0.1:3000"
+                    ],
+    "cti_source_set":  [
+                           "mitre-attack"
+                       ],
+    "mission_id":  "mission-stage298-e2e-20260902-022733",
+    "allow_degraded_acquisition":  false,
+    "intelligence_requirements":  [
+                                      "asset_profile",
+                                      "cpe_resolution",
+                                      "vulnerability_applicability",
+                                      "attack_mapping",
+                                      "threat_context",
+                                      "risk_priority",
+                                      "pip"
+                                  ]
+}

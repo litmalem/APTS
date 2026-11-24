@@ -1,0 +1,41 @@
+Stage 3.3.6 - Plan Validation & Feasibility Gate
+Installation / Acceptance Steps
+================================================
+
+Target repository:
+  D:\mission_orchestrator
+
+1. Stop Mission Orchestrator before replacing files.
+2. Back up the repository and database.
+3. Extract the Stage-3.3.6 patch over D:\mission_orchestrator preserving paths.
+4. Apply migration 014 using the same repository migration procedure used for prior Stage-3.3 migrations.
+   New required migration level: 14.
+   Migration file:
+     migrations\014_stage3_3_6_plan_validation_feasibility_gate.sql
+5. Compile:
+     cd D:\mission_orchestrator
+     python -m compileall -q mission_orchestrator tests
+6. Run focused regression if desired:
+     python -m pytest -q tests\test_stage3_3_6_plan_validation_feasibility_gate.py
+   Expected:
+     20 passed
+7. Run full regression:
+     python -m pytest -q
+   Expected Stage-3.3.6 baseline:
+     401 passed
+8. Restart Mission Orchestrator.
+9. Verify:
+     Invoke-RestMethod http://127.0.0.1:8780/health
+   Expected:
+     control_version = stage3.3.6-plan-validation-feasibility-gate
+     mission_repository_migration_level = 14
+10. Run live acceptance:
+     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+     .\STAGE3_3_6_ACCEPTANCE.ps1
+11. Expected final result:
+     STAGE 3.3.6 ACCEPTANCE: PASS
+
+Authority invariant:
+  VALIDATED_FEASIBLE is a local planning-feasibility conclusion only.
+  It is NOT Governance authorization and it does not activate, schedule,
+  dispatch, or actuate target work.

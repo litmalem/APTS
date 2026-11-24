@@ -1,0 +1,25 @@
+APTS Governance & Safety Service validation
+===========================================
+
+Static compilation:
+  python -m compileall -q app tests scripts
+  PASS
+
+Unit tests:
+  python -m pytest -q
+  11 passed
+
+Test coverage focus:
+  - deterministic risk classification
+  - CIDR/source allowlist scope matching
+  - emergency-stop precedence
+  - destructive-action hard deny
+  - CTI source allowlist enforcement
+  - human approval REVIEW path
+  - approval cannot override risk ceiling
+
+Environment limitation during artifact generation:
+  MariaDB server/client and external package download were not available in the
+  build container, so live MariaDB integration and FastAPI runtime were not
+  executed here. SQL is written for MariaDB 10.5+; run the included smoke test
+  after installing requirements and applying the SQL locally.

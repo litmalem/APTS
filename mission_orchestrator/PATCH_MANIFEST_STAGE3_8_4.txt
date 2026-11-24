@@ -1,0 +1,10 @@
+INSTALL_STAGE3_8_4.txt
+README_STAGE3_8_4.md
+REGRESSION_EVIDENCE_STAGE3_8_4.txt
+STAGE3_8_4_ACCEPTANCE.ps1
+mission_orchestrator/api_service.py
+mission_orchestrator/observability_live_projection.py
+mission_orchestrator/service.py
+tests/test_stage3_8_1_canonical_observability_trace_identity_contract.py
+tests/test_stage3_8_3_global_causal_lineage_graph.py
+tests/test_stage3_8_4_live_mission_state_execution_projection.py

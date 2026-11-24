@@ -1,0 +1,29 @@
+Stage 3.4.5 — Governance-Bound Delegation Authorization
+======================================================
+
+1. Stop the current Mission Orchestrator process listening on port 8780.
+2. Replace/update the project files with this package.
+3. From D:\mission_orchestrator, activate the same Python environment used by Stage 3.4.4.
+4. Apply the normal repository/bootstrap startup path. Repository migration level is now 22 and the new store is mission_delegation_authorizations.
+5. Start Mission Orchestrator from D:\mission_orchestrator.
+6. Verify:
+
+   GET http://127.0.0.1:8780/health
+
+   Expected control_version:
+   stage3.4.5-governance-bound-delegation-authorization
+
+   Expected mission_repository_migration_level:
+   22
+
+7. Ensure aptsGSS / GOV-PLANE is reachable through the existing Governance binding configuration.
+8. Run:
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\STAGE3_4_5_ACCEPTANCE.ps1
+
+Focused Python proof only:
+
+   python -m pytest -q tests\test_stage3_4_5_governance_bound_delegation_authorization.py
+
+Important: Stage 3.4.5 authorizes only the delegation handoff. It does not delegate, dispatch, or execute the target action.

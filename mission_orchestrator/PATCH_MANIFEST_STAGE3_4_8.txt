@@ -1,0 +1,79 @@
+Stage 3.4.8 — Retry, Fallback, Reassignment & Conflict Control
+Patch manifest
+
+Core implementation
+-------------------
+mission_orchestrator/delegation_recovery.py                 NEW
+mission_orchestrator/__init__.py                            MODIFIED
+mission_orchestrator/errors.py                              MODIFIED
+mission_orchestrator/mission_events.py                      MODIFIED
+mission_orchestrator/repository.py                          MODIFIED
+mission_orchestrator/repository_model.py                    MODIFIED
+mission_orchestrator/service.py                             MODIFIED
+mission_orchestrator/api_service.py                         MODIFIED
+
+Persistence
+-----------
+migrations/025_stage3_4_8_retry_fallback_reassignment_conflict_control.sql  NEW
+
+Tests
+-----
+tests/test_stage3_4_8_retry_fallback_reassignment_conflict_control.py       NEW
+Historical tests under tests/ are minimally rebased where they assert current runtime control,
+repository migration inventory, supported-control ordering, or aggregate current-runtime state.
+Historical stage-local semantic boundaries remain unchanged.
+
+Release / acceptance documentation
+----------------------------------
+README_STAGE3_4_8.md                                        NEW
+PATCH_NOTES_STAGE3_4_8.md                                   NEW
+INSTALL_STAGE3_4_8.txt                                      NEW
+STAGE3_4_8_ACCEPTANCE.ps1                                   NEW
+PATCH_MANIFEST_STAGE3_4_8.txt                               NEW
+SHA256_STAGE3_4_8.txt                                       NEW
+
+Control identity
+----------------
+control_version = stage3.4.8-retry-fallback-reassignment-conflict-control
+server_version  = APTSMissionOrchestrator/3.4.8
+repository_migration_level = 25
+new_store = mission_delegation_recovery_controls
+new_event = MISSION_TASK_DELEGATION_RECOVERY_CONTROL_RECORDED
+
+Canonical boundary
+------------------
+max_retry_attempts = 3
+fallback_source = IMMUTABLE_STAGE344_RANKED_ELIGIBLE_CANDIDATES_ONLY
+caller_selected_fallback_forbidden = true
+retry_retains_current_owner = true
+fallback_or_reassignment_transfers_ownership = false
+ownership_transfer_performed = false
+runtime_endpoint_resolution_performed = false
+runtime_health_probe_performed = false
+resource_assignment_performed = false
+external_network_io_performed = false
+governance_query_performed = false
+dispatch_performed = false
+execution_authorized = false
+target_actuation = false
+pre_dispatch_governance_revalidation_required = true
+
+Validation recorded in build environment
+----------------------------------------
+Python compile: PASS
+Exhaustive partitioned regression: 745 passed
+Focused Stage 3.4.8: 28 passed
+
+Cumulative checkpoints
+----------------------
+Stage 3.1 closure       = 111
+Stage 3.2 cumulative   = 267
+Stage 3.3 cumulative   = 506
+Stage 3.4.1 cumulative = 525
+Stage 3.4.2 cumulative = 551
+Stage 3.4.3 cumulative = 586
+Stage 3.4.4 cumulative = 636
+Stage 3.4.5 cumulative = 666
+Stage 3.4.6 cumulative = 698
+Stage 3.4.7 cumulative = 717
+Stage 3.4.8 cumulative = 745

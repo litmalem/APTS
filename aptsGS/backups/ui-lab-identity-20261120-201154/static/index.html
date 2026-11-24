@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>aptsGSS · Governance & Safety</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head>
+<body>
+<section id="login" class="login"><div class="brand-mark">G</div><p class="eyebrow">APTS GOVERNANCE & SAFETY</p><h1>Kendali yang dapat<br>dipertanggungjawabkan.</h1><p>Masuk untuk meninjau persetujuan, menetapkan batas pengujian, dan menelusuri keputusan.</p><p id="quickLoginNote" class="subtle" hidden>MODE UJI COBA LOKAL ? Masuk cepat sebagai operator uji tanpa mengetik token.</p><form id="loginForm"><label for="token">Kredensial pribadi</label><input id="token" type="password" autocomplete="off" required minlength="32" placeholder="Token dari administrator"><button class="primary" type="submit">Masuk ke konsol →</button></form><p class="subtle">Identitas dan hak akses diverifikasi oleh GSS. Sesi berlaku 30 menit.</p></section>
+<div id="shell" hidden>
+<aside><div class="brand"><span class="brand-mark">G</span><div><strong>aptsGSS</strong><small>Governance & Safety</small></div></div><p class="eyebrow">WORKSPACE</p><nav id="nav" aria-label="Navigasi utama"></nav><div class="aside-foot"><span class="dot"></span> Governance plane<br><small>Deterministik · independen</small></div></aside>
+<main><header><div><p class="eyebrow">AUTONOMOUS PENETRATION TESTING SYSTEM</p><h1 id="title">Overview</h1></div><div class="header-actions"><span id="identity"></span><button id="logout" type="button">Keluar</button></div></header>
+<div class="statusline"><span id="connection">Status belum diperiksa</span><span id="updated">—</span><button id="refresh" type="button">Perbarui</button></div>
+<div id="emergencyBanner" class="emergency-banner" hidden></div>
+<div id="content" aria-live="polite"></div>
+<footer>Otorisasi tindakan berasal dari GSS. Hasil eksekusi tetap diverifikasi pada komponen pelaksana.</footer></main></div>
+<div id="notice" role="status" aria-live="polite" hidden></div>
+<dialog id="detail"><div class="dialog-head"><h2 id="detailTitle">Detail</h2><button id="closeDetail" aria-label="Tutup detail" type="button">Tutup ×</button></div><div id="detailBody"></div></dialog>
+</body></html>
