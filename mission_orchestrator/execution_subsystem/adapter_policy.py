@@ -214,3 +214,28 @@ def _wpt_reserved_requests(request):
         return _integer(record["authority_snapshot"]["limits"]["max_requests"],"intake.max_requests")
     except (sqlite3.Error,TypeError,ValueError,KeyError) as exc:
         raise ExecutionSourceRejected("WPT_INTAKE_BUDGET_UNAVAILABLE") from exc
+
+
+def _wpt_enumeration_context(request):
+    """Resolve the sealed, authority-bound CTI enumeration context for a WPT
+    enumeration execution. Returns None when the bound intake carries none
+    (plain enumeration / fingerprinting). Read-only and deterministic: it never
+    affects scope/RoE/authorization, and every CTI-derived probe is still
+    validated per-request by the broker pin. Verification mirrors
+    ``_wpt_reserved_requests`` so budget and probe-set bind to the same sealed
+    intake the execution request was authorized against."""
+    import json,sqlite3
+    from contextlib import closing
+    from .wpt_intake_repository import default_wpt_intake_path,_verify
+    intake_id=request["parameters"].get("source_wpt_intake_id")
+    if not intake_id: return None
+    try:
+        with closing(sqlite3.connect(default_wpt_intake_path().as_uri()+"?mode=ro",uri=True,timeout=5)) as conn:
+            row=conn.execute("SELECT record_json FROM wpt_governed_intakes WHERE intake_id=?",(intake_id,)).fetchone()
+        record=json.loads(row[0]) if row else None
+        if (not record or not _verify(record) or record["intake"]["intake_id"]!=intake_id
+            or not any(e.get("canonical_sha256")==record["integrity"]["canonical_sha256"] for e in request["evidence_basis"])):
+            raise ExecutionSourceRejected("WPT_INTAKE_CONTEXT_BINDING_MISMATCH")
+        return record["intake"].get("enumeration_context")
+    except (sqlite3.Error,TypeError,ValueError,KeyError) as exc:
+        raise ExecutionSourceRejected("WPT_INTAKE_CONTEXT_UNAVAILABLE") from exc

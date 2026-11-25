@@ -6,7 +6,7 @@ from uuid import uuid4
 
 from .adapter_contract import (ADAPTER_CONTROL_VERSION, RESULT_DOMAIN, canonical_adapter_contract,
                                normalize_adapter_intake)
-from .adapter_policy import compile_runtime_policy
+from .adapter_policy import compile_runtime_policy, _wpt_enumeration_context
 from .adapter_repository import ExecutionAdapterRepository
 from .condition_signal import condition_signal_from_adapter_collection
 from .authorization_contract import AUTHORIZATION_INTAKE_SCHEMA, parse_time, utc_timestamp
@@ -190,7 +190,7 @@ class ExecutionAdapterService(ExecutionGatewayService):
                         self.broker.validate_profile_pin(request,self._current_context(envelope),adapter,pinned,url,child)
                     raw=collect_profile(self.broker,adapter,pinned,request["target"]["target_value"],controls["limits"],
                         controls["network_request_cost"],deadline=deadline,before_io=before_io,validate_child=validate_child,runtime=runtime,
-                        enumeration_context=request.get("enumeration_context"))
+                        enumeration_context=(_wpt_enumeration_context(request) if adapter.operation=="WEB_PROFILE_ENUMERATION" else None))
                 else:
                     raw = self.broker.observe(adapter, pinned, controls["limits"], deadline=deadline,
                         before_io=before_io, authorization_header=lambda: header, **({"runtime": runtime} if runtime else {}))

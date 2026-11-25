@@ -1,1 +1,4 @@
 APTS_Control_Center/logs/gss.log
+*.db
+*.pyc
+*.pyc

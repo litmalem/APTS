@@ -196,3 +196,67 @@ def test_real_stage6_fingerprint_then_enumeration_share_six_request_budget(site,
                 target={'target_type':'URL','target_value':target},profile='enumeration'))
     finally:
         runtime.close()
+
+
+# --- Opsi B: CTI enumeration_context must reach the collector via the sealed,
+# authority-bound WPT intake (previously dropped: execution_request carried only
+# source_wpt_intake_id, so collect_profile always ran the 5-probe base plan). ---
+ENUM_CTX = {
+    'source_cti_intake_id': 'wptreq-ctx', 'enumeration_run_id': 'enumrun-ctx',
+    'enumeration_request_sha256': 'a' * 64, 'recon_run_id': 'reconrun-ctx',
+    'source_result_sha256': 'b' * 64,
+    'technologies': [{'name': 'PHP', 'version': '8.0.30'}],
+    'cpe_candidates': [{'technology_name': 'PHP',
+                        'cpe23_uri': 'cpe:2.3:a:php:php:8.0.30:*:*:*:*:*:*:*',
+                        'match_confidence': 0.99, 'status': 'CPE_CANDIDATE_NEEDS_VERIFICATION'}],
+}
+
+
+def _store_enum_intake(repo, suffix, *, context=None, target='http://127.0.0.1/app'):
+    changes = {'profile': 'enumeration', 'mission_id': 'mission-gmo-' + suffix,
+               'task_id': 'ptask-' + suffix, 'target': {'target_type': 'URL', 'target_value': target}}
+    if context is not None:
+        changes['schema_version'] = 'apts-wpt-governed-intake-v4'
+        changes['enumeration_context'] = context
+    intake = request(suffix, **changes)
+    authority = Authority().resolve(intake)
+    return repo.append(_seal({'intake': intake, 'authority_snapshot': authority}))[0]['record']
+
+
+def _bound_request(record):
+    return {'parameters': {'source_wpt_intake_id': record['intake']['intake_id']},
+            'evidence_basis': [{'canonical_sha256': record['integrity']['canonical_sha256']}]}
+
+
+def test_enumeration_context_binds_to_sealed_intake_and_drives_cti_probe(tmp_path, monkeypatch):
+    from execution_subsystem.adapter_policy import _wpt_enumeration_context
+    from adapters.profile_engine import cti_surface_paths
+    repo = WPTIntakeRepository(tmp_path / 'intakes.db')
+    monkeypatch.setenv('APTS_WPT_INTAKE_DB', str(tmp_path / 'intakes.db'))
+
+    # A CTI-bearing follow-up intake yields its context verbatim, which the shared
+    # planner turns into the deterministic /phpinfo.php follow-up probe.
+    ctx_record = _store_enum_intake(repo, 'ctx', context=ENUM_CTX)
+    resolved = _wpt_enumeration_context(_bound_request(ctx_record))
+    assert resolved == ENUM_CTX
+    assert '/phpinfo.php' in cti_surface_paths(resolved)
+
+    # A plain enumeration intake carries no context -> fixed 5-probe base plan.
+    plain_record = _store_enum_intake(repo, 'plain')
+    assert _wpt_enumeration_context(_bound_request(plain_record)) is None
+
+    # No source intake reference at all -> None (fingerprinting / legacy path).
+    assert _wpt_enumeration_context({'parameters': {}, 'evidence_basis': []}) is None
+
+
+def test_enumeration_context_rejected_when_not_bound_to_execution_evidence(tmp_path, monkeypatch):
+    from execution_subsystem.adapter_policy import _wpt_enumeration_context
+    repo = WPTIntakeRepository(tmp_path / 'intakes.db')
+    monkeypatch.setenv('APTS_WPT_INTAKE_DB', str(tmp_path / 'intakes.db'))
+    record = _store_enum_intake(repo, 'ctx', context=ENUM_CTX)
+    # Same intake id, but the sealed digest is absent from evidence_basis: the
+    # context is not bound to this authorized execution -> fail closed.
+    unbound = {'parameters': {'source_wpt_intake_id': record['intake']['intake_id']},
+               'evidence_basis': [{'canonical_sha256': '0' * 64}]}
+    with pytest.raises(ExecutionSourceRejected, match='WPT_INTAKE_CONTEXT_BINDING_MISMATCH'):
+        _wpt_enumeration_context(unbound)

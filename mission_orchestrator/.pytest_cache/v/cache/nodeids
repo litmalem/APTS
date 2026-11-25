@@ -2763,6 +2763,8 @@
   "tests/test_wpt_bounded_enumeration.py::test_budget_does_not_release_mismatched_completion[change1]",
   "tests/test_wpt_bounded_enumeration.py::test_budget_reconciles_terminal_verified_consumption_once_and_replay_does_not_rescan",
   "tests/test_wpt_bounded_enumeration.py::test_cti_v4_carries_valid_candidates_and_preserves_v3_identity",
+  "tests/test_wpt_bounded_enumeration.py::test_enumeration_context_binds_to_sealed_intake_and_drives_cti_probe",
+  "tests/test_wpt_bounded_enumeration.py::test_enumeration_context_rejected_when_not_bound_to_execution_evidence",
   "tests/test_wpt_bounded_enumeration.py::test_enumeration_executes_only_fixed_scoped_probes_without_following_redirect",
   "tests/test_wpt_bounded_enumeration.py::test_legacy_unknown_consumption_keeps_full_reservation",
   "tests/test_wpt_bounded_enumeration.py::test_real_stage6_fingerprint_then_enumeration_share_six_request_budget",
