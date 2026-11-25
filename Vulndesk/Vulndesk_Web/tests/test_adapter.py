@@ -118,7 +118,7 @@ class AdapterTests(unittest.TestCase):
         _, sql, params, _, _ = query_plan("vulnerabilities", {"cwe": "CWE-20", "has_cpe": "1", "year": "2026"})
         self.assertIn("cw.id=vc.cwe_catalog_id", sql)
         self.assertIn("cp.vulnerability_id=v.id", sql)
-        self.assertEqual(params, ["2026-01-01", "2027-01-01", "CWE-20"])
+        self.assertEqual(params, ["CVE-2026-%", "CWE-20"])
         self.assertIn("cw.cwe_id=%s", sql)
 
     def test_cwe_filter_non_numeric_falls_back_to_partial_match(self):

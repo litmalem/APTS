@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 
 from pentest_subsystem.cross_agent_feedback import CrossAgentFeedbackService
+from pentest_subsystem.boundary_contract import sha256_hex
 from pentest_subsystem.enrichment import (
     EnrichmentError,
     annotate_explanation,
@@ -76,8 +77,9 @@ ATTACK = [{"attack_id": "T1189", "attack_name": "Drive-by Compromise", "tactic_n
 
 def test_attack_request_uses_only_fields_already_in_the_hypothesis():
     h = {"vulnerability_id": "CVE-2025-1", "knowledge": {"title": "Angular XSS", "summary": "stored XSS"}}
-    assert attack_request(h) == {"candidate": {"cve_id": "CVE-2025-1", "title": "Angular XSS", "description": "stored XSS"}}
-    assert attack_request({}) == {"candidate": {}}
+    assert attack_request(h) == {"candidate": {"cve_id": "CVE-2025-1", "title": "Angular XSS", "description": "stored XSS"},
+                                 "include_threat_context": False}
+    assert attack_request({}) == {"candidate": {}, "include_threat_context": False}
 
 
 def test_cpe_request_never_allows_external_fetch():
@@ -86,6 +88,12 @@ def test_cpe_request_never_allows_external_fetch():
     assert [t["technology"] for t in req["technologies"]] == ["Angular", "Apache HTTP Server", "angular"]  # sorted, de-duplicated by exact text
     with pytest.raises(EnrichmentError, match="auto_fetch"):
         fetch("cpe", {"technologies": [], "auto_fetch": True}, opener=_opener())
+
+
+def test_attack_cache_version_excludes_legacy_mapping_results_but_preserves_cpe_keys():
+    for kind, req in [('attack', attack_request({})), ('cpe', cpe_request(['Angular']))]:
+        legacy = sha256_hex({'schema': 'apts-enrichment-cache-v1', 'kind': kind, 'request': req})
+        assert (request_sha(kind, req) == legacy) is (kind == 'cpe')
 
 
 def test_parse_and_status_semantics_service_down_is_unavailable_not_empty():
@@ -141,6 +149,32 @@ def test_unavailable_cti_is_reported_not_cached_and_not_fabricated(tmp_path):
 
 def test_attack_lookups_are_bounded_per_call():
     assert MAX_ATTACK_LOOKUPS_PER_CALL == 50
+
+
+def test_attack_refresh_replaces_empty_and_old_success_without_erasing_history(tmp_path):
+    repo, _, _, oid, _ = _pipeline(tmp_path, "refresh")
+    service = CrossAgentFeedbackService(repo)
+    er = EnrichmentRuntime(service, opener=_opener())
+    assert er.enrich(oid, ["attack"])["kinds"]["attack"]["empty"] >= 1
+    assert er.attack_context(oid) == {}
+    with repo._connect() as conn:
+        original = [tuple(r) for r in conn.execute("SELECT * FROM pentest_enrichment_cache ORDER BY rowid")]
+    er.opener = _opener(attack=ATTACK)
+    assert er.enrich(oid, ["attack"])["kinds"]["attack"]["fetched"] == 0
+    assert er.enrich(oid, ["attack"], refresh=True)["kinds"]["attack"]["fetched"] >= 1
+    assert er.attack_context(oid)
+    er.opener = _opener(fail=True)
+    assert er.enrich(oid, ["attack"], refresh=True)["kinds"]["attack"]["unavailable"] >= 1
+    assert er.attack_context(oid)  # An outage must not replace the last successful observation.
+    er.opener = _opener()
+    assert er.enrich(oid, ["attack"], refresh=True)["kinds"]["attack"]["empty"] >= 1
+    assert er.attack_context(oid) == {}  # A real empty result supersedes old success.
+    with repo._connect() as conn:
+        rows = [tuple(r) for r in conn.execute("SELECT * FROM pentest_enrichment_cache ORDER BY rowid")]
+    assert rows[:len(original)] == original
+    assert len(rows) == 3 * len(original)
+    with pytest.raises(EnrichmentError, match="boolean"):
+        er.enrich(oid, ["attack"], refresh="true")
 
 
 def test_cpe_names_feed_name_similarity_offline_and_are_recorded_in_the_score(tmp_path):
@@ -228,6 +262,9 @@ def test_http_routes_for_enrichment_attack_context_and_training(tmp_path, monkey
         assert status == 200 and body["kinds"]["attack"]["fetched"] >= 1 and body["execution_started"] is False
         status, _, body = _get(root + "/attack-context")
         assert status == 200 and body["attack_view"]["is_causal_dependency"] is False and body["hypotheses"]
+        status, body = _post(root + "/enrichment", {"kinds": ["attack"], "refresh": True})
+        assert status == 200 and body["kinds"]["attack"]["fetched"] >= 1
+        assert _post(root + "/enrichment", {"kinds": ["attack"], "refresh": "true"})[0] == 400
         assert _post(root + "/enrichment", {"kinds": ["shell"]})[0] == 400
         assert _post(root + "/enrichment", {"url": "http://evil"})[0] == 400
         status, _, body = _get(base + "/api/pentest/autonomy/learning/samples")

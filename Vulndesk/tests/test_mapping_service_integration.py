@@ -17,6 +17,56 @@ from cti_source_config import source_binding
 
 
 class IntegrationTests(unittest.TestCase):
+    def test_technique_only_lookup_skips_threat_profiles_and_keeps_legacy_default(self):
+        from cti_services.vulnerability_context_service import VulnerabilityContextService
+        service = VulnerabilityContextService.__new__(VulnerabilityContextService)
+        service.attack_mapper = MagicMock()
+        service.attack_mapper.map_vulnerability.side_effect = lambda *args: [{'attack_id':'T1189'}]
+        service.threat_context = MagicMock()
+        candidate = {'cve_id': 'CVE-2025-66412'}
+        result = service.map_attack({'candidate': candidate, 'include_threat_context': False})
+        self.assertEqual(result['attack_context'], [{'attack_id':'T1189'}])
+        service.threat_context.enrich_attack_context.assert_not_called()
+        service.map_attack({'candidate': candidate})
+        service.threat_context.enrich_attack_context.assert_called_once()
+        with self.assertRaises(ValueError):
+            service.map_attack({'candidate': candidate, 'include_threat_context': 'false'})
+
+    def test_cve_resolves_all_catalog_cwes_and_keeps_strongest_mapping(self):
+        service = AttackMappingService.__new__(AttackMappingService)
+        service.registry = MagicMock()
+        service.db = MagicMock()
+        service.db.table_exists.return_value = True
+        service.db.fetch_all.return_value = [
+            {'cwe_id': 'CWE-79', 'cwe_name': 'XSS'},
+            {'cwe_id': 'CWE-918', 'cwe_name': 'SSRF'},
+            {'cwe_id': 'CWE-79', 'cwe_name': 'XSS'},
+        ]
+        service._map_by_cve = MagicMock(return_value=[])
+        service._map_by_capec = MagicMock(return_value=[])
+        service._map_by_cwe = MagicMock(side_effect=lambda h: [{
+            'attack_id': 'T1189', 'cwe_id': h['cwe_id'], 'mapping_source': 'seed',
+            'mapping_level': 'cwe_to_attack', 'confidence': 0.45 if h['cwe_id']=='CWE-79' else 0.6}])
+        service._map_by_vuln_type = MagicMock(return_value=[])
+        service._map_by_keywords = MagicMock(return_value=[])
+        service._map_by_endpoint_heuristic = MagicMock(return_value=[])
+        service._complete_attack_metadata = lambda m: {**m, 'mapping_confidence': m['confidence']}
+        candidate = {'cve_id': 'CVE-2025-66412', 'cwe_id': 'CWE-79'}
+        result = service.map_vulnerability(candidate)
+        self.assertEqual(service._map_by_cwe.call_count, 2)
+        self.assertEqual(service._map_by_capec.call_count, 2)
+        self.assertEqual(result[0]['confidence'], 0.6)
+        self.assertEqual({m['cwe_id'] for m in result[0]['supporting_mappings']}, {'CWE-79','CWE-918'})
+        self.assertEqual(candidate, {'cve_id': 'CVE-2025-66412', 'cwe_id': 'CWE-79'})
+
+    def test_keyword_rce_requires_a_whole_word(self):
+        service = AttackMappingService.__new__(AttackMappingService)
+        service._query_vuln_attack_mappings = MagicMock(return_value=[])
+        for text in ['Resource URL', 'source language', 'policy enforcement', 'PercentPipe']:
+            self.assertEqual(service._map_by_keywords({'description': text}), [])
+        for text in ['RCE', 'Potential (rce).', 'remote code execution']:
+            self.assertEqual(service._map_by_keywords({'description': text})[0]['attack_id'], 'T1190')
+
     def test_imported_context_is_provisional_and_dedupe_retains_relationship_types(self):
         service = AttackMappingService.__new__(AttackMappingService)
         rows = [service._verify_mapping({}, {'attack_id':'T1190','confidence':0.75,

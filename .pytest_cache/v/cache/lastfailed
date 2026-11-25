@@ -1,3 +1,4 @@
 {
-  "aptsGS/tests/test_scope_target_url_type.py": true
+  "aptsGS/tests/test_scope_target_url_type.py": true,
+  "mission_orchestrator/tests/test_vulnerability_hypothesis_workspace.py": true
 }

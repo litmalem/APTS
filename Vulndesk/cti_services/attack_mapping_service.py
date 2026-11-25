@@ -13,7 +13,7 @@ class AttackMappingService:
     SERVICE_KEY = "attack_mapping_service"
     COMPONENT_ID = "CTI-S04"
     MODEL_VERSION = "attack-mapping-baseline-1.0"
-    RULE_VERSION = "attack-ontology-rules-1.0"
+    RULE_VERSION = "attack-ontology-rules-1.1"
 
     def __init__(self, db: Optional[DbAdapter] = None, registry: Optional[ServiceRegistry] = None, audit: Optional[AuditStore] = None):
         self.db = db or DbAdapter()
@@ -27,8 +27,11 @@ class AttackMappingService:
         try:
             mappings: List[Dict[str, Any]] = []
             mappings.extend(self._map_by_cve(candidate))
-            mappings.extend(self._map_by_capec(candidate))
-            mappings.extend(self._map_by_cwe(candidate))
+            # The caller may only know the CVE. Resolve every catalog CWE here
+            # so all clients use the same CVE -> CWE -> CAPEC/ATT&CK paths.
+            for weakness in self._weakness_candidates(candidate):
+                mappings.extend(self._map_by_capec(weakness))
+                mappings.extend(self._map_by_cwe(weakness))
             mappings.extend(self._map_by_vuln_type(candidate))
             mappings.extend(self._map_by_keywords(candidate))
             mappings.extend(self._map_by_endpoint_heuristic(candidate, endpoint_context or {}))
@@ -151,6 +154,25 @@ class AttackMappingService:
             },
         )
 
+    def _weakness_candidates(self, candidate: Dict[str, Any]) -> List[Dict[str, Any]]:
+        weaknesses = {}
+        if candidate.get("cwe_id"):
+            weaknesses[candidate["cwe_id"]] = candidate
+        if candidate.get("cve_id") and all(self.db.table_exists(t) for t in (
+            "vulnerabilities", "vulnerability_cwes", "cwe_catalog"
+        )):
+            rows = self.db.fetch_all(
+                "SELECT DISTINCT cw.cwe_id,cw.cwe_name "
+                "FROM vulnerabilities v JOIN vulnerability_cwes vc ON vc.vulnerability_id=v.id "
+                "JOIN cwe_catalog cw ON cw.id=vc.cwe_catalog_id "
+                "WHERE v.cve_id=%(cve_id)s ORDER BY cw.cwe_id",
+                {"cve_id": candidate["cve_id"]},
+            )
+            for row in rows:
+                if row.get("cwe_id"):
+                    weaknesses.setdefault(row["cwe_id"], {**candidate, **row})
+        return list(weaknesses.values())
+
     def _map_by_cve(self, candidate: Dict[str, Any]) -> List[Dict[str, Any]]:
         cve_id = candidate.get("cve_id")
         if not cve_id:
@@ -170,6 +192,7 @@ class AttackMappingService:
         rows = self.db.fetch_all(
             """
             SELECT
+                ccm.cwe_id,
                 ccm.capec_id,
                 cam.attack_pattern_stix_id,
                 cam.attack_id,
@@ -215,7 +238,7 @@ class AttackMappingService:
                     matched.append(r)
         # Built-in fallback rules.
         fallback = []
-        if "remote code execution" in text or "rce" in text:
+        if "remote code execution" in text or re.search(r"\brce\b", text):
             fallback.append(self._rule("T1190", "Exploit Public-Facing Application", "Initial Access", "keyword_to_attack", "rule", 0.55, "Description indicates remote code execution in an exposed application."))
         if "web shell" in text:
             fallback.append(self._rule("T1505.003", "Server Software Component: Web Shell", "Persistence", "keyword_to_attack", "rule", 0.75, "Description mentions web shell."))

@@ -111,3 +111,5 @@ thead th, .badge, .score small, .dialog-body .section-label { font-size: .75rem;
 .attack-relations-table summary{cursor:pointer;color:var(--accent);font-weight:600}
 .attack-relations-table .panel-body{padding:8px 0}
 @media(max-width:700px){.attack-relations-form{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.attack-relations-table details{max-width:230px}}
+
+.table-toolbar .toolbar-group{flex-wrap:wrap}.table-toolbar #filter-year{width:175px}.table-toolbar #filter-cwe{width:185px}

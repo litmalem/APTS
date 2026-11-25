@@ -12,5 +12,11 @@
   "tests/test_cpe_enrichment_matching.py::test_product_identity_query_filters_vendor_and_does_not_assign_version",
   "tests/test_cpe_enrichment_matching.py::test_repository_filters_identity_and_version_before_limit_without_loading_raw_json",
   "tests/test_cpe_enrichment_matching.py::test_stable_version_does_not_match_release_candidate_update",
-  "tests/test_cpe_enrichment_matching.py::test_unknown_version_exposes_product_identity_without_inventing_target_cpe"
+  "tests/test_cpe_enrichment_matching.py::test_unknown_version_exposes_product_identity_without_inventing_target_cpe",
+  "tests/test_mapping_service_integration.py::IntegrationTests::test_cve_resolves_all_catalog_cwes_and_keeps_strongest_mapping",
+  "tests/test_mapping_service_integration.py::IntegrationTests::test_governed_connector_routes_both_sources_and_preserves_binding_check",
+  "tests/test_mapping_service_integration.py::IntegrationTests::test_imported_context_is_provisional_and_dedupe_retains_relationship_types",
+  "tests/test_mapping_service_integration.py::IntegrationTests::test_imported_metadata_lookup_avoids_column_metadata_scan",
+  "tests/test_mapping_service_integration.py::IntegrationTests::test_keyword_rce_requires_a_whole_word",
+  "tests/test_mapping_service_integration.py::IntegrationTests::test_technique_only_lookup_skips_threat_profiles_and_keeps_legacy_default"
 ]

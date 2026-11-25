@@ -23,7 +23,7 @@ const context = (name, status = 'COMPLETED') => ({
   correlation: {status}, cti_input: {available: true, knowledge_count: 1},
   metrics: {total: status === 'COMPLETED' ? 1 : 0, ready: status === 'COMPLETED' ? 1 : 0, gaps: 0},
   hypotheses: status === 'COMPLETED' ? [{id: 'hyp-' + name, title: name, tech: 'tech-' + name,
-    cti: 'cti-' + name, severity: 'High', confidence: 90, evidenceConfidence: 90,
+    cti: 'cti-' + name, cve_id: 'CVE-2024-12345', cwes: [{cwe_id:'CWE-79', cwe_name:'Cross-site Scripting'}], severity: 'High', confidence: 90, evidenceConfidence: 90,
     knowledgeConfidence: 95, ready: true, rows: [], validation: [], evidence: [],
     statement: 'Hypothesis ' + name, supporting_evidence_refs: ['ev-' + name],
     target: {target_value: 'https://' + name + '.example'},
@@ -31,11 +31,14 @@ const context = (name, status = 'COMPLETED') => ({
   }] : [],
 });
 const contexts = [context('A'), context('B'), context('C', 'COMPLETED_NO_MATCH')];
+contexts[0].hypotheses.push({...contexts[0].hypotheses[0], id:'hyp-A-second', cve_id:'CVE-2024-67890'});
 let fail = false;
 const sandbox = {
   document: {getElementById: el}, Set, clearTimeout() {}, setTimeout() { return 1; },
   fetch: async () => { if (fail) throw new Error('offline'); return {ok: true,
-    json: async () => ({contexts, selected_context_id: 'enum-A', may_have_more: true})}; },
+    json: async () => ({contexts, selected_context_id: 'enum-A', may_have_more: true,
+      mission_cwe_summary: ['A','B'].map(name => ({mission_id:'mission-' + name, mapping_status:'AVAILABLE',
+        unmapped_cve_ids:[], cwes:[{cwe_id:'CWE-79', cwe_name:'Cross-site Scripting', cve_ids:['CVE-2024-12345']}]}))})}; },
 };
 vm.runInNewContext(fs.readFileSync(path.join(root, 'hypothesis.js'), 'utf8'), sandbox);
 const settled = () => new Promise(resolve => setImmediate(resolve));
@@ -48,6 +51,12 @@ const selectContext = name => click('input-runs', {target: {
 (async () => {
   await settled();
   assert.equal(el('target-label').textContent, 'https://A.example');
+  assert.equal(el('unique-cwe-count').textContent, 1);
+  assert.equal((el('unique-cwe-list').innerHTML.match(/>CWE-79</g) || []).length, 1);
+  assert(el('unique-cwe-list').innerHTML.includes('Cross-site Scripting'));
+  assert(html.indexOf('id="unique-cwe-title"') < html.indexOf('id="handoff-title"'));
+  assert(el('hyp-detail').innerHTML.includes('CWE-79'));
+  assert(el('hyp-detail').innerHTML.includes('Cross-site Scripting'));
   assert.equal(el('input-limit-note').hidden, false);
   // Results are attributed per mission-id and per wpt-id.
   assert.equal(el('hyp-scope').hidden, false);
@@ -74,6 +83,8 @@ const selectContext = name => click('input-runs', {target: {
   assert(!el('input-runs').innerHTML.includes('wpt-A'));
   assert(el('input-runs').innerHTML.includes('wpt-B'));
   selectContext('C');
+  assert.equal(el('unique-cwe-count').textContent, 0);
+  assert(!el('unique-cwe-list').innerHTML.includes('CWE-79'));
   assert.equal(el('metric-total').textContent, 0);
   assert(el('hyp-items').innerHTML.includes('Korelasi selesai tanpa kecocokan'));
   selectContext('A'); selectHypothesis('A'); click('preview');

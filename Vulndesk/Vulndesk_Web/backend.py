@@ -101,9 +101,13 @@ def query_plan(dataset, args):
     table, alias, searchable, fields = CATALOGS[dataset]
     page = bounded_int(args.get("page"), 1, 100000, 1)
     limit = bounded_int(args.get("limit"), 1, 250, 10)
-    search = str(args.get("search", ""))[:200]
+    search = str(args.get("search", "")).strip()[:200]
     where, params = [], []
-    if search:
+    if dataset == "vulnerabilities" and re.fullmatch(r"CVE-\d{0,4}(?:-\d*)?", search, re.I):
+        # CVE queries use the indexed ID prefix, avoiding a full description scan.
+        where.append("v.cve_id LIKE %s")
+        params.append(search.upper() + "%")
+    elif search:
         where.append("(" + " OR ".join(f"v.{c} LIKE %s" for c in searchable) + ")")
         params.extend(["%" + search + "%"] * len(searchable))
     if dataset == "vulnerabilities":
@@ -129,11 +133,11 @@ def query_plan(dataset, args):
         if args.get("min") and args.get("max") and float(args["min"]) > float(args["max"]):
             raise AppError("CVSS minimum melebihi maksimum.")
         if args.get("year"):
-            year = bounded_int(args["year"], 1990, 2100, 0)
-            if not year:
+            year = str(args["year"]).strip()
+            if not re.fullmatch(r"\d{4}", year) or not 1990 <= int(year) <= 2100:
                 raise AppError("Tahun tidak valid.")
-            where.extend(["v.published_at >= %s", "v.published_at < %s"])
-            params.extend([f"{year}-01-01", f"{year+1}-01-01"])
+            where.append("v.cve_id LIKE %s")
+            params.append(f"CVE-{year}-%")
         if args.get("cwe"):
             cwe_value = str(args["cwe"]).strip().upper()[:40]
             if re.fullmatch(r"(CWE-)?\d{1,5}", cwe_value):
