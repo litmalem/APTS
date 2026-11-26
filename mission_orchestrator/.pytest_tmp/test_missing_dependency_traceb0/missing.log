@@ -1,0 +1,13 @@
+
+=================================== ERRORS ====================================
+_____________________ ERROR collecting tests/test_gss.py ______________________
+ImportError while importing test module 'D:\APTS\mission_orchestrator\.pytest_tmp\test_missing_dependency_traceb0\aptsGS\tests\test_gss.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+tests\test_gss.py:1: in <module>
+    import missing_stage610_backend_dependency
+E   ModuleNotFoundError: No module named 'missing_stage610_backend_dependency'
+=========================== short test summary info ===========================
+ERROR tests/test_gss.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+no tests collected, 1 error in 0.15s

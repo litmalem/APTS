@@ -1,0 +1,2 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuite tests="2" failures="0" errors="0" skipped="0"><testcase classname="tests.test_x.TestGroup" name="test_ipv6[http://[::1]:8080]" /><testcase classname="tests.test_x" name="test_other" /></testsuite>

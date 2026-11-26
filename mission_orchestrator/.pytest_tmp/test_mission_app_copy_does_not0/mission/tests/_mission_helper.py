@@ -1,0 +1,1 @@
+TOKEN = 'mission-test-helper'

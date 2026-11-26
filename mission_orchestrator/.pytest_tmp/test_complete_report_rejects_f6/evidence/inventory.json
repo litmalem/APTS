@@ -1,0 +1,11 @@
+{
+  "mission": [
+    "tests/test_one.py::test_one"
+  ],
+  "gss": [
+    "tests/test_one.py::test_one"
+  ],
+  "vulndesk": [
+    "tests/test_one.py::test_one"
+  ]
+}

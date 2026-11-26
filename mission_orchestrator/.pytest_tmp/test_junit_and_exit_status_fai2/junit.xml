@@ -1,0 +1,2 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuite tests="2" failures="0" errors="0" skipped="1"><testcase classname="tests.test_a" name="test_one"><skipped /></testcase><testcase classname="tests.test_a" name="test_two" /></testsuite>
