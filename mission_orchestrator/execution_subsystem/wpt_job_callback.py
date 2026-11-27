@@ -113,3 +113,16 @@ def publish_recon_receipt(intake: dict, result_record: dict, handoff: dict) -> d
          "mission_id": intake["mission_id"], "task_id": intake["task_id"],
          "execution_id": result_record["execution_id"],
          "evidence_manifest_sha256": result_record["evidence"]["manifest_sha256"]})
+
+
+def publish_enumeration_receipt(intake: dict, result_record: dict, acknowledgement: dict) -> dict:
+    expected = {k: intake[k] for k in ('intake_id', 'mission_id', 'task_id')}
+    expected.update(execution_id=result_record['execution_id'],
+        enumeration_run_id=intake['enumeration_context']['enumeration_run_id'],
+        source_result_sha256=result_record['integrity']['canonical_sha256'],
+        evidence_manifest_sha256=result_record['evidence']['manifest_sha256'])
+    if (acknowledgement.get('accepted') is not True or not acknowledgement.get('delivery_id')
+            or any(acknowledgement.get(k) != v for k, v in expected.items())):
+        raise ValueError("Enumeration receipt requires a bound durable acknowledgement")
+    return _post('/api/jobs/' + quote(job_id_for_intake(intake['intake_id']), safe='')
+        + '/deliveries/enumeration', {**expected, 'delivery_id': acknowledgement['delivery_id']})

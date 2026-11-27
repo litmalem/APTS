@@ -893,7 +893,16 @@ class Handler(BaseHTTPRequestHandler):
                 with connection() as c:
                     row=c.execute('SELECT * FROM jobs WHERE job_id=?',(ident,)).fetchone()
                     if not row: return self._send(404, {'error':'Job tidak ditemukan.'})
+                    if agent == 'enumeration' and row['mode'] != 'enumeration':
+                        raise ValueError('Receipt Enumeration hanya berlaku untuk job enumeration.')
                     if row['intake_id']:
+                        if agent == 'enumeration':
+                            intake = c.execute('SELECT enumeration_context_json FROM governed_intakes WHERE intake_id=?',
+                                               (row['intake_id'],)).fetchone()
+                            context = json.loads(intake['enumeration_context_json'] or '{}') if intake else {}
+                            if (context.get('enumeration_run_id') and
+                                    data.get('enumeration_run_id') != context['enumeration_run_id']):
+                                raise ValueError('Receipt tidak cocok dengan Enumeration run asal.')
                         evidence = json.loads(row['result_json'] or '{}').get('evidence', {})
                         bindings = {k: row[k] for k in ('intake_id','mission_id','task_id','execution_id')}
                         bindings['evidence_manifest_sha256'] = evidence.get('manifest_sha256')

@@ -9,6 +9,26 @@ from mission_orchestrator.canonical import sha256_hex
 LOGGER = logging.getLogger(__name__)
 
 
+def _result_receipt(request, wpt, pentest, repository, state):
+    """Persist agent acceptance before publishing; a lost callback is replayable."""
+    if state.get('enum_receipt_status') == 'DELIVERED':
+        return
+    state['enum_receipt_status'] = 'PENDING'
+    try:
+        from execution_subsystem.wpt_job_callback import publish_enumeration_receipt
+        final = wpt.repository.get_result(request['intake_id'])
+        acknowledgement = pentest.accept_wpt_result(request['intake_id'], source_repository=wpt.repository)
+        state['enum_acknowledgement'] = acknowledgement
+        repository.save(request, state)
+        receipt = publish_enumeration_receipt(request, final['record'], acknowledgement)
+        if receipt.get('status') != 'DELIVERED' or receipt.get('delivery_id') != acknowledgement['delivery_id']:
+            raise ValueError('WPT_ENUMERATION_RECEIPT_ACK_REQUIRED')
+        state['enum_receipt_status'] = 'DELIVERED'
+    except Exception as exc:
+        LOGGER.warning('Enumeration result receipt deferred intake=%s reason=%s',
+                       request['intake_id'], type(exc).__name__)
+
+
 def deliver(service, mission_id, *, pentest=None, wpt=None, repository=None, sender=None):
     from pentest_subsystem.enumeration import EnumerationAgentService
     from pentest_subsystem.web_ui import cti_enumeration_context_for_recon_run
@@ -45,7 +65,8 @@ def deliver(service, mission_id, *, pentest=None, wpt=None, repository=None, sen
                     break
         if previous:
             state.update(previous['state'])
-            if state['execution_status'] == 'RESULT_RECEIVED':
+            if (state['execution_status'] == 'RESULT_RECEIVED'
+                    and state.get('enum_receipt_status') == 'DELIVERED'):
                 outcomes.append({'intake_id': request['intake_id'], **state})
                 continue
         try:
@@ -73,9 +94,17 @@ def deliver(service, mission_id, *, pentest=None, wpt=None, repository=None, sen
                                 callback = {'status': 'PENDING'}
                     if callback.get('status') == 'DELIVERED' and state['delivery_status'] == 'DELIVERED':
                         state.update(execution_status='RESULT_RECEIVED',reason_code=None)
+                        _result_receipt(request, wpt, pentest, repository, state)
                         repository.save(request,state)
                         outcomes.append({'intake_id':request['intake_id'],**state})
                         continue
+            if state['execution_status'] == 'RESULT_RECEIVED':
+                # Receipt recovery must never re-admit completed work, even if
+                # the evidence store or result callback is temporarily unavailable.
+                state['enum_receipt_status'] = 'PENDING'
+                repository.save(request, state)
+                outcomes.append({'intake_id': request['intake_id'], **state})
+                continue
             if service.get_mission_state(mission_id)['mission_state']['state'] != 'RUNNING':
                 raise ValueError('MISSION_NOT_RUNNING')
             contract = service.get_mission_scope_contract(mission_id)['contract']
@@ -140,6 +169,7 @@ def deliver(service, mission_id, *, pentest=None, wpt=None, repository=None, sen
                     result = _reconcile_stage6_result(wpt, request, runtime)
                     if result.get('status') == 'DELIVERED':
                         state.update(execution_status='RESULT_RECEIVED', reason_code=None)
+                        _result_receipt(request, wpt, pentest, repository, state)
         except Exception as exc:
             # Failed delivery is retryable. Never infer delivery from run_status or enum_status.
             reason = (str(exc)[:180] if type(exc).__name__ in {'ValueError', 'ExecutionSourceRejected'}
