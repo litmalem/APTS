@@ -8,7 +8,6 @@ from http.server import ThreadingHTTPServer
 import json
 import os
 from pathlib import Path
-import shutil
 import sqlite3
 from threading import Thread
 from urllib.error import HTTPError
@@ -62,7 +61,10 @@ def seed(tmp_path_factory):
 def ctx(tmp_path, seed):
     source_path, boundary, task, oid, run = seed
     db = tmp_path / "pentest.db"
-    shutil.copy2(source_path, db)
+    # Graph snapshots enlarge Stage 5.5 records and can move the latest handoff
+    # into WAL. Copy a consistent SQLite snapshot, including committed WAL data.
+    with sqlite3.connect(source_path) as source, sqlite3.connect(db) as destination:
+        source.backup(destination)
     service = ExecutionRequestService(ExecutionRequestRepository(tmp_path / "execution.db"), PentestProposalSource(db))
     return service, intake_for(run), deepcopy(boundary), deepcopy(task), oid, deepcopy(run)
 

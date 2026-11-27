@@ -11,11 +11,11 @@ $ExpectedControl = "stage5.5-attack-path-planning-agent"
 $ExpectedPredecessor = "stage5.4-vulnerability-hypothesis-agent"
 $ExpectedPentestMigration = 12
 $ExpectedInventory = 1929
-$ExpectedSchema = "apts-stage5.5-attack-path-planning-agent-v1"
+$ExpectedSchema = "apts-stage5.5-attack-path-planning-agent-v2"
 $ExpectedRequestSchema = "apts-stage5.5-attack-path-planning-run-request-v1"
-$ExpectedOutputSchema = "apts-stage5.5-attack-path-planning-output-v1"
-$ExpectedPathSchema = "apts-stage5.5-candidate-attack-path-v1"
-$ExpectedGraphSchema = "apts-stage5.5-attack-path-graph-v1"
+$ExpectedOutputSchema = "apts-stage5.5-attack-path-planning-output-v2"
+$ExpectedPathSchema = "apts-stage5.5-candidate-attack-path-v2"
+$ExpectedGraphSchema = "apts-stage5.5-attack-path-graph-v2"
 $ExpectedRankingSchema = "apts-stage5.5-candidate-path-ranking-v1"
 $ExpectedProvenanceSchema = "apts-stage5.5-path-provenance-v1"
 $ExpectedEvidenceSchema = "apts-stage5.5-attack-path-planning-evidence-contract-v1"
@@ -117,7 +117,7 @@ if ($summary -notmatch "^$ExpectedInventory tests collected") { throw "expected 
 Write-Host "[PASS] $ExpectedInventory tests collected"
 
 Write-Host "`n[6] Focused Stage 5.5 regression"
-python -m pytest -q tests/test_stage5_5_attack_path_planning_agent.py
+python -B -m pytest -q tests/test_stage5_5_attack_path_planning_agent.py tests/test_bron_graph_planning.py
 if ($LASTEXITCODE -ne 0) { throw "Stage 5.5 focused regression failed" }
 
 Write-Host "`n[7] Stage 4.1 -> Stage 5.5 Pentest qualification chain"

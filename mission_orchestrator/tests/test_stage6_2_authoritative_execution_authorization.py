@@ -7,7 +7,6 @@ from datetime import datetime, timezone, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
-import shutil
 import sqlite3
 from threading import Thread
 from urllib.request import Request
@@ -131,8 +130,10 @@ def seed(tmp_path_factory):
 def ctx(tmp_path, seed):
     pentest, mission, run = seed
     pdb, mdb = tmp_path / "pentest.db", tmp_path / "mission.db"
-    shutil.copy2(pentest,pdb)
-    shutil.copy2(mission,mdb)
+    # Include committed WAL pages when cloning the predecessor fixtures.
+    for original, clone in ((pentest, pdb), (mission, mdb)):
+        with sqlite3.connect(original) as source, sqlite3.connect(clone) as destination:
+            source.backup(destination)
     authority = FakeAuthority()
     service = ExecutionAuthorizationService(ExecutionAuthorizationRepository(tmp_path/"execution.db"),
         ExecutionAuthorizationProposalSource(pdb), MissionAuthorizationSource(mdb), authority, clock=lambda:NOW)
