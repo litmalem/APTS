@@ -51,6 +51,7 @@ Gunakan database dengan skema dari versi Vulndesk yang diberikan. Paket ini tida
 | Vulnerabilities | Pencarian, severity, rentang CVSS, tahun, CWE, keberadaan CPE, pagination, ekspor halaman CSV, detail CVE |
 | MITRE ATT&CK | Teknik, malware, dan threat actors; pencarian dan detail |
 | CWE Catalog | Pencarian, klasifikasi, likelihood, dan detail raw data |
+| CAPEC Catalog | Pencarian, pengurutan numerik ID, pagination, ekspor halaman CSV, detail pola dan relasi CWE/ATT&CK aktif |
 | CPE Dictionary | Vendor, produk, versi, URI, serta detail |
 | Tweet Topics | Tweet topics dan topics master; import CSV serta hapus per jenis/tanggal |
 | API Eksternal | Lihat endpoint, konfigurasi dan kesehatan sumber; tambah, ubah, hapus API; pencarian, filter, pagination, dan pilihan API bawaan |
@@ -58,6 +59,18 @@ Gunakan database dengan skema dari versi Vulndesk yang diberikan. Paket ini tida
 | Mission Monitor | Status misi, event trace, diagnostics, lineage, integrity |
 
 CSV tweet topics menerima kolom `Tweet` dan `Topic`, termasuk alias `TWEETS`, `TOPICS`, `text` dari desktop. Topics master menerima `Topic`/`Topics`. CSV harus UTF-8, maksimum 5 MB dan 100.000 baris. Import memakai tabel dan penyimpanan dataset yang sama dengan desktop. Penghapusan meminta jenis, tanggal unggah UTC, dan konfirmasi, serta memeriksa bahwa file berada di folder unggahan yang dikonfigurasi. Ekspor CSV hanya mengekspor halaman yang terlihat.
+
+CAPEC Catalog menggabungkan identitas dari `capec_patterns` dan relasi aktif pada
+`capec_cwe_mappings` / `capec_attack_mappings`. Jika metadata pola belum tersimpan,
+UI menampilkan penanda tersebut dan tetap menyediakan detail relasi beserta sumber
+dan versinya. Tampilan ini tidak mengimpor atau mengubah data katalog.
+
+Importer `mapping_source_services.py` menyimpan nama, abstraction, status, deskripsi,
+likelihood, severity, prasyarat, dan mitigasi dari XML CAPEC resmi ke
+`capec_patterns`, termasuk pola yang tidak mempunyai relasi CWE/ATT&CK. Pola
+Deprecated/Obsolete mengikuti filter importer dan tidak diimpor. Impor dengan hash
+yang sama tetap memperbaiki metadata kosong/berubah tanpa menulis ulang relasi;
+impor berikutnya kembali menjadi no-op setelah metadata lengkap.
 
 ## Integrasi runtime
 

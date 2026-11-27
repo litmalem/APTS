@@ -19,6 +19,8 @@ PROVENANCE = {
     'record_key': 'char(64)', 'publisher_status': 'varchar(40)',
 }
 MAX_BYTES = 16 * 1024 * 1024
+PATTERN_FIELDS = ('capec_id', 'name', 'abstraction', 'status', 'description',
+                  'likelihood', 'severity', 'prerequisites', 'mitigations')
 
 
 def validate_source_url(kind, url):
@@ -53,6 +55,30 @@ def download(kind, url, timeout=90):
 
 def _key(*values):
     return hashlib.sha256(json.dumps(values, ensure_ascii=False).encode()).hexdigest()
+
+
+def _xml_text(element):
+    """Preserve text inside CAPEC's nested XHTML paragraphs without storing markup."""
+    if element is None:
+        return None
+    parts = []
+    def visit(node):
+        block = node.tag.rsplit('}', 1)[-1] in {'p', 'div', 'li', 'br'}
+        if block:
+            parts.append(' ')
+        parts.append(node.text or '')
+        for child in node:
+            visit(child)
+            parts.append(child.tail or '')
+        if block:
+            parts.append(' ')
+    visit(element)
+    return ' '.join(''.join(parts).split()) or None
+
+
+def _xml_items(pattern, path):
+    values = [_xml_text(element) for element in pattern.findall(path)]
+    return '\n\n'.join(value for value in values if value) or None
 
 
 def parse_dataset(kind, data, url):
@@ -91,6 +117,7 @@ def parse_dataset(kind, data, url):
         if root.tag != '{http://capec.mitre.org/capec-3}Attack_Pattern_Catalog':
             raise ValueError('Bukan katalog CAPEC XML resmi.')
         version = 'CAPEC:' + root.attrib['Version']
+        rows['capec_patterns'] = {}
         for pattern in root.findall('./{*}Attack_Patterns/{*}Attack_Pattern'):
             if pattern.get('Status') in {'Deprecated', 'Obsolete'}:
                 continue
@@ -98,6 +125,17 @@ def parse_dataset(kind, data, url):
             if not number.isdigit():
                 raise ValueError('CAPEC ID tidak valid.')
             capec = 'CAPEC-' + str(int(number))
+            name = (pattern.get('Name') or '').strip()
+            if not name or len(name) > 255:
+                raise ValueError('Nama pola CAPEC kosong atau melebihi batas katalog.')
+            rows['capec_patterns'][capec] = {
+                'capec_id': capec, 'name': name, 'abstraction': pattern.get('Abstraction'),
+                'status': pattern.get('Status'), 'description': _xml_text(pattern.find('{*}Description')),
+                'likelihood': _xml_text(pattern.find('{*}Likelihood_Of_Attack')),
+                'severity': _xml_text(pattern.find('{*}Typical_Severity')),
+                'prerequisites': _xml_items(pattern, './{*}Prerequisites/{*}Prerequisite'),
+                'mitigations': _xml_items(pattern, './{*}Mitigations/{*}Mitigation'),
+            }
             for weakness in pattern.findall('./{*}Related_Weaknesses/{*}Related_Weakness'):
                 number = weakness.get('CWE_ID', '')
                 if not number.isdigit():
@@ -121,7 +159,7 @@ def parse_dataset(kind, data, url):
                     'relationship_type': 'taxonomy_mapping', 'publisher_status': pattern.get('Status'),
                     'references_json': json.dumps(['https://capec.mitre.org/data/definitions/' + pattern.get('ID') + '.html']),
                 }
-    if not rows['vuln_attack_mappings'] and not (rows['capec_cwe_mappings'] and rows['capec_attack_mappings']):
+    if not rows['vuln_attack_mappings'] and not rows.get('capec_patterns'):
         raise ValueError('Dataset tidak memiliki relasi yang didukung; data lama dipertahankan.')
     for table in TABLES:
         for key, row in rows[table].items():
@@ -142,6 +180,15 @@ def migrate(cursor):
         source_version varchar(160), source_url varchar(1000), counts_json longtext,
         imported_at datetime DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(source_id,source_sha256)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS capec_patterns (
+        id bigint unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY, capec_id varchar(40) NOT NULL,
+        name varchar(255) NOT NULL, abstraction varchar(80), status varchar(80),
+        description mediumtext, likelihood varchar(80), severity varchar(80),
+        prerequisites mediumtext, mitigations mediumtext,
+        created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uq_capec_id (capec_id), KEY idx_capec_name (name), KEY idx_capec_status (status)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4''')
     for table in TABLES:
         # Use native idempotent DDL, avoiding SHOW COLUMNS / I_S metadata scans
         # (the deployed XAMPP 10.4.32 crashes in get_column_grant on those scans).
@@ -153,15 +200,38 @@ def migrate(cursor):
 
 
 
+def _upsert_capec_patterns(cursor, records):
+    if not records:
+        return 0
+    fields = ','.join(PATTERN_FIELDS)
+    cursor.execute('SELECT ' + fields + ' FROM capec_patterns')
+    existing = {row['capec_id']: row for row in cursor.fetchall()}
+    changed = 0
+    for capec_id, row in records.items():
+        if existing.get(capec_id) == row:
+            continue
+        cursor.execute('INSERT INTO capec_patterns (' + fields + ') VALUES (' +
+                       ','.join(['%s'] * len(PATTERN_FIELDS)) + ') ON DUPLICATE KEY UPDATE ' +
+                       ','.join(f'{field}=VALUES({field})' for field in PATTERN_FIELDS if field != 'capec_id'),
+                       tuple(row[field] for field in PATTERN_FIELDS))
+        changed += 1
+    return changed
+
+
 def import_dataset(cursor, dataset):
     """Caller owns one write transaction; lock dataset to serialize refreshes."""
     source = dataset['source_id']
     cursor.execute('INSERT INTO cti_mapping_datasets (source_id) VALUES (%s) ON DUPLICATE KEY UPDATE source_id=VALUES(source_id)', (source,))
     cursor.execute('SELECT source_sha256 FROM cti_mapping_datasets WHERE source_id=%s FOR UPDATE', (source,))
-    if (cursor.fetchone() or {}).get('source_sha256') == dataset['sha256']:
+    same_source = (cursor.fetchone() or {}).get('source_sha256') == dataset['sha256']
+    # Repair catalogs produced by older importers even when the XML hash is unchanged.
+    patterns_updated = _upsert_capec_patterns(cursor, dataset['rows'].get('capec_patterns', {}))
+    if same_source and not patterns_updated:
         return {**{k: v for k, v in dataset.items() if k != 'rows'}, 'status': 'SUCCESS', 'unchanged': True}
     skipped = 0
-    for table, records in dataset['rows'].items():
+    for table, records in ({} if same_source else dataset['rows']).items():
+        if table == 'capec_patterns':
+            continue
         if not records:
             continue
         cursor.execute(f'UPDATE {table} SET is_active=0 WHERE source_dataset=%s', (source,))
@@ -181,9 +251,10 @@ def import_dataset(cursor, dataset):
             cursor.execute(sql, tuple(row[key] for key in keys))
     cursor.execute('UPDATE cti_mapping_datasets SET source_version=%s,source_url=%s,source_sha256=%s,counts_json=%s,imported_at=CURRENT_TIMESTAMP WHERE source_id=%s',
                    (dataset['version'], dataset['url'], dataset['sha256'], json.dumps(dataset['counts']), source))
-    cursor.execute('INSERT INTO cti_mapping_imports (source_id,source_sha256,source_version,source_url,counts_json) VALUES (%s,%s,%s,%s,%s) ON DUPLICATE KEY UPDATE source_sha256=VALUES(source_sha256)',
+    cursor.execute('INSERT INTO cti_mapping_imports (source_id,source_sha256,source_version,source_url,counts_json) VALUES (%s,%s,%s,%s,%s) ON DUPLICATE KEY UPDATE counts_json=VALUES(counts_json)',
                    (source,dataset['sha256'],dataset['version'],dataset['url'],json.dumps(dataset['counts'])))
-    return {**{k: v for k, v in dataset.items() if k != 'rows'}, 'status': 'SUCCESS', 'unchanged': False, 'preserved_manual_rows': skipped}
+    return {**{k: v for k, v in dataset.items() if k != 'rows'}, 'status': 'SUCCESS', 'unchanged': False,
+            'preserved_manual_rows': skipped, 'patterns_updated': patterns_updated}
 
 
 def sync(kind, url, transaction, timeout=90, data=None):

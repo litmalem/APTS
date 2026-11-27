@@ -6,6 +6,14 @@ Navigasi tahap 01–03 mengarah ke halaman ini; tautan dari tahap 03 mempertahan
 orchestration ID. UI mengambil seluruh hipotesis authoritative dari run terpilih,
 bukan JSON pratinjau atau subset checkbox pada halaman hipotesis.
 
+Panel MITRE ATT&CK meminta pengayaan CTI lokal secara otomatis setelah konteks
+hipotesis tersedia. Jawaban cache dipakai ulang; sisa lookup setelah batas 50
+per permintaan dilanjutkan dalam batch berikutnya. Polling workspace tidak
+mengulang pengayaan yang sudah selesai untuk run hipotesis yang sama. Tombol
+Perkaya ATT&CK tetap tersedia untuk meminta ulang data. Gangguan CTI menghentikan
+kelanjutan batch dan dilaporkan bersama hasil kosong serta lookup tertunda.
+Anotasi ini tidak mengubah input atau biaya planner.
+
 ## Implementasi
 
 - `symbolic_planner.py`: monotone STRIPS dengan preconditions/effects positif,
@@ -92,6 +100,15 @@ search tetap mengurutkan biaya jalur dan seluruh output tetap kandidat. Pelatiha
 memakai transisi simbolik deterministik, bukan target nyata. Evaluasi cyber range,
 kalibrasi probabilitas, dan benchmarking kebijakan diperlukan sebelum mengklaim
 peningkatan kinerja operasional.
+
+## Konteks MITRE ATT&CK
+
+Halaman otomatis meminta pengayaan ATT&CK ke CTI lokal untuk run hipotesis
+terpilih. Cache yang tersedia dipakai kembali; batch yang tertunda dilanjutkan
+melewati batas 50 lookup per permintaan. Pengayaan selesai tidak diulang pada
+polling workspace untuk run yang sama. Tombol Perkaya ATT&CK tetap tersedia
+untuk mencoba ulang; gangguan CTI menghentikan kelanjutan batch dan ditampilkan
+terpisah dari hasil kosong. Anotasi ini tidak mengubah input atau biaya planner.
 
 ## Validasi
 

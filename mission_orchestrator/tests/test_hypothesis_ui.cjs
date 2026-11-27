@@ -19,7 +19,8 @@ const context = (name, status = 'COMPLETED') => ({
   target: {value: 'https://' + name + '.example', type: 'URL'},
   enumeration_input: {available: true, enumeration_run_id: 'enum-' + name,
     wpt_job_id: 'wpt-' + name, observation_count: 2, technology_count: 1},
-  hypothesis_run: {vulnerability_hypothesis_run_id: 'hyprun-' + name},
+  hypothesis_run: {vulnerability_hypothesis_run_id: 'hyprun-' + name,
+    completed_at: name === 'A' ? '2026-11-26T07:15:30Z' : null},
   correlation: {status}, cti_input: {available: true, knowledge_count: 1},
   metrics: {total: status === 'COMPLETED' ? 1 : 0, ready: status === 'COMPLETED' ? 1 : 0, gaps: 0},
   hypotheses: status === 'COMPLETED' ? [{id: 'hyp-' + name, title: name, tech: 'tech-' + name,
@@ -58,6 +59,11 @@ const selectContext = name => click('input-runs', {target: {
   assert(el('hyp-detail').innerHTML.includes('CWE-79'));
   assert(el('hyp-detail').innerHTML.includes('Cross-site Scripting'));
   assert.equal(el('input-limit-note').hidden, false);
+  assert(el('input-runs').innerHTML.includes('<time datetime="2026-11-26T07:15:30Z">'));
+  for (const name of ['A', 'B', 'C']) {
+    assert(el('input-runs').innerHTML.includes(`href="/pentest/attack-path-planning/?orchestration_id=orch-${name}" aria-label="Buka Attack-Path Planning untuk mission-${name}"`));
+  }
+  assert(!el('input-runs').innerHTML.includes('Invalid Date'));
   // Results are attributed per mission-id and per wpt-id.
   assert.equal(el('hyp-scope').hidden, false);
   assert(el('hyp-scope').innerHTML.includes('Mission ID') && el('hyp-scope').innerHTML.includes('mission-A'));

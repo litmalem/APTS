@@ -112,6 +112,9 @@ def make_handler(adapter, csrf, mode, port):
             match = re.fullmatch(r"/api/attack/(T[0-9]{4}(?:\.[0-9]{3})?)/vulnerabilities", path)
             if match:
                 return adapter.attack_vulnerabilities(match[1], args)
+            capec_match = re.fullmatch(r"/api/data/capec/(CAPEC-[0-9]{1,8})", path)
+            if capec_match:
+                return adapter.data_detail("capec", capec_match[1])
             match = re.fullmatch(r"/api/data/([a-z]+)/([0-9]+)", path)
             if match:
                 return adapter.data_detail(*match.groups())

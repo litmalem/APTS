@@ -16,9 +16,11 @@ const record = {revision:1, plan, changes:{added_paths:[],removed_paths:[]}};
 const context = {context_id:'enum-A', orchestration_id:'paorch-A', can_plan:true,hypothesis_count:2,
   mission:{mission_id:'<img onerror=bad>'}, target:{value:'https://a.example'}, revisions:[]};
 let fail=false, payload;
-const sandbox = {document:{getElementById:el},location:{search:''},URLSearchParams,
+const sandbox = {document:{getElementById:el},location:{search:''},URLSearchParams,setInterval() {},
   fetch:async (url, opts)=>{
     if(fail) throw new Error('offline');
+    if(url.endsWith('/enrichment')) return {ok:true,json:async()=>({kinds:{attack:{fetched:0}}})};
+    if(url.endsWith('/attack-context')) return {ok:true,json:async()=>({hypotheses:{}})};
     if(opts) payload=JSON.parse(opts.body);
     return {ok:true,json:async()=>opts?{created:true,record}:{contexts:[context]}};
   }};
@@ -26,16 +28,17 @@ vm.runInNewContext(fs.readFileSync(path.join(root,'planning.js'),'utf8'), sandbo
 const settled = ()=>new Promise(resolve=>setImmediate(resolve));
 (async()=>{
   await settled();
-  assert.equal(el('build').disabled,false);
+  assert.equal(el('max-paths').disabled,false);
   assert(el('lineage').innerHTML.includes('&lt;img'));
   assert(!el('lineage').innerHTML.includes('<img'));
-  await el('build').handlers.click();
+  await el('max-paths').handlers.change();
   assert.deepEqual(payload,{orchestration_id:'paorch-A',max_paths:10});
   assert.equal(el('revision-count').textContent,1);
   assert(el('detail').innerHTML.includes('Tidak ada jalur'));
-  assert(el('goal').innerHTML.includes('cakupan validasi'));
+  assert(el('goal').innerHTML.includes('validasi per-hipotesis'));
   fail=true;await el('refresh').handlers.click();
-  assert.equal(el('build').disabled,true);
+  assert.equal(el('context').value, 'enum-A');
+  assert(el('plan-state').textContent.includes('Menunggu konteks'));
   assert(el('notice').textContent.includes('offline'));
   console.log('Planning UI controller checks passed');
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -270,6 +270,15 @@ class HttpBoundaryTests(unittest.TestCase):
             raw = response.read()
             return response.status, raw, response.headers
 
+    def test_capec_detail_route_uses_external_identity_and_origin_boundary(self):
+        self.adapter.data_detail = MagicMock(return_value={'capec_id': 'CAPEC-100'})
+        status, raw, _ = self.request('/api/data/capec/CAPEC-100')
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(raw)['capec_id'], 'CAPEC-100')
+        self.adapter.data_detail.assert_called_once_with('capec', 'CAPEC-100')
+        self.assertEqual(self.request('/api/data/capec/CAPEC-100%27')[0], 404)
+        self.assertEqual(self.request('/api/data/capec/CAPEC-100', headers={'Origin': 'https://evil.example'})[0], 403)
+
     def test_reverse_mapping_route_preserves_filters_and_rejects_invalid_paths(self):
         self.adapter.attack_vulnerabilities=MagicMock(return_value={'attack_id':'T1505.003','items':[],'total':0})
         status,raw,_=self.request('/api/attack/T1505.003/vulnerabilities?page=2&mapping_kind=CAPEC&search=CVE-2024')

@@ -1,0 +1,20 @@
+{
+  "source_id": "mitre-capec",
+  "version": "CAPEC:3.9",
+  "sha256": "70279a2dff0cb0ad79e546adb07828335a704ad5210e047e09e986172fc9e34d",
+  "url": "https://capec.mitre.org/data/xml/capec_latest.xml",
+  "counts": {
+    "vuln_attack_mappings": 0,
+    "capec_cwe_mappings": 1211,
+    "capec_attack_mappings": 271,
+    "capec_patterns": 558
+  },
+  "status": "SUCCESS",
+  "unchanged": false,
+  "preserved_manual_rows": 0,
+  "patterns_updated": 558,
+  "metadata_count": 558,
+  "mapping_rows_unchanged": true,
+  "repeat_unchanged": true,
+  "backup": "D:\\APTS\\Vulndesk\\Vulndesk_Web\\verification\\capec-before-metadata-repair-20261127-111255.json"
+}

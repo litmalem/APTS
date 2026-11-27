@@ -19,7 +19,11 @@ def ctid(attack='T1190'):
 
 
 XML = b'''<Attack_Pattern_Catalog xmlns="http://capec.mitre.org/capec-3" Version="3.9">
-<Attack_Patterns><Attack_Pattern ID="100" Name="Example" Status="Draft">
+<Attack_Patterns><Attack_Pattern ID="100" Name="Example" Status="Draft" Abstraction="Standard">
+<Description>Nested <b>pattern description</b>.</Description>
+<Likelihood_Of_Attack>High</Likelihood_Of_Attack><Typical_Severity>Medium</Typical_Severity>
+<Prerequisites><Prerequisite>First prerequisite.</Prerequisite><Prerequisite>Second prerequisite.</Prerequisite></Prerequisites>
+<Mitigations><Mitigation>Validate <b>input</b>.</Mitigation></Mitigations>
 <Related_Weaknesses><Related_Weakness CWE_ID="89"/></Related_Weaknesses>
 <Taxonomy_Mappings><Taxonomy_Mapping Taxonomy_Name="ATTACK"><Entry_ID>1190</Entry_ID>
 <Entry_Name>Exploit Application</Entry_Name></Taxonomy_Mapping></Taxonomy_Mappings>
@@ -64,6 +68,9 @@ class SourceTests(unittest.TestCase):
             mapping_type TEXT,is_active INTEGER,{common},UNIQUE(source_dataset,record_key),UNIQUE(capec_id,cwe_id));
         CREATE TABLE capec_attack_mappings (id INTEGER PRIMARY KEY,capec_id TEXT,attack_id TEXT,
             attack_name TEXT,confidence REAL,rationale TEXT,is_active INTEGER,{common},UNIQUE(source_dataset,record_key));
+        CREATE TABLE capec_patterns (id INTEGER PRIMARY KEY,capec_id TEXT UNIQUE,name TEXT,
+            abstraction TEXT,status TEXT,description TEXT,likelihood TEXT,severity TEXT,
+            prerequisites TEXT,mitigations TEXT);
         INSERT INTO vuln_attack_mappings (id,cwe_id,attack_id,is_active,mapping_source) VALUES (40,'CWE-89','T1190',1,'seed');
         ''')
         self.cursor = SqlCursor(self.db)
@@ -83,6 +90,59 @@ class SourceTests(unittest.TestCase):
         self.assertEqual(row['attack_id'], 'T1190')
         self.assertEqual(row['capec_id'], 'CAPEC-100')
         self.assertEqual(row['publisher_status'], 'Draft')
+        self.assertEqual(d['counts']['capec_patterns'], 1)
+        pattern = d['rows']['capec_patterns']['CAPEC-100']
+        self.assertEqual(pattern['name'], 'Example')
+        self.assertEqual(pattern['abstraction'], 'Standard')
+        self.assertEqual(pattern['description'], 'Nested pattern description.')
+        self.assertEqual(pattern['likelihood'], 'High')
+        self.assertEqual(pattern['severity'], 'Medium')
+        self.assertEqual(pattern['prerequisites'], 'First prerequisite.\n\nSecond prerequisite.')
+        self.assertEqual(pattern['mitigations'], 'Validate input.')
+
+    def test_capec_keeps_patterns_without_cwe_or_attack_mappings(self):
+        xml = b'''<Attack_Pattern_Catalog xmlns="http://capec.mitre.org/capec-3" Version="3.9">
+          <Attack_Patterns><Attack_Pattern ID="2" Name="Independent pattern" Status="Stable"/>
+          </Attack_Patterns></Attack_Pattern_Catalog>'''
+        d = parse_dataset('mitre-capec', xml, SOURCES['mitre-capec'])
+        with self.db:
+            result = import_dataset(self.cursor, d)
+        self.assertEqual(result['patterns_updated'], 1)
+        self.assertEqual(self.db.execute('SELECT name FROM capec_patterns').fetchone()[0], 'Independent pattern')
+
+    def test_same_hash_backfills_old_catalog_without_rewriting_mapping_rows(self):
+        dataset = parse_dataset('mitre-capec', XML, SOURCES['mitre-capec'])
+        legacy = copy.deepcopy(dataset)
+        del legacy['rows']['capec_patterns']
+        del legacy['counts']['capec_patterns']
+        with self.db:
+            import_dataset(self.cursor, legacy)
+        mappings_before = list(self.db.execute('SELECT * FROM capec_attack_mappings'))
+        with self.db:
+            result = import_dataset(self.cursor, dataset)
+        self.assertFalse(result['unchanged'])
+        self.assertEqual(result['patterns_updated'], 1)
+        self.assertEqual(mappings_before, list(self.db.execute('SELECT * FROM capec_attack_mappings')))
+        self.assertEqual(self.db.execute('SELECT COUNT(*) FROM cti_mapping_imports').fetchone()[0], 1)
+        counts = json.loads(self.db.execute('SELECT counts_json FROM cti_mapping_datasets').fetchone()[0])
+        self.assertEqual(counts['capec_patterns'], 1)
+        before = self.db.total_changes
+        with self.db:
+            self.assertTrue(import_dataset(self.cursor, dataset)['unchanged'])
+        self.assertEqual(self.db.total_changes, before + 1)  # Existing dataset lock-row upsert only.
+        with self.db:
+            self.db.execute("UPDATE capec_patterns SET description=NULL")
+            result = import_dataset(self.cursor, dataset)
+        self.assertEqual(result['patterns_updated'], 1)
+        self.assertEqual(self.db.execute('SELECT description FROM capec_patterns').fetchone()[0], 'Nested pattern description.')
+
+    def test_failed_capec_import_rolls_back_metadata_and_relations_together(self):
+        broken = parse_dataset('mitre-capec', XML, SOURCES['mitre-capec'])
+        next(iter(broken['rows']['capec_attack_mappings'].values()))['invalid_column'] = 1
+        with self.assertRaises(sqlite3.OperationalError), self.db:
+            import_dataset(self.cursor, broken)
+        self.assertEqual(self.db.execute('SELECT COUNT(*) FROM capec_patterns').fetchone()[0], 0)
+        self.assertEqual(self.db.execute('SELECT COUNT(*) FROM capec_cwe_mappings').fetchone()[0], 0)
 
     def test_untrusted_endpoints_xml_entities_and_wrong_schema_are_rejected(self):
         for url in ['http://capec.mitre.org/data/xml/a.xml','https://evil.test/data.xml',

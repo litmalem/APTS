@@ -74,6 +74,13 @@ class NoRedirect(HTTPRedirectHandler):
         raise AppError("API lokal mengembalikan redirect yang tidak diizinkan.", 502)
 
 
+CAPEC_CATALOG = """(SELECT p.id,ids.capec_id,p.name,p.abstraction,p.status,p.description,
+    p.likelihood,p.severity,p.created_at,p.updated_at
+    FROM (SELECT capec_id FROM capec_patterns
+          UNION SELECT capec_id FROM capec_cwe_mappings WHERE is_active=1
+          UNION SELECT capec_id FROM capec_attack_mappings WHERE is_active=1) ids
+    LEFT JOIN capec_patterns p ON p.capec_id=ids.capec_id)"""
+
 CATALOGS = {
     "vulnerabilities": ("vulnerabilities", "v", ["cve_id", "description_text"],
         "id,cve_id,description_text,source_name,vuln_status,published_at,modified_at,nvd_url,preferred_cvss_version,preferred_base_score,preferred_base_severity,preferred_vector_string"),
@@ -85,6 +92,8 @@ CATALOGS = {
         "id,group_id,stix_id,name,description_text,modified_at_source,aliases_json"),
     "cwe": ("cwe_catalog", "v", ["cwe_id", "cwe_name", "description_text"],
         "id,cwe_id,cwe_name,cwe_url,description_text,abstraction,status_value,likelihood_of_exploit,api_synced_at"),
+    "capec": (CAPEC_CATALOG, "v", ["capec_id", "name", "description"],
+        "id,capec_id,name,abstraction,status,description,likelihood,severity,created_at,updated_at"),
     "cpe": ("nvd_cpe_dictionary", "v", ["vendor", "product", "cpe23_uri", "title"],
         "id,cpe_name_id,cpe23_uri,vendor,product,version,title,deprecated,last_synced_at"),
     "tweets": ("tweet_topic_records", "v", ["tweet_text", "topic_text"], "id,tweet_text,topic_text,created_at"),
@@ -160,6 +169,11 @@ def query_plan(dataset, args):
     if dataset == "cwe":
         select += ",(SELECT COUNT(*) FROM vulnerability_cwes vc WHERE vc.cwe_catalog_id=v.id) cve_count"
         allowed_sort.add("cve_count")
+    if dataset == "capec":
+        for key, mapping, related in (("cwe_count", "capec_cwe_mappings", "cwe_id"),
+                                      ("attack_count", "capec_attack_mappings", "attack_id")):
+            select += f",(SELECT COUNT(DISTINCT m.{related}) FROM {mapping} m WHERE m.capec_id=v.capec_id AND m.is_active=1) {key}"
+            allowed_sort.add(key)
     if dataset in {"tweets", "topics"}:
         from_sql += " JOIN dataset_uploads u ON u.id=v.upload_id"
         select += ",u.file_name,u.uploaded_at"
@@ -172,12 +186,14 @@ def query_plan(dataset, args):
     clause = " WHERE " + " AND ".join(where) if where else ""
     count = f"SELECT COUNT(*) AS total FROM {from_sql}{clause}"
     order = f"{sort_alias}.{sort} {direction}"
-    if sort == "cve_count":
-        order = f"cve_count {direction}"
+    if sort in {"cve_count", "cwe_count", "attack_count"} and sort in allowed_sort:
+        order = f"{sort} {direction}"
+    elif dataset == "capec" and sort == "capec_id":
+        order = f"CAST(SUBSTRING(v.capec_id,7) AS UNSIGNED) {direction}"
     elif dataset == "cwe" and sort == "cwe_id":
         # Urutkan numerik (CWE-2 < CWE-10); ID non-numerik seperti NVD-CWE-* di akhir.
         order = f"(v.cwe_id NOT LIKE 'CWE-%%') ASC,CAST(SUBSTRING(v.cwe_id,5) AS UNSIGNED) {direction}"
-    sql = f"SELECT {select} FROM {from_sql}{clause} ORDER BY {order},v.id {direction} LIMIT %s OFFSET %s"
+    sql = f"SELECT {select} FROM {from_sql}{clause} ORDER BY {order},{'v.capec_id' if dataset == 'capec' else 'v.id'} {direction} LIMIT %s OFFSET %s"
     return count, sql, params, page, limit
 
 
@@ -400,11 +416,19 @@ class Adapter:
     def data_detail(self, dataset, row_id):
         if dataset not in CATALOGS:
             raise AppError("Katalog tidak dikenal.", 404)
+        if dataset == "capec" and re.fullmatch(r"CAPEC-[0-9]{1,8}", str(row_id)):
+            with self.database() as cursor:
+                cursor.execute("SELECT v.*,p.prerequisites,p.mitigations FROM " + CAPEC_CATALOG + " v LEFT JOIN capec_patterns p ON p.capec_id=v.capec_id WHERE v.capec_id=%s", (row_id,))
+                row = cursor.fetchone()
+                if not row:
+                    raise AppError("Data tidak ditemukan.", 404)
+                self._capec_relations(cursor, row)
+            return clean_result(row)
         try:
             row_id = int(row_id)
         except ValueError:
             raise AppError("ID data tidak valid.")
-        table = CATALOGS[dataset][0]
+        table = "capec_patterns" if dataset == "capec" else CATALOGS[dataset][0]
         fields = "*" if dataset != "components" else CATALOGS[dataset][3]
         with self.database() as cursor:
             cursor.execute(f"SELECT {fields} FROM {table} WHERE id=%s", (row_id,))
@@ -413,6 +437,8 @@ class Adapter:
                 raise AppError("Data tidak ditemukan.", 404)
             if dataset == 'attack':
                 row['related_vulnerabilities'] = self._attack_vulnerabilities(cursor, row['attack_id'], {})
+            if dataset == "capec":
+                self._capec_relations(cursor, row)
             if dataset == "vulnerabilities":
                 cursor.execute("SELECT cw.cwe_id,cw.cwe_name,vc.source_name FROM vulnerability_cwes vc JOIN cwe_catalog cw ON cw.id=vc.cwe_catalog_id WHERE vc.vulnerability_id=%s", (row_id,))
                 row["cwes"] = cursor.fetchall()
@@ -439,6 +465,13 @@ class Adapter:
                             row["raw_json"] = "Raw JSON terkompresi tidak dapat dibaca."
         row.pop("stored_file_path", None)
         return clean_result(row)
+
+    @staticmethod
+    def _capec_relations(cursor, row):
+        cursor.execute("SELECT m.*,cw.cwe_name FROM capec_cwe_mappings m LEFT JOIN cwe_catalog cw ON cw.cwe_id=m.cwe_id WHERE m.capec_id=%s AND m.is_active=1 ORDER BY m.cwe_id,m.id", (row["capec_id"],))
+        row["cwe_mappings"] = cursor.fetchall()
+        cursor.execute("SELECT m.* FROM capec_attack_mappings m WHERE m.capec_id=%s AND m.is_active=1 ORDER BY m.attack_id,m.id", (row["capec_id"],))
+        row["attack_mappings"] = cursor.fetchall()
 
     def upstream(self, service, path, body=None):
         if service not in self.ports or not path.startswith("/") or ".." in path or "//" in path:
@@ -503,12 +536,12 @@ class Adapter:
         return items
 
     def summary(self):
-        counts = {k: None for k in ("vulnerabilities", "attack", "cwe", "cpe", "components")}
+        counts = {k: None for k in ("vulnerabilities", "attack", "cwe", "cpe", "components", "capec")}
         result = {"counts": counts, "severity": {}, "recent": [], "sync": [], "database": {"status": "OFFLINE"}, "checked_at": datetime.now(timezone.utc).isoformat()}
         try:
             with self.database() as cursor:
                 for key in counts:
-                    cursor.execute(f"SELECT COUNT(*) AS n FROM {CATALOGS[key][0]}")
+                    cursor.execute(f"SELECT COUNT(*) AS n FROM {CATALOGS[key][0]} v")
                     counts[key] = cursor.fetchone()["n"]
                 cursor.execute("SELECT COALESCE(preferred_base_severity,'UNKNOWN') severity,COUNT(*) n FROM vulnerabilities GROUP BY preferred_base_severity")
                 result["severity"] = {r["severity"]: r["n"] for r in cursor.fetchall()}

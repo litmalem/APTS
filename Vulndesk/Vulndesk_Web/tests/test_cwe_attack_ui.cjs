@@ -9,6 +9,30 @@ const rendering=source.slice(source.indexOf('  function cweAttackHTML'),source.i
 const ctx=vm.createContext({window:{VULNDESK_CONFIG:{mode:'live'},VULNDESK_DEMO:{}},Intl,URL,URLSearchParams});
 vm.runInContext(helpers+rendering+';globalThis.ui={cweAttackHTML,attackRelationsHTML,detailsHTML};',ctx);
 
+test('CAPEC detail escapes metadata and links CWE and ATTACK relations',()=>{
+  const html=ctx.ui.detailsHTML('capec',{capec_id:'CAPEC-2',description:'<script>unsafe</script>',
+    mitigations:'<img src=x>',cwe_mappings:[{cwe_id:'CWE-89',source_version:'CAPEC:3.9'}],
+    attack_mappings:[{attack_id:'T1190',attack_name:'Exploit application'}]});
+  assert.ok(html.includes('Metadata pola belum tersedia'));
+  assert.ok(html.includes('data-cwe-filter="CWE-89"'));
+  assert.ok(html.includes('data-attack-relations="T1190"'));
+  assert.ok(html.includes('CAPEC:3.9'));
+  assert.ok(html.includes('INFERRED'));
+  assert.ok(!html.includes('<script>'));
+  assert.ok(!html.includes('<img'));
+});
+
+test('CAPEC metadata from the importer renders without the missing metadata message',()=>{
+  const html=ctx.ui.detailsHTML('capec',{capec_id:'CAPEC-1',
+    name:'Accessing Functionality Not Properly Constrained by ACLs',abstraction:'Standard',
+    status:'Draft',description:'Access control pattern',likelihood:'High',severity:'High',
+    prerequisites:'Discoverable resource',mitigations:'Deny access by default',
+    cwe_mappings:[],attack_mappings:[]});
+  assert.ok(!html.includes('Metadata pola belum tersedia'));
+  for(const text of ['Accessing Functionality','Standard','Draft','High','Discoverable resource','Deny access by default'])
+    assert.ok(html.includes(text));
+});
+
 test('detail explains indirect mapping with escaped source, path and rationale',()=>{
   const html=ctx.ui.detailsHTML('vulnerabilities', {cve_id:'CVE-2026-1', attack_mapping_status:'MAPPED_VIA_CWE',
     attack_mappings:[{attack_id:'T1190',technique_name:'Exploit <script>',confidence:0.7,
